@@ -1,0 +1,226 @@
+import { useState } from "react"
+import { useAuth } from "../context/AuthContext"
+import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2 } from "lucide-react"
+
+const tabs = ["Profile", "Notifications", "Billing"]
+
+export default function Settings() {
+  const { user, updateUser, logout } = useAuth()
+  const [activeTab, setActiveTab] = useState("Profile")
+  const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
+  const [form, setForm] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    bio: user?.bio || "",
+    website: user?.website || "",
+    medium: user?.medium || "Oil Painting",
+    style: user?.style || "Abstract",
+    location: user?.location || "",
+  })
+
+  const handleSave = async () => {
+    setSaving(true)
+    setError("")
+    try {
+      await updateUser({
+        name: form.name,
+        email: form.email,
+        bio: form.bio,
+        website: form.website,
+        medium: form.medium,
+        style: form.style,
+        location: form.location,
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) {
+      setError(err.message || "Failed to save changes.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      {/* Tab bar */}
+      <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: "#F2EDE6" }}>
+        {tabs.map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)}
+            className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
+            style={{
+              background: activeTab === tab ? "white" : "transparent",
+              color: activeTab === tab ? "#0E0C0A" : "#A89F94",
+              boxShadow: activeTab === tab ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+            }}>
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "Profile" && (
+        <div className="space-y-5">
+          <div className="card p-6">
+            <div className="flex items-center gap-5 mb-6">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-semibold font-serif"
+                style={{ background: "linear-gradient(135deg, #B5651D, #C4705A)" }}>
+                {user?.initials || "M"}
+              </div>
+              <div>
+                <h3 className="text-base font-semibold" style={{ color: "#0E0C0A" }}>{form.name}</h3>
+                <p className="text-sm" style={{ color: "#A89F94" }}>{form.email}</p>
+                <button className="text-xs font-medium mt-1 hover:underline" style={{ color: "#B5651D" }}>Change photo</button>
+              </div>
+            </div>
+            {error && (
+              <div className="text-sm px-4 py-2.5 rounded-lg mb-4" style={{ background: "#F5E2DC", border: "1px solid #C4705A", color: "#C4705A" }}>
+                {error}
+              </div>
+            )}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="form-label">Full name</label>
+                <div className="relative">
+                  <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#A89F94" }} />
+                  <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="form-input pl-10" />
+                </div>
+              </div>
+              <div>
+                <label className="form-label">Email</label>
+                <div className="relative">
+                  <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#A89F94" }} />
+                  <input value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="form-input pl-10" />
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <label className="form-label">Bio</label>
+                <textarea value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} rows={3}
+                  className="form-input resize-none" placeholder="Tell collectors about yourself and your work..." />
+              </div>
+              <div>
+                <label className="form-label">Primary medium</label>
+                <select value={form.medium} onChange={e => setForm({...form, medium: e.target.value})} className="form-select">
+                  {["Oil Painting","Acrylic","Watercolor","Digital","Mixed Media","Photography","Sculpture"].map(m => <option key={m}>{m}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Style</label>
+                <select value={form.style} onChange={e => setForm({...form, style: e.target.value})} className="form-select">
+                  {["Abstract","Contemporary","Realistic","Illustrative","Whimsical","Minimalist"].map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Website</label>
+                <input value={form.website} onChange={e => setForm({...form, website: e.target.value})} className="form-input" placeholder="https://yoursite.com" />
+              </div>
+              <div>
+                <label className="form-label">Location</label>
+                <input value={form.location} onChange={e => setForm({...form, location: e.target.value})} className="form-input" placeholder="Brooklyn, NY" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3 mt-6 pt-5" style={{ borderTop: "1px solid #F2EDE6" }}>
+              <button onClick={handleSave} disabled={saving} className="btn-copper flex items-center gap-2 disabled:opacity-70">
+                {saving ? (
+                  <><Loader2 size={15} className="animate-spin" /> Saving...</>
+                ) : saved ? (
+                  <><CheckCircle size={15} /> Saved!</>
+                ) : (
+                  <><Save size={15} /> Save changes</>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Shield size={18} style={{ color: "#C4705A" }} />
+              <h3 className="text-base font-semibold" style={{ color: "#0E0C0A" }}>Danger Zone</h3>
+            </div>
+            <div className="flex items-center justify-between rounded-xl p-4" style={{ background: "#F5E2DC", border: "1px solid #C4705A" }}>
+              <div>
+                <p className="text-sm font-medium" style={{ color: "#0E0C0A" }}>Sign out of your account</p>
+                <p className="text-xs mt-0.5" style={{ color: "#C4705A" }}>You will need to sign in again to access your dashboard.</p>
+              </div>
+              <button onClick={logout} className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors"
+                style={{ background: "#C4705A" }}
+                onMouseEnter={e => e.currentTarget.style.background = "#a85a47"}
+                onMouseLeave={e => e.currentTarget.style.background = "#C4705A"}>
+                Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "Notifications" && (
+        <div className="card p-6 space-y-5">
+          <div className="flex items-center gap-3 mb-2">
+            <Bell size={18} style={{ color: "#B5651D" }} />
+            <h3 className="text-base font-semibold" style={{ color: "#0E0C0A" }}>Notification Preferences</h3>
+          </div>
+          {[
+            { label: "New commission inquiries", desc: "Get notified when a collector sends you a commission request", default: true },
+            { label: "Invoice updates", desc: "Receive alerts when an invoice is paid or becomes overdue", default: true },
+            { label: "Contract activity", desc: "Notifications when contracts are signed or need attention", default: true },
+            { label: "Market analytics digest", desc: "Weekly digest of market trends relevant to your work", default: true },
+            { label: "Marketplace matches", desc: "Alerts for new commissions matching your style and medium", default: true },
+            { label: "Product updates", desc: "News about new ArtistOS features and improvements", default: false },
+          ].map(n => (
+            <label key={n.label} className="flex items-start gap-4 py-3 cursor-pointer" style={{ borderBottom: "1px solid #F2EDE6" }}>
+              <input type="checkbox" defaultChecked={n.default} className="mt-1 w-4 h-4 rounded" style={{ accentColor: "#B5651D" }} />
+              <div>
+                <p className="text-sm font-medium" style={{ color: "#0E0C0A" }}>{n.label}</p>
+                <p className="text-xs mt-0.5" style={{ color: "#A89F94" }}>{n.desc}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {activeTab === "Billing" && (
+        <div className="space-y-5">
+          <div className="card p-6">
+            <h3 className="text-base font-semibold mb-4" style={{ color: "#0E0C0A" }}>Current Plan</h3>
+            <div className="flex items-center justify-between rounded-xl p-5" style={{ background: "#F5E6D8", border: "1px solid #D4854A" }}>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg font-semibold font-serif" style={{ color: "#B5651D" }}>{user?.plan || "Starter"}</span>
+                  <span className="badge-copper">Active</span>
+                </div>
+                <p className="text-sm" style={{ color: "#B5651D" }}>
+                  {user?.plan === "Pro Plan"
+                    ? "Unlimited artworks, contracts, full analytics & marketplace"
+                    : "Basic portfolio and contract features"}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold font-serif" style={{ color: "#B5651D" }}>
+                  {user?.plan === "Pro Plan" ? "$19" : "Free"}
+                </p>
+                {user?.plan === "Pro Plan" && <p className="text-xs" style={{ color: "#A89F94" }}>/ month</p>}
+              </div>
+            </div>
+          </div>
+          <div className="card p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <CreditCard size={18} style={{ color: "#A89F94" }} />
+              <h3 className="text-base font-semibold" style={{ color: "#0E0C0A" }}>Payment Method</h3>
+            </div>
+            <div className="flex items-center justify-between rounded-xl p-4" style={{ background: "#FAF8F5", border: "1px solid #E8E2DA" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-7 rounded flex items-center justify-center text-white text-xs font-bold"
+                  style={{ background: "linear-gradient(135deg, #2D4A35, #4A7A57)" }}>VISA</div>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: "#0E0C0A" }}>**** **** **** 4242</p>
+                  <p className="text-xs" style={{ color: "#A89F94" }}>Expires 12/2026</p>
+                </div>
+              </div>
+              <button className="text-xs font-medium hover:underline" style={{ color: "#B5651D" }}>Update</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
