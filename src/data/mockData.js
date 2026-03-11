@@ -21,12 +21,3 @@ export const marketplaceArtists = [
   { id: 5, name: "Kai Tanaka", style: "Digital Abstraction · Prints", rating: 4.9, reviews: 31, priceRange: "$400–2,500", tags: ["Digital", "Print", "Tokyo"], status: "Accepting", statusColor: "badge-forest", gradient: "linear-gradient(135deg,#1A2E20,#2D4A35)", initial: "K", seed: 186 },
   { id: 6, name: "Sofia Reyes", style: "Installation & Sculpture", rating: 4.8, reviews: 15, priceRange: "$5,000–30,000", tags: ["Sculpture", "Site-specific"], status: "Not Accepting", statusColor: "badge-rose", gradient: "linear-gradient(135deg,#8A4A3A,#C4705A)", initial: "S", seed: 217 },
 ]
-
-export const contractTemplates = [
-  { id: 1, name: "Commission Agreement", category: "Commission", description: "Standard agreement for commissioned artwork including payment terms, timeline, and usage rights.", fileType: "PDF", fileSize: "42 KB", uploadDate: "2024-01-15", downloads: 24, favorite: true, author: "ArtistOS" },
-  { id: 2, name: "Art Licensing Agreement", category: "Licensing", description: "Template for licensing artwork for reproduction, prints, or commercial use with royalty terms.", fileType: "PDF", fileSize: "38 KB", uploadDate: "2024-01-20", downloads: 18, favorite: false, author: "ArtistOS" },
-  { id: 3, name: "Non-Disclosure Agreement", category: "NDA", description: "Protect confidential project details when discussing commissions with new clients.", fileType: "DOCX", fileSize: "28 KB", uploadDate: "2024-02-01", downloads: 31, favorite: true, author: "ArtistOS" },
-  { id: 4, name: "Work for Hire Contract", category: "Work for Hire", description: "Agreement where client retains full ownership of the commissioned work upon completion.", fileType: "PDF", fileSize: "45 KB", uploadDate: "2024-02-05", downloads: 12, favorite: false, author: "ArtistOS" },
-  { id: 5, name: "Gallery Consignment Agreement", category: "Gallery", description: "Terms for consigning artwork to a gallery including commission rates, insurance, and display period.", fileType: "PDF", fileSize: "51 KB", uploadDate: "2024-02-10", downloads: 9, favorite: false, author: "ArtistOS" },
-  { id: 6, name: "Invoice Payment Terms", category: "Invoice", description: "Standard payment terms template to attach to invoices covering late fees and payment methods.", fileType: "DOCX", fileSize: "18 KB", uploadDate: "2024-02-14", downloads: 15, favorite: true, author: "Maya Chen" },
-]

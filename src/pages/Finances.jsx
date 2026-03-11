@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { Plus, Trash2, Edit2, CheckCircle, Loader2, DollarSign } from "lucide-react"
+import { Plus, Trash2, Edit2, CheckCircle, Loader2, DollarSign, Download } from "lucide-react"
 import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
@@ -173,6 +173,30 @@ export default function Finances() {
     }
   }
 
+  /* ---- export CSV ---- */
+  const handleExportCSV = () => {
+    if (invoiceList.length === 0) return toast.error("No invoices to export")
+
+    const headers = ["Client", "Description", "Amount", "Due Date", "Status", "Paid Date"]
+    const rows = invoiceList.map(inv => [
+      `"${(inv.client_name || "").replace(/"/g, '""')}"`,
+      `"${(inv.description || "").replace(/"/g, '""')}"`,
+      inv.amount || 0,
+      inv.due_date || "",
+      inv.status || "",
+      inv.paid_date || "",
+    ])
+    const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `invoices-${new Date().toISOString().split("T")[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success("Invoices exported!")
+  }
+
   /* ---- mark paid shortcut ---- */
   const handleMarkPaid = async (id) => {
     try {
@@ -211,10 +235,16 @@ export default function Finances() {
       <div className="card">
         <div className="card-header">
           <div className="card-title">Invoices</div>
-          <button className="btn-copper" style={{ fontSize: 12, padding: "6px 14px" }} onClick={openCreate}>
-            <Plus size={14} style={{ marginRight: 4, verticalAlign: "middle" }} />
-            New Invoice
-          </button>
+          <div className="flex gap-2">
+            <button className="btn-secondary" style={{ fontSize: 12, padding: "6px 14px" }} onClick={handleExportCSV}>
+              <Download size={14} style={{ marginRight: 4, verticalAlign: "middle" }} />
+              Export CSV
+            </button>
+            <button className="btn-copper" style={{ fontSize: 12, padding: "6px 14px" }} onClick={openCreate}>
+              <Plus size={14} style={{ marginRight: 4, verticalAlign: "middle" }} />
+              New Invoice
+            </button>
+          </div>
         </div>
         <div className="card-body" style={{ padding: 0 }}>
           {/* Loading state */}
