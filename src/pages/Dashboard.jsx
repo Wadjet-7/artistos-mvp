@@ -2,7 +2,18 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
-import { Loader2 } from "lucide-react"
+import {
+  Loader2, Image, Clock, DollarSign, Palette,
+  TrendingUp, TrendingDown, Users, Calendar,
+  FileText, BarChart3, Activity
+} from "lucide-react"
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid
+} from "recharts"
+
+/* ================================================================ */
+/*  HELPERS                                                          */
+/* ================================================================ */
 
 function timeAgo(date) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
@@ -16,24 +27,163 @@ function timeAgo(date) {
 const commissionEmojis = ["🎨", "🖼️", "🌿"]
 const commissionBgs = ["#F5E6D8", "#E8F2EA", "#F5E2DC"]
 
-const activityDotColor = (type) => {
-  switch (type) {
-    case "commission": return "#B5651D"
-    case "invoice": return "#2D4A35"
-    case "artwork": return "#C9A84C"
-    case "social": return "#C4705A"
-    default: return "#A89F94"
+const statusBadge = (status) => {
+  switch (status?.toLowerCase()) {
+    case "active":    return "badge badge-gold"
+    case "review":    return "badge badge-copper"
+    case "quoted":    return "badge badge-forest"
+    case "completed": return "badge badge-forest"
+    default:          return "badge badge-grey"
   }
 }
 
-const statusBadge = (status) => {
-  switch (status?.toLowerCase()) {
-    case "active": return "badge-gold"
-    case "review": return "badge-copper"
-    case "quoted": return "badge-forest"
-    default: return "badge-grey"
+/* ---- Chart data: group invoices by month ---- */
+function groupInvoicesByMonth(invoices, range) {
+  const now = new Date()
+  let monthsBack = 6
+  if (range === "year") monthsBack = 12
+  if (range === "all") monthsBack = 24
+
+  const months = []
+  for (let i = monthsBack - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    months.push({
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: d.toLocaleDateString("en-US", { month: "short" }),
+      revenue: 0,
+    })
+  }
+
+  invoices
+    .filter(inv => inv.status === "paid")
+    .forEach(inv => {
+      const d = new Date(inv.created_at)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+      const bucket = months.find(m => m.key === key)
+      if (bucket) bucket.revenue += Number(inv.amount) || 0
+    })
+
+  return months
+}
+
+/* ---- Mini Sparkline (inline SVG) ---- */
+function MiniSparkline({ data, color = "#B5651D", width = 64, height = 24 }) {
+  if (!data || data.length < 2) return null
+  const max = Math.max(...data) || 1
+  const min = Math.min(...data)
+  const range = max - min || 1
+  const points = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * width
+    const y = height - ((v - min) / range) * (height - 4) - 2
+    return `${x},${y}`
+  })
+  return (
+    <svg width={width} height={height} className="mt-1" style={{ display: "block" }}>
+      <polyline points={points.join(" ")} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+/* ---- Commission progress mapping ---- */
+const statusProgress = {
+  draft:     { percent: 0,   step: 0, color: "#A89F94" },
+  pending:   { percent: 10,  step: 0, color: "#A89F94" },
+  quoted:    { percent: 20,  step: 1, color: "#2D4A35" },
+  active:    { percent: 50,  step: 2, color: "#B5651D" },
+  review:    { percent: 75,  step: 3, color: "#C9A84C" },
+  completed: { percent: 100, step: 4, color: "#4A7A57" },
+}
+
+function getStatusInfo(status) {
+  return statusProgress[status?.toLowerCase()] || statusProgress.draft
+}
+
+function getDeadlineUrgency(deadline) {
+  if (!deadline) return null
+  const daysLeft = Math.ceil((new Date(deadline) - Date.now()) / 86400000)
+  if (daysLeft < 0) return { label: "Overdue", color: "#C4705A", urgent: true }
+  if (daysLeft < 7) return { label: `${daysLeft}d left`, color: "#C4705A", urgent: true }
+  if (daysLeft < 14) return { label: `${daysLeft}d left`, color: "#C9A84C", urgent: false }
+  return { label: `${daysLeft}d left`, color: "#A89F94", urgent: false }
+}
+
+/* ---- Activity grouping by date ---- */
+function groupActivitiesByDate(activities) {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const yesterday = new Date(today - 86400000)
+  const weekAgo = new Date(today - 7 * 86400000)
+
+  const groups = [
+    { label: "Today", items: [] },
+    { label: "Yesterday", items: [] },
+    { label: "This Week", items: [] },
+    { label: "Earlier", items: [] },
+  ]
+
+  activities.forEach(a => {
+    const d = new Date(a.created_at)
+    if (d >= today) groups[0].items.push(a)
+    else if (d >= yesterday) groups[1].items.push(a)
+    else if (d >= weekAgo) groups[2].items.push(a)
+    else groups[3].items.push(a)
+  })
+
+  return groups.filter(g => g.items.length > 0)
+}
+
+const activityIconMap = (type) => {
+  switch (type) {
+    case "commission":      return { icon: Users, bg: "#F5E6D8", color: "#B5651D" }
+    case "invoice":         return { icon: DollarSign, bg: "#E8F2EA", color: "#2D4A35" }
+    case "artwork":         return { icon: Image, bg: "#FBF2DC", color: "#8A6A1A" }
+    case "social":          return { icon: Calendar, bg: "#F5E2DC", color: "#C4705A" }
+    case "contract_created":
+    case "contract_deleted":
+    case "contract":        return { icon: FileText, bg: "#F2EDE6", color: "#A89F94" }
+    case "template_uploaded":
+    case "template_deleted": return { icon: FileText, bg: "#F2EDE6", color: "#A89F94" }
+    default:                return { icon: Activity, bg: "#F2EDE6", color: "#A89F94" }
   }
 }
+
+const activityRoute = (type) => {
+  switch (type) {
+    case "commission":       return "/commissions"
+    case "invoice":          return "/finances"
+    case "artwork":          return "/portfolio"
+    case "social":           return "/social"
+    case "contract_created":
+    case "contract_deleted":
+    case "contract":
+    case "template_uploaded":
+    case "template_deleted": return "/contracts"
+    default:                 return null
+  }
+}
+
+const sparklineColors = { copper: "#B5651D", forest: "#2D4A35", rose: "#C4705A", gold: "#C9A84C" }
+
+/* ================================================================ */
+/*  CUSTOM TOOLTIP                                                   */
+/* ================================================================ */
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={{
+      background: "#0E0C0A", borderRadius: 8, padding: "8px 12px",
+      fontSize: 13, fontFamily: "DM Sans", color: "#FAF8F5", border: "none",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+    }}>
+      <div style={{ fontSize: 11, color: "#A89F94", marginBottom: 2 }}>{label}</div>
+      <div style={{ fontWeight: 600 }}>${Number(payload[0].value).toLocaleString()}</div>
+    </div>
+  )
+}
+
+/* ================================================================ */
+/*  DASHBOARD COMPONENT                                              */
+/* ================================================================ */
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -41,9 +191,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [artworks, setArtworks] = useState([])
   const [commissions, setCommissions] = useState([])
-  const [revenue, setRevenue] = useState(0)
+  const [invoices, setInvoices] = useState([])
   const [portfolioValue, setPortfolioValue] = useState(0)
   const [activities, setActivities] = useState([])
+  const [chartRange, setChartRange] = useState("6months")
 
   useEffect(() => {
     if (!user?.id) return
@@ -62,15 +213,14 @@ export default function Dashboard() {
             .limit(3),
           supabase
             .from("invoices")
-            .select("amount, status")
-            .eq("user_id", user.id)
-            .eq("status", "paid"),
+            .select("amount, status, created_at")
+            .eq("user_id", user.id),
           supabase
             .from("activity_log")
             .select("*")
             .eq("user_id", user.id)
             .order("created_at", { ascending: false })
-            .limit(5),
+            .limit(10),
         ])
 
         const artData = artRes.status === "fulfilled" ? artRes.value.data || [] : []
@@ -80,7 +230,7 @@ export default function Dashboard() {
 
         setArtworks(artData)
         setCommissions(commData)
-        setRevenue(invData.reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0))
+        setInvoices(invData)
         setPortfolioValue(artData.reduce((sum, a) => sum + (Number(a.price) || 0), 0))
         setActivities(actData)
       } catch (err) {
@@ -93,13 +243,29 @@ export default function Dashboard() {
     fetchData()
   }, [user?.id])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-32">
-        <Loader2 size={32} className="animate-spin" style={{ color: "#B5651D" }} />
-      </div>
-    )
-  }
+  /* ---- Computed data ---- */
+  const revenue = invoices
+    .filter(i => i.status === "paid")
+    .reduce((sum, i) => sum + (Number(i.amount) || 0), 0)
+
+  const chartData = groupInvoicesByMonth(invoices, chartRange)
+  const sparklineData = chartData.map(m => m.revenue)
+
+  /* Revenue trend: last 30 days vs prior 30 days */
+  const revenueTrend = (() => {
+    const now = Date.now()
+    const thirtyDays = 30 * 86400 * 1000
+    const recent = invoices
+      .filter(i => i.status === "paid" && (now - new Date(i.created_at).getTime()) < thirtyDays)
+      .reduce((s, i) => s + (Number(i.amount) || 0), 0)
+    const prior = invoices
+      .filter(i => i.status === "paid" &&
+        (now - new Date(i.created_at).getTime()) >= thirtyDays &&
+        (now - new Date(i.created_at).getTime()) < thirtyDays * 2)
+      .reduce((s, i) => s + (Number(i.amount) || 0), 0)
+    if (prior === 0) return null
+    return Math.round(((recent - prior) / prior) * 100)
+  })()
 
   const stats = [
     {
@@ -107,7 +273,7 @@ export default function Dashboard() {
       value: String(artworks.length),
       delta: `${artworks.filter(a => a.status === "Available").length} available`,
       up: true,
-      icon: "◻",
+      icon: <Image size={20} />,
       variant: "copper",
     },
     {
@@ -115,7 +281,7 @@ export default function Dashboard() {
       value: String(commissions.length),
       delta: commissions.length > 0 ? `${commissions.length} in progress` : "None active",
       up: commissions.length > 0,
-      icon: "◷",
+      icon: <Clock size={20} />,
       variant: "forest",
     },
     {
@@ -123,19 +289,68 @@ export default function Dashboard() {
       value: `$${revenue.toLocaleString()}`,
       delta: "From paid invoices",
       up: revenue > 0,
-      icon: "◈",
+      icon: <DollarSign size={20} />,
       variant: "rose",
+      trendPercent: revenueTrend,
     },
     {
       label: "Portfolio Value",
       value: `$${portfolioValue.toLocaleString()}`,
       delta: `${artworks.length} artworks total`,
       up: true,
-      icon: "◬",
+      icon: <Palette size={20} />,
       variant: "gold",
     },
   ]
 
+  /* ================================================================ */
+  /*  SKELETON LOADING                                                 */
+  /* ================================================================ */
+  if (loading) {
+    return (
+      <div className="space-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="stat-card" style={{ minHeight: 120 }}>
+              <div className="skeleton skeleton-text short" />
+              <div className="skeleton skeleton-value" />
+              <div className="skeleton skeleton-text" style={{ width: "70%" }} />
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 card">
+            <div className="card-header"><div className="skeleton skeleton-text" style={{ width: 140 }} /></div>
+            <div className="card-body"><div className="skeleton skeleton-chart" /></div>
+          </div>
+          <div className="card">
+            <div className="card-header"><div className="skeleton skeleton-text" style={{ width: 100 }} /></div>
+            <div className="card-body" style={{ padding: 12 }}>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="skeleton" style={{ height: 36, marginBottom: 8 }} />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="card">
+              <div className="card-header"><div className="skeleton skeleton-text" style={{ width: 140 }} /></div>
+              <div className="card-body">
+                {[...Array(3)].map((_, j) => (
+                  <div key={j} className="skeleton" style={{ height: 44, marginBottom: 10 }} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  /* ================================================================ */
+  /*  RENDER                                                           */
+  /* ================================================================ */
   return (
     <div className="space-y-5">
       {/* Stats */}
@@ -144,8 +359,22 @@ export default function Dashboard() {
           <div key={s.label} className={`stat-card ${s.variant}`}>
             <div className="stat-label">{s.label}</div>
             <div className="stat-value">{s.value}</div>
-            <div className={`stat-delta ${s.up ? "up" : "down"}`}>{s.delta}</div>
+            <div className={`stat-delta ${s.up ? "up" : "down"}`}>
+              {s.trendPercent != null && (
+                <span className="inline-flex items-center gap-0.5 mr-1">
+                  {s.trendPercent >= 0
+                    ? <TrendingUp size={12} style={{ color: "#4A7A57" }} />
+                    : <TrendingDown size={12} style={{ color: "#C4705A" }} />
+                  }
+                  <span style={{ fontSize: 11, fontWeight: 600, color: s.trendPercent >= 0 ? "#4A7A57" : "#C4705A" }}>
+                    {s.trendPercent >= 0 ? "+" : ""}{s.trendPercent}%
+                  </span>
+                </span>
+              )}
+              {s.delta}
+            </div>
             <div className="stat-icon">{s.icon}</div>
+            <MiniSparkline data={sparklineData} color={sparklineColors[s.variant] || "#B5651D"} />
           </div>
         ))}
       </div>
@@ -156,36 +385,56 @@ export default function Dashboard() {
           <div className="card-header">
             <div>
               <div className="card-title">Revenue Overview</div>
-              <div className="card-subtitle">Sales + commissions, last 6 months</div>
+              <div className="card-subtitle">Sales + commissions</div>
             </div>
-            <select className="form-select" style={{ width: "auto", fontSize: "12px", padding: "6px 10px" }}>
-              <option>Last 6 months</option>
-              <option>Last year</option>
+            <select
+              className="form-select"
+              style={{ width: "auto", fontSize: "12px", padding: "6px 10px" }}
+              value={chartRange}
+              onChange={(e) => setChartRange(e.target.value)}
+            >
+              <option value="6months">Last 6 months</option>
+              <option value="year">Last year</option>
+              <option value="all">All time</option>
             </select>
           </div>
           <div className="card-body">
-            <svg viewBox="0 0 400 160" className="w-full" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#B5651D" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="#B5651D" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {[130, 100, 70, 40].map(y => (
-                <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="#F2EDE6" strokeWidth="1" />
-              ))}
-              {["Sep", "Oct", "Nov", "Dec", "Jan", "Feb"].map((m, i) => (
-                <text key={m} x={20 + i * 63} y="148" fill="#A89F94" fontSize="10" fontFamily="DM Mono">{m}</text>
-              ))}
-              <path d="M30,110 C60,105 75,90 100,80 C125,70 145,95 170,75 C195,55 215,65 240,50 C265,35 285,55 310,42 C335,30 355,35 375,25 L375,130 L30,130 Z" fill="url(#chartGrad)" />
-              <path d="M30,110 C60,105 75,90 100,80 C125,70 145,95 170,75 C195,55 215,65 240,50 C265,35 285,55 310,42 C335,30 355,35 375,25" fill="none" stroke="#B5651D" strokeWidth="2.5" strokeLinecap="round" />
-              {[[30,110],[100,80],[170,75],[240,50],[310,42]].map(([cx, cy], i) => (
-                <circle key={i} cx={cx} cy={cy} r="4" fill="white" stroke="#B5651D" strokeWidth="2" />
-              ))}
-              <circle cx="375" cy="25" r="4" fill="#B5651D" stroke="#B5651D" strokeWidth="2" />
-              <rect x="330" y="5" width="60" height="22" rx="5" fill="#0E0C0A" />
-              <text x="360" y="20" fill="white" fontSize="10" fontFamily="DM Mono" textAnchor="middle">${revenue.toLocaleString()}</text>
-            </svg>
+            <div style={{ width: "100%", height: 200 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#B5651D" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#B5651D" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F2EDE6" vertical={false} />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fill: "#A89F94", fontSize: 11, fontFamily: "'DM Mono', monospace" }}
+                    axisLine={{ stroke: "#F2EDE6" }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: "#A89F94", fontSize: 11, fontFamily: "'DM Mono', monospace" }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => v >= 1000 ? `$${(v / 1000).toFixed(1)}k` : `$${v}`}
+                    width={50}
+                  />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#B5651D"
+                    strokeWidth={2.5}
+                    fill="url(#revenueGrad)"
+                    dot={{ fill: "white", stroke: "#B5651D", strokeWidth: 2, r: 4 }}
+                    activeDot={{ fill: "#B5651D", stroke: "#B5651D", strokeWidth: 2, r: 5 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
         <div className="card">
@@ -193,17 +442,17 @@ export default function Dashboard() {
           <div className="card-body" style={{ padding: "12px" }}>
             <div className="flex flex-col gap-2">
               {[
-                { label: "◱ Generate Contract", to: "/contracts" },
-                { label: "◎ Schedule Post", to: "/social" },
-                { label: "◻ Upload Artwork", to: "/portfolio" },
-                { label: "◬ View Analytics", to: "/analytics" },
+                { icon: FileText, label: "Generate Contract", to: "/contracts" },
+                { icon: Calendar, label: "Schedule Post", to: "/social" },
+                { icon: Image, label: "Upload Artwork", to: "/portfolio" },
+                { icon: BarChart3, label: "View Analytics", to: "/analytics" },
               ].map(a => (
                 <button key={a.label} onClick={() => navigate(a.to)} className="btn-secondary text-left w-full justify-start">
-                  {a.label}
+                  <a.icon size={15} style={{ marginRight: 6 }} /> {a.label}
                 </button>
               ))}
               <button onClick={() => navigate("/commissions")} className="btn-copper text-left w-full justify-start">
-                ◷ View Commissions
+                <Users size={15} style={{ marginRight: 6 }} /> View Commissions
               </button>
             </div>
           </div>
@@ -212,6 +461,7 @@ export default function Dashboard() {
 
       {/* Commissions + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Active Commissions */}
         <div className="card">
           <div className="card-header">
             <div className="card-title">Active Commissions</div>
@@ -220,45 +470,108 @@ export default function Dashboard() {
           <div className="card-body">
             {commissions.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-sm" style={{ color: "#A89F94" }}>No active commissions</p>
+                <Users size={28} style={{ color: "#E8E2DA", margin: "0 auto 8px" }} />
+                <p className="text-sm font-medium" style={{ color: "#0E0C0A" }}>No active commissions</p>
+                <p className="text-xs mt-1" style={{ color: "#A89F94" }}>Commission requests will appear here</p>
               </div>
             ) : (
-              commissions.map((c, i) => (
-                <div key={c.id} className="flex items-center gap-3.5 py-3.5 cursor-pointer" style={{ borderBottom: i < commissions.length - 1 ? "1px solid #F2EDE6" : "none" }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style={{ background: commissionBgs[i % 3] }}>
-                    {commissionEmojis[i % 3]}
+              commissions.map((c, i) => {
+                const progress = getStatusInfo(c.status)
+                const urgency = getDeadlineUrgency(c.deadline)
+                return (
+                  <div key={c.id} className="py-3.5 cursor-pointer"
+                    style={{ borderBottom: i < commissions.length - 1 ? "1px solid #F2EDE6" : "none" }}
+                    onClick={() => navigate("/commissions")}
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                        style={{ background: commissionBgs[i % 3] }}>
+                        {commissionEmojis[i % 3]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13.5px] font-medium">{c.client_name} — {c.title}</div>
+                        <div className="text-xs flex items-center gap-2" style={{ color: "#A89F94" }}>
+                          <span className="truncate">{c.description}</span>
+                          {urgency && (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
+                              style={{
+                                background: urgency.urgent ? "#F5E2DC" : "#FBF2DC",
+                                color: urgency.color,
+                              }}>
+                              {urgency.label}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="font-mono text-[13px] font-medium">${Number(c.budget || 0).toLocaleString()}</div>
+                        <span className={statusBadge(c.status)}>{c.status}</span>
+                      </div>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="mt-2 ml-[52px]">
+                      <div className="progress-bar" style={{ height: 4 }}>
+                        <div className="progress-fill"
+                          style={{ width: `${progress.percent}%`, background: progress.color, transition: "width 0.4s ease" }} />
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        {["Draft", "Quoted", "Active", "Review", "Done"].map((step, idx) => (
+                          <span key={step} className="text-[9px] font-medium"
+                            style={{ color: idx <= progress.step ? progress.color : "#E8E2DA" }}>
+                            {step}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13.5px] font-medium">{c.client_name} — {c.title}</div>
-                    <div className="text-xs" style={{ color: "#A89F94" }}>{c.description}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-mono text-[13px] font-medium">${Number(c.budget || 0).toLocaleString()}</div>
-                    <span className={statusBadge(c.status)}>{c.status}</span>
-                  </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </div>
+
+        {/* Recent Activity */}
         <div className="card">
           <div className="card-header">
             <div className="card-title">Recent Activity</div>
-            <span className="badge-grey">Live</span>
+            <span className="badge badge-grey" style={{ fontSize: 10 }}>Live</span>
           </div>
           <div className="card-body">
             {activities.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-sm" style={{ color: "#A89F94" }}>No recent activity</p>
+                <Activity size={28} style={{ color: "#E8E2DA", margin: "0 auto 8px" }} />
+                <p className="text-sm font-medium" style={{ color: "#0E0C0A" }}>No recent activity</p>
+                <p className="text-xs mt-1" style={{ color: "#A89F94" }}>Your actions will be logged here</p>
               </div>
             ) : (
-              activities.map((a, i) => (
-                <div key={a.id} className="flex gap-3 items-start py-3" style={{ borderBottom: i < activities.length - 1 ? "1px solid #F2EDE6" : "none" }}>
-                  <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: activityDotColor(a.activity_type) }} />
-                  <div>
-                    <div className="text-[13px] leading-relaxed">{a.description}</div>
-                    <div className="text-[11px] font-mono mt-0.5" style={{ color: "#A89F94" }}>{timeAgo(a.created_at)}</div>
+              groupActivitiesByDate(activities).map(group => (
+                <div key={group.label}>
+                  <div className="text-[10px] uppercase tracking-[1.5px] font-semibold py-2"
+                    style={{ color: "#A89F94" }}>
+                    {group.label}
                   </div>
+                  {group.items.map((a, i) => {
+                    const { icon: Icon, bg, color } = activityIconMap(a.activity_type)
+                    const route = activityRoute(a.activity_type)
+                    return (
+                      <div key={a.id}
+                        className="flex gap-3 items-start py-2.5 px-2 -mx-2 rounded-lg transition-colors"
+                        style={{ cursor: route ? "pointer" : "default", borderBottom: i < group.items.length - 1 ? "1px solid #F2EDE6" : "none" }}
+                        onClick={() => route && navigate(route)}
+                        onMouseEnter={e => route && (e.currentTarget.style.background = "#F8F5F0")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ background: bg }}>
+                          <Icon size={14} style={{ color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[13px] leading-relaxed">{a.description}</div>
+                          <div className="text-[11px] font-mono mt-0.5" style={{ color: "#A89F94" }}>{timeAgo(a.created_at)}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               ))
             )}

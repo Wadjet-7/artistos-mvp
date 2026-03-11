@@ -1,6 +1,45 @@
+import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
-import { BarChart3, ShoppingBag, Briefcase, ArrowRight, CheckCircle2, Star, TrendingUp, Users, DollarSign, Zap, FileText, Calendar } from "lucide-react"
+import { BarChart3, ShoppingBag, Briefcase, ArrowRight, CheckCircle2, Star, TrendingUp, Users, DollarSign, Zap } from "lucide-react"
+import { useScrollReveal, useStaggerReveal } from "../hooks/useScrollReveal"
 
+/* ---- Animated Counter (counts from 0 to target on scroll) ---- */
+function AnimatedCounter({ end, duration = 2000, prefix = "", suffix = "", decimals = 0 }) {
+  const [value, setValue] = useState(0)
+  const ref = useRef(null)
+  const hasStarted = useRef(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !hasStarted.current) {
+        hasStarted.current = true
+        const start = performance.now()
+        const animate = (now) => {
+          const progress = Math.min((now - start) / duration, 1)
+          const eased = 1 - Math.pow(1 - progress, 3) // ease-out cubic
+          setValue(eased * end)
+          if (progress < 1) requestAnimationFrame(animate)
+        }
+        requestAnimationFrame(animate)
+        observer.unobserve(el)
+      }
+    }, { threshold: 0.5 })
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [end, duration])
+
+  const display = decimals > 0
+    ? value.toFixed(decimals)
+    : Math.floor(value).toLocaleString()
+
+  return <span ref={ref}>{prefix}{display}{suffix}</span>
+}
+
+/* ---- Static Data ---- */
 const features = [
   { icon: Briefcase, bg: "#F5E6D8", color: "#B5651D", title: "Business Hub", description: "Manage your portfolio, generate contracts, schedule social content, and track finances — all in one place.", bullets: ["Portfolio & artwork management", "Contract generator with live preview", "Social media scheduler"] },
   { icon: BarChart3, bg: "#E8F2EA", color: "#2D4A35", title: "Market Analytics", description: "Access real-time art market data, benchmark your prices, and discover emerging trends.", bullets: ["Price benchmarking by medium & style", "Market position scoring", "Emerging artist tracking"] },
@@ -19,6 +58,12 @@ const testimonials = [
   { name: "Sophie Laurent", role: "Digital Artist & Muralist", avatar: "SL", gradient: "linear-gradient(135deg, #2D4A35, #4A7A57)", text: "Through the marketplace I landed a $4,500 mural commission within my first week. This platform actually delivers." },
 ]
 
+const heroStats = [
+  { icon: Users, end: 2400, prefix: "", suffix: "+", decimals: 0, label: "Artists on platform" },
+  { icon: DollarSign, end: 1.2, prefix: "$", suffix: "M+", decimals: 1, label: "Commissions facilitated" },
+  { icon: TrendingUp, end: 87, prefix: "", suffix: "%", decimals: 0, label: "Avg. revenue increase" },
+]
+
 const pricing = [
   { name: "Starter", price: "Free", period: "", description: "Perfect for artists just getting started.", highlight: false, features: ["Up to 10 portfolio artworks", "3 contracts per month", "Basic market overview", "Marketplace browsing"] },
   { name: "Pro", price: "$19", period: "/ month", description: "For emerging artists growing their practice.", highlight: true, features: ["Unlimited portfolio artworks", "Unlimited contracts & invoices", "Full analytics & benchmarking", "Social media scheduler", "Unlimited marketplace applications", "Priority support"] },
@@ -26,6 +71,20 @@ const pricing = [
 ]
 
 export default function Landing() {
+  /* Scroll-reveal refs for section headers */
+  const featuresHeaderRef = useScrollReveal()
+  const howItWorksHeaderRef = useScrollReveal()
+  const testimonialsHeaderRef = useScrollReveal()
+  const pricingHeaderRef = useScrollReveal()
+  const ctaRef = useScrollReveal()
+
+  /* Stagger refs for card groups */
+  const featureRef = useStaggerReveal(features.length, 150)
+  const stepRef = useStaggerReveal(steps.length, 200)
+  const testimonialRef = useStaggerReveal(testimonials.length, 150)
+  const pricingRef = useStaggerReveal(pricing.length, 150)
+  const statRef = useStaggerReveal(heroStats.length, 120)
+
   return (
     <div className="min-h-screen" style={{ background: "#FAF8F5" }}>
       {/* Nav */}
@@ -73,16 +132,16 @@ export default function Landing() {
           </div>
           <p className="mt-5 text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>No credit card required. Free forever on Starter plan.</p>
         </div>
+
+        {/* Hero Stats with Animated Counters */}
         <div className="max-w-3xl mx-auto mt-16 grid grid-cols-3 gap-6 relative z-10">
-          {[
-            { icon: Users, value: "2,400+", label: "Artists on platform" },
-            { icon: DollarSign, value: "$1.2M+", label: "Commissions facilitated" },
-            { icon: TrendingUp, value: "87%", label: "Avg. revenue increase" },
-          ].map(({ icon: Icon, value, label }) => (
-            <div key={label} className="text-center rounded-2xl py-5 px-4"
+          {heroStats.map(({ icon: Icon, end, prefix, suffix, decimals, label }, i) => (
+            <div key={label} ref={statRef(i)} className="scroll-reveal-stagger text-center rounded-2xl py-5 px-4"
               style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
               <Icon size={20} className="mx-auto mb-2" style={{ color: "#D4854A" }} />
-              <p className="text-2xl font-bold text-white font-serif">{value}</p>
+              <p className="text-2xl font-bold text-white font-serif">
+                <AnimatedCounter end={end} prefix={prefix} suffix={suffix} decimals={decimals} duration={2000} />
+              </p>
               <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{label}</p>
             </div>
           ))}
@@ -92,14 +151,14 @@ export default function Landing() {
       {/* Features */}
       <section id="features" className="py-24 px-6" style={{ background: "#FAF8F5" }}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
+          <div ref={featuresHeaderRef} className="scroll-reveal text-center mb-14">
             <p className="text-xs font-semibold uppercase tracking-[2px] mb-3" style={{ color: "#B5651D" }}>Three powerful modules</p>
             <h2 className="font-serif text-4xl font-semibold" style={{ color: "#0E0C0A" }}>Everything you need, nothing you dont</h2>
             <p className="mt-4 text-lg max-w-xl mx-auto" style={{ color: "#A89F94" }}>Purpose-built for artists. Not adapted from generic business software.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-7">
-            {features.map((f) => (
-              <div key={f.title} className="card p-7 hover:shadow-md transition-shadow">
+            {features.map((f, i) => (
+              <div key={f.title} ref={featureRef(i)} className="scroll-reveal-stagger card p-7 hover:shadow-md transition-shadow">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style={{ background: f.bg }}>
                   <f.icon size={21} style={{ color: f.color }} />
                 </div>
@@ -121,13 +180,13 @@ export default function Landing() {
       {/* How it works */}
       <section id="how-it-works" className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
+          <div ref={howItWorksHeaderRef} className="scroll-reveal text-center mb-14">
             <p className="text-xs font-semibold uppercase tracking-[2px] mb-3" style={{ color: "#B5651D" }}>Simple by design</p>
             <h2 className="font-serif text-4xl font-semibold" style={{ color: "#0E0C0A" }}>From sign-up to first commission in days</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-10">
-            {steps.map((s) => (
-              <div key={s.step} className="flex flex-col items-start">
+            {steps.map((s, i) => (
+              <div key={s.step} ref={stepRef(i)} className="scroll-reveal-stagger flex flex-col items-start">
                 <span className="text-4xl font-black mb-4 font-serif" style={{ color: "#F5E6D8" }}>{s.step}</span>
                 <h3 className="text-lg font-semibold mb-2" style={{ color: "#0E0C0A" }}>{s.title}</h3>
                 <p className="text-sm leading-relaxed" style={{ color: "#A89F94" }}>{s.desc}</p>
@@ -140,14 +199,14 @@ export default function Landing() {
       {/* Testimonials */}
       <section className="py-24 px-6" style={{ background: "#FAF8F5" }}>
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
+          <div ref={testimonialsHeaderRef} className="scroll-reveal text-center mb-14">
             <p className="text-xs font-semibold uppercase tracking-[2px] mb-3" style={{ color: "#B5651D" }}>Artist stories</p>
             <h2 className="font-serif text-4xl font-semibold" style={{ color: "#0E0C0A" }}>Built for artists, loved by artists</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-7">
-            {testimonials.map((t) => (
-              <div key={t.name} className="card p-7">
-                <div className="flex mb-4">{[...Array(5)].map((_, i) => <Star key={i} size={14} style={{ color: "#C9A84C", fill: "#C9A84C" }} />)}</div>
+            {testimonials.map((t, i) => (
+              <div key={t.name} ref={testimonialRef(i)} className="scroll-reveal-stagger card p-7">
+                <div className="flex mb-4">{[...Array(5)].map((_, j) => <Star key={j} size={14} style={{ color: "#C9A84C", fill: "#C9A84C" }} />)}</div>
                 <p className="text-sm leading-relaxed mb-6" style={{ color: "#0E0C0A" }}>{t.text}</p>
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold font-serif"
@@ -166,14 +225,14 @@ export default function Landing() {
       {/* Pricing */}
       <section id="pricing" className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
+          <div ref={pricingHeaderRef} className="scroll-reveal text-center mb-14">
             <p className="text-xs font-semibold uppercase tracking-[2px] mb-3" style={{ color: "#B5651D" }}>Pricing</p>
             <h2 className="font-serif text-4xl font-semibold" style={{ color: "#0E0C0A" }}>Simple, transparent pricing</h2>
             <p className="mt-4 text-lg" style={{ color: "#A89F94" }}>Start free. Upgrade when you are ready to grow.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-7 items-start">
-            {pricing.map((plan) => (
-              <div key={plan.name} className="rounded-2xl p-7"
+            {pricing.map((plan, i) => (
+              <div key={plan.name} ref={pricingRef(i)} className="scroll-reveal-stagger rounded-2xl p-7"
                 style={{
                   background: plan.highlight ? "#0E0C0A" : "white",
                   border: plan.highlight ? "1px solid #0E0C0A" : "1px solid #E8E2DA",
@@ -214,7 +273,7 @@ export default function Landing() {
 
       {/* CTA */}
       <section className="py-20 px-6" style={{ background: "#0E0C0A" }}>
-        <div className="max-w-3xl mx-auto text-center">
+        <div ref={ctaRef} className="scroll-reveal max-w-3xl mx-auto text-center">
           <h2 className="font-serif text-4xl font-semibold text-white mb-5">Ready to professionalize your practice?</h2>
           <p className="text-lg mb-8" style={{ color: "rgba(255,255,255,0.5)" }}>
             Join thousands of artists using ArtistOS to grow their revenue, understand the market, and land commissions.
