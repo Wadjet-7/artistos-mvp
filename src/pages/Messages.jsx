@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Plus, Loader2, Send } from "lucide-react"
+import { Plus, Loader2, Send, ArrowLeft } from "lucide-react"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
@@ -277,9 +277,8 @@ export default function Messages() {
   return (
     <>
       <div
-        className="card"
+        className="card md:grid"
         style={{
-          display: "grid",
           gridTemplateColumns: "280px 1fr",
           minHeight: 480,
           overflow: "hidden",
@@ -287,10 +286,12 @@ export default function Messages() {
       >
         {/* Left Panel - Conversation List */}
         <div
+          className={selectedId ? "hidden md:flex" : "flex"}
           style={{
             borderRight: "1px solid #E8E2DA",
-            display: "flex",
             flexDirection: "column",
+            gridColumn: "1",
+            gridRow: "1",
           }}
         >
           {/* Search + New button */}
@@ -468,7 +469,7 @@ export default function Messages() {
         </div>
 
         {/* Right Panel - Chat */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div className={!selectedId ? "hidden md:flex" : "flex"} style={{ flexDirection: "column" }}>
           {/* Header */}
           {selected ? (
             <>
@@ -481,6 +482,13 @@ export default function Messages() {
                   borderBottom: "1px solid #F2EDE6",
                 }}
               >
+                <button
+                  className="md:hidden"
+                  onClick={() => setSelectedId(null)}
+                  style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}
+                >
+                  <ArrowLeft size={20} style={{ color: "#0E0C0A" }} />
+                </button>
                 <div
                   style={{
                     width: 36,

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { Plus, Trash2, Edit2, Loader2 } from "lucide-react"
+import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
@@ -163,9 +164,10 @@ export default function SocialScheduler() {
 
       closeModal()
       await fetchPosts()
+      toast.success(editingId ? "Post updated!" : "Post scheduled!")
     } catch (err) {
       console.error("Failed to save post:", err)
-      alert("Failed to save post: " + (err.message || "Unknown error"))
+      toast.error("Failed to save post: " + (err.message || "Unknown error"))
     } finally {
       setSubmitting(false)
     }
@@ -184,9 +186,10 @@ export default function SocialScheduler() {
       if (error) throw error
       setPostList((prev) => prev.filter((p) => p.id !== post.id))
       await logActivity(user.id, "social", `Deleted scheduled post "${post.artwork_title || "Untitled"}" from ${post.platform}`)
+      toast.success("Post deleted")
     } catch (err) {
       console.error("Failed to delete:", err)
-      alert("Failed to delete post: " + (err.message || "Unknown error"))
+      toast.error("Failed to delete post: " + (err.message || "Unknown error"))
     }
   }
 

@@ -74,7 +74,7 @@ export default function Analytics() {
   return (
     <div className="space-y-5">
       {/* Market Position Score */}
-      <div className="rounded-xl p-5 flex items-center gap-4" style={{ background: "#0E0C0A", color: "#FAF8F5" }}>
+      <div className="rounded-xl p-5 flex flex-col md:flex-row items-center gap-4" style={{ background: "#0E0C0A", color: "#FAF8F5" }}>
         <div className="w-[72px] h-[72px] rounded-full flex-shrink-0 flex items-center justify-center relative"
           style={{ background: `conic-gradient(#D4854A 0deg ${scoreDeg}deg, rgba(255,255,255,0.1) ${scoreDeg}deg 360deg)` }}>
           <div className="w-[54px] h-[54px] rounded-full flex items-center justify-center font-serif text-[22px] font-semibold"
@@ -93,7 +93,7 @@ export default function Analytics() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map(s => (
           <div key={s.label} className={`stat-card ${s.variant}`}>
             <div className="stat-label">{s.label}</div>

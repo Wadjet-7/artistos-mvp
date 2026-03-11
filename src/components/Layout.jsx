@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Outlet, useLocation, Link } from "react-router-dom"
 import Sidebar from "./Sidebar"
-import { Bell, Search, X } from "lucide-react"
+import { Bell, Search, X, Menu } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
 
@@ -42,6 +42,7 @@ export default function Layout() {
   const location = useLocation()
   const { user } = useAuth()
   const pageInfo = pageTitles[location.pathname] || { title: "ArtistOS", accent: "" }
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState([])
   const notifRef = useRef(null)
@@ -110,12 +111,20 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex" style={{ background: "#FAF8F5" }}>
-      <Sidebar />
-      <div className="flex-1 ml-60 flex flex-col min-h-screen overflow-y-auto">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1 md:ml-60 ml-0 flex flex-col min-h-screen overflow-y-auto">
         {/* Top bar */}
-        <header className="sticky top-0 z-20 flex items-center justify-between px-8 py-5"
+        <header className="sticky top-0 z-20 flex items-center justify-between px-4 md:px-8 py-4 md:py-5"
           style={{ background: "#FAF8F5", borderBottom: "1px solid #E8E2DA" }}>
-          <div>
+          <div className="flex items-center">
+            <button
+              className="md:hidden p-2 rounded-lg mr-2"
+              onClick={() => setSidebarOpen(true)}
+              style={{ color: "#0E0C0A" }}
+            >
+              <Menu size={22} />
+            </button>
+            <div>
             <h1 className="font-serif text-[26px] font-normal tracking-wide" style={{ color: "#0E0C0A" }}>
               {displayTitle.title}{" "}
               <span className="italic" style={{ color: "#B5651D" }}>{displayTitle.accent}</span>
@@ -126,6 +135,7 @@ export default function Layout() {
                 {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
               </p>
             )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="relative hidden md:block">
@@ -147,7 +157,10 @@ export default function Layout() {
               >
                 <Bell size={18} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: "#C4705A" }} />
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1"
+                    style={{ background: "#C4705A" }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
                 )}
               </button>
               {showNotifications && (
@@ -195,7 +208,7 @@ export default function Layout() {
             </Link>
           </div>
         </header>
-        <main className="flex-1 p-7">
+        <main className="flex-1 p-4 md:p-7">
           <Outlet />
         </main>
       </div>

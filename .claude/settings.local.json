@@ -5,7 +5,9 @@
       "Bash(npx vite build)",
       "Bash(dir)",
       "mcp__Claude_Preview__preview_start",
-      "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\src\\\\pages\\\\BusinessTools.jsx'',''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\extracted_mockup.html'',''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\extract_html.js'',''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\extract_html.cjs'' -Force\")"
+      "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\src\\\\pages\\\\BusinessTools.jsx'',''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\extracted_mockup.html'',''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\extract_html.js'',''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\extract_html.cjs'' -Force\")",
+      "Bash(git -C \"C:/Users/larry/artistos-mvp\" status)",
+      "Bash(npm install)"
     ]
   }
 }

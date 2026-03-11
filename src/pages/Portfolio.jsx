@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Plus, Trash2, Upload, Loader2 } from "lucide-react"
+import toast from "react-hot-toast"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
@@ -254,9 +255,10 @@ export default function Portfolio() {
 
       // Refresh the list
       await fetchArtworks()
+      toast.success("Artwork added to portfolio!")
     } catch (err) {
       console.error("Failed to add artwork:", err)
-      alert("Failed to add artwork: " + (err.message || "Unknown error"))
+      toast.error("Failed to add artwork: " + (err.message || "Unknown error"))
     } finally {
       setSubmitting(false)
     }
@@ -282,9 +284,10 @@ export default function Portfolio() {
 
       if (error) throw error
       setArtworkList(prev => prev.filter(a => a.id !== artwork.id))
+      toast.success("Artwork deleted")
     } catch (err) {
       console.error("Failed to delete:", err)
-      alert("Failed to delete artwork: " + (err.message || "Unknown error"))
+      toast.error("Failed to delete artwork: " + (err.message || "Unknown error"))
     }
   }
 
@@ -299,7 +302,7 @@ export default function Portfolio() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 600, color: "#0E0C0A" }}>Portfolio</h1>
           <p style={{ fontSize: 13, color: "#A89F94", marginTop: 2 }}>Manage your artworks and inventory</p>

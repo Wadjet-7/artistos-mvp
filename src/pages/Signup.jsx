@@ -13,6 +13,8 @@ export default function Signup() {
   const { signup } = useAuth()
   const navigate = useNavigate()
 
+  const [confirmEmail, setConfirmEmail] = useState(false)
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
@@ -20,8 +22,14 @@ export default function Signup() {
     if (password.length < 6) { setError("Password must be at least 6 characters."); return }
     setLoading(true)
     try {
-      await signup(name, email, password)
-      navigate("/dashboard")
+      const data = await signup(name, email, password)
+      // If session exists, user is auto-confirmed → go to dashboard
+      if (data?.session) {
+        navigate("/dashboard")
+      } else {
+        // Email confirmation required — show message
+        setConfirmEmail(true)
+      }
     } catch (err) {
       const msg = err.message || "Something went wrong."
       if (msg.includes("already registered")) {
@@ -51,6 +59,20 @@ export default function Signup() {
           <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>Start running your art practice like a business</p>
         </div>
         <div className="bg-white rounded-2xl shadow-2xl p-7" style={{ border: "1px solid #E8E2DA" }}>
+          {confirmEmail ? (
+            <div className="text-center py-4">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "#F5E6D8" }}>
+                <Mail size={24} style={{ color: "#B5651D" }} />
+              </div>
+              <h2 className="font-serif text-lg font-semibold mb-2" style={{ color: "#0E0C0A" }}>Check your email</h2>
+              <p className="text-sm mb-4" style={{ color: "#A89F94" }}>
+                We sent a confirmation link to <strong style={{ color: "#0E0C0A" }}>{email}</strong>. Click the link to activate your account.
+              </p>
+              <Link to="/login" className="btn-copper inline-flex items-center gap-2 px-6 py-2.5">
+                Go to Sign in <ArrowRight size={15} />
+              </Link>
+            </div>
+          ) : (<>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && <div className="text-sm px-4 py-2.5 rounded-lg" style={{ background: "#F5E2DC", border: "1px solid #C4705A", color: "#C4705A" }}>{error}</div>}
             <div>
@@ -100,6 +122,7 @@ export default function Signup() {
               <Link to="/login" className="font-semibold hover:underline" style={{ color: "#B5651D" }}>Sign in</Link>
             </p>
           </div>
+          </>)}
         </div>
       </div>
     </div>

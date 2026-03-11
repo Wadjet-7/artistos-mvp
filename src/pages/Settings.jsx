@@ -1,4 +1,5 @@
 import { useState, useRef } from "react"
+import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
 import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera } from "lucide-react"
@@ -38,8 +39,10 @@ export default function Settings() {
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
+      toast.success("Settings saved!")
     } catch (err) {
       setError(err.message || "Failed to save changes.")
+      toast.error("Failed to save changes")
     } finally {
       setSaving(false)
     }
@@ -61,8 +64,10 @@ export default function Settings() {
         .from("avatars")
         .getPublicUrl(fileName)
       await updateUser({ avatar_url: urlData.publicUrl + "?t=" + Date.now() })
+      toast.success("Avatar updated!")
     } catch (err) {
       setError(err.message || "Failed to upload avatar.")
+      toast.error("Failed to upload avatar")
     } finally {
       setUploadingAvatar(false)
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { Plus, Trash2, Edit2, Loader2, CheckCircle } from "lucide-react"
+import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
@@ -133,9 +134,10 @@ export default function Commissions() {
 
       closeModal()
       await fetchCommissions()
+      toast.success(editingId ? "Commission updated!" : "Commission created!")
     } catch (err) {
       console.error("Failed to save commission:", err)
-      alert("Failed to save commission: " + (err.message || "Unknown error"))
+      toast.error("Failed to save: " + (err.message || "Unknown error"))
     } finally {
       setSubmitting(false)
     }
@@ -155,9 +157,10 @@ export default function Commissions() {
 
       setCommissionList((prev) => prev.filter((c) => c.id !== commission.id))
       await logActivity(user.id, "commission", `Deleted commission "${commission.title}"`)
+      toast.success("Commission deleted")
     } catch (err) {
       console.error("Failed to delete commission:", err)
-      alert("Failed to delete commission: " + (err.message || "Unknown error"))
+      toast.error("Failed to delete: " + (err.message || "Unknown error"))
     }
   }
 
@@ -175,9 +178,10 @@ export default function Commissions() {
         prev.map((c) => (c.id === commission.id ? { ...c, status: "active" } : c))
       )
       await logActivity(user.id, "commission", `Accepted commission "${commission.title}" from ${commission.client_name}`)
+      toast.success("Commission accepted!")
     } catch (err) {
       console.error("Failed to accept commission:", err)
-      alert("Failed to accept commission: " + (err.message || "Unknown error"))
+      toast.error("Failed to accept: " + (err.message || "Unknown error"))
     }
   }
 
@@ -196,7 +200,7 @@ export default function Commissions() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1
             style={{
@@ -225,6 +229,7 @@ export default function Commissions() {
           background: "#F2EDE6",
           padding: 4,
           borderRadius: 10,
+          overflowX: "auto",
         }}
       >
         {tabs.map((tab) => (

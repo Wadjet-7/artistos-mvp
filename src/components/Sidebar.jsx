@@ -1,4 +1,5 @@
-import { NavLink, useNavigate } from "react-router-dom"
+import { NavLink, useNavigate, useLocation } from "react-router-dom"
+import { useEffect } from "react"
 import {
   LayoutDashboard, Image, FileText, Calendar, DollarSign,
   BarChart3, Sparkles, ShoppingBag, MessageSquare, Users, Settings, LogOut
@@ -38,9 +39,14 @@ const navSections = [
   },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    onClose?.()
+  }, [location.pathname])
 
   const handleLogout = () => {
     logout()
@@ -48,8 +54,10 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-60 flex flex-col z-30 overflow-hidden"
-      style={{ background: "#0E0C0A" }}>
+    <>
+      {isOpen && <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={onClose} />}
+      <aside className={`fixed left-0 top-0 h-full w-60 flex flex-col z-40 overflow-hidden transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ background: "#0E0C0A" }}>
       {/* Decorative radial gradient */}
       <div className="absolute -top-20 -right-20 w-56 h-56 pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(181,101,29,0.25) 0%, transparent 70%)" }} />
@@ -146,5 +154,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   )
 }

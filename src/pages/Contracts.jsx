@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { FileText, Send, Eye, Loader2, Trash2 } from "lucide-react"
+import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 
@@ -115,8 +116,10 @@ export default function Contracts() {
       await fetchContracts()
       setForm(defaultForm)
       await logActivity(user.id, "contract_created", `Created ${form.template} for ${form.clientName}`)
+      toast.success("Contract created!")
     } catch (err) {
       console.error("Failed to save contract:", err)
+      toast.error("Failed to save contract: " + (err.message || "Unknown error"))
     } finally {
       setSubmitting(false)
     }
@@ -130,8 +133,10 @@ export default function Contracts() {
       if (error) throw error
       await fetchContracts()
       await logActivity(user.id, "contract_deleted", `Deleted contract ${contractId}`)
+      toast.success("Contract deleted")
     } catch (err) {
       console.error("Failed to delete contract:", err)
+      toast.error("Failed to delete: " + (err.message || "Unknown error"))
     }
   }
 
@@ -195,7 +200,7 @@ export default function Contracts() {
             </div>
 
             {/* Artwork + Price side by side */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="form-label">Artwork Title</label>
                 <input className="form-input" placeholder="e.g. Solstice No. 3" value={form.artworkTitle} onChange={set("artworkTitle")} />

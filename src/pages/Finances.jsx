@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { Plus, Trash2, Edit2, CheckCircle, Loader2, DollarSign } from "lucide-react"
+import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
@@ -139,9 +140,10 @@ export default function Finances() {
 
       closeModal()
       await fetchInvoices()
+      toast.success(editingId ? "Invoice updated!" : "Invoice created!")
     } catch (err) {
       console.error("Failed to save invoice:", err)
-      alert("Failed to save invoice: " + (err.message || "Unknown error"))
+      toast.error("Failed to save invoice: " + (err.message || "Unknown error"))
     } finally {
       setSubmitting(false)
     }
@@ -160,9 +162,10 @@ export default function Finances() {
       if (error) throw error
       setInvoiceList(prev => prev.filter(i => i.id !== inv.id))
       await logActivity(user.id, "invoice", `Deleted invoice for ${inv.client_name}`)
+      toast.success("Invoice deleted!")
     } catch (err) {
       console.error("Failed to delete invoice:", err)
-      alert("Failed to delete invoice: " + (err.message || "Unknown error"))
+      toast.error("Failed to delete invoice: " + (err.message || "Unknown error"))
     }
   }
 
@@ -179,16 +182,17 @@ export default function Finances() {
       const inv = invoiceList.find(i => i.id === id)
       await logActivity(user.id, "invoice", `Marked invoice for ${inv?.client_name || "client"} as paid`)
       await fetchInvoices()
+      toast.success("Invoice marked as paid!")
     } catch (err) {
       console.error("Failed to mark as paid:", err)
-      alert("Failed to mark as paid: " + (err.message || "Unknown error"))
+      toast.error("Failed to mark as paid: " + (err.message || "Unknown error"))
     }
   }
 
   return (
     <div className="space-y-5">
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map(s => (
           <div key={s.label} className={`stat-card ${s.variant}`}>
             <div className="stat-label">{s.label}</div>
