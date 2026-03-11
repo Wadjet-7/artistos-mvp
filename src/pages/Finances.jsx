@@ -4,6 +4,7 @@ import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
+import ConfirmModal from "../components/ConfirmModal"
 
 const emptyForm = {
   client_name: "",
@@ -40,6 +41,7 @@ export default function Finances() {
   const [editingId, setEditingId] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState(emptyForm)
+  const [confirmTarget, setConfirmTarget] = useState(null)
 
   /* ---- fetch invoices from Supabase ---- */
   const fetchInvoices = useCallback(async () => {
@@ -150,9 +152,11 @@ export default function Finances() {
   }
 
   /* ---- delete ---- */
-  const handleDelete = async (inv) => {
-    if (!window.confirm(`Delete invoice for "${inv.client_name}"? This cannot be undone.`)) return
+  const handleDelete = (inv) => setConfirmTarget(inv)
 
+  const handleConfirmDelete = async () => {
+    const inv = confirmTarget
+    setConfirmTarget(null)
     try {
       const { error } = await supabase
         .from("invoices")
@@ -386,6 +390,14 @@ export default function Finances() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={!!confirmTarget}
+        onClose={() => setConfirmTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Invoice?"
+        message={`Are you sure you want to delete the invoice for "${confirmTarget?.client_name}"? This cannot be undone.`}
+      />
     </div>
   )
 }

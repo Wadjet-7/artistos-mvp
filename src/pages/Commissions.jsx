@@ -4,6 +4,7 @@ import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
+import ConfirmModal from "../components/ConfirmModal"
 
 const defaultForm = {
   client_name: "",
@@ -32,6 +33,7 @@ export default function Commissions() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [confirmTarget, setConfirmTarget] = useState(null)
   const [activeTab, setActiveTab] = useState("active")
   const [form, setForm] = useState(defaultForm)
 
@@ -144,9 +146,11 @@ export default function Commissions() {
   }
 
   /* ---- delete ---- */
-  const handleDelete = async (commission) => {
-    if (!confirm(`Delete commission "${commission.title}"? This cannot be undone.`)) return
+  const handleDelete = (commission) => setConfirmTarget(commission)
 
+  const handleConfirmDelete = async () => {
+    const commission = confirmTarget
+    setConfirmTarget(null)
     try {
       const { error } = await supabase
         .from("commissions")
@@ -769,6 +773,14 @@ export default function Commissions() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={!!confirmTarget}
+        onClose={() => setConfirmTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Commission?"
+        message={`Are you sure you want to delete "${confirmTarget?.title}"? This cannot be undone.`}
+      />
     </div>
   )
 }

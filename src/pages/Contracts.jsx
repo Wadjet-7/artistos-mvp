@@ -3,6 +3,7 @@ import { FileText, Send, Eye, Loader2, Trash2 } from "lucide-react"
 import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
+import ConfirmModal from "../components/ConfirmModal"
 
 /* ------------------------------------------------------------------ */
 /*  Contract Generator — form + live preview + recent table           */
@@ -37,6 +38,7 @@ export default function Contracts() {
   const [contractList, setContractList] = useState([])
   const [loadingData, setLoadingData] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [confirmTarget, setConfirmTarget] = useState(null)
 
   const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
 
@@ -126,13 +128,16 @@ export default function Contracts() {
   }
 
   /* ---- Delete contract ---- */
-  const handleDelete = async (contractId) => {
-    if (!window.confirm("Are you sure you want to delete this contract?")) return
+  const handleDelete = (contract) => setConfirmTarget(contract)
+
+  const handleConfirmDelete = async () => {
+    const contract = confirmTarget
+    setConfirmTarget(null)
     try {
-      const { error } = await supabase.from("contracts").delete().eq("id", contractId)
+      const { error } = await supabase.from("contracts").delete().eq("id", contract.id)
       if (error) throw error
       await fetchContracts()
-      await logActivity(user.id, "contract_deleted", `Deleted contract ${contractId}`)
+      await logActivity(user.id, "contract_deleted", `Deleted contract ${contract.id}`)
       toast.success("Contract deleted")
     } catch (err) {
       console.error("Failed to delete contract:", err)
@@ -327,7 +332,7 @@ export default function Contracts() {
                         <td style={{ textAlign: "right", fontWeight: 600 }}>{formatAmount(c.value)}</td>
                         <td style={{ textAlign: "right" }}>
                           <button
-                            onClick={() => handleDelete(c.id)}
+                            onClick={() => handleDelete(c)}
                             style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}
                             title="Delete contract"
                           >
@@ -343,6 +348,14 @@ export default function Contracts() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={!!confirmTarget}
+        onClose={() => setConfirmTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Contract?"
+        message={`Are you sure you want to delete this contract for "${confirmTarget?.client_name}"? This cannot be undone.`}
+      />
     </div>
   )
 }

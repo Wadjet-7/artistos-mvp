@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar"
 import { Bell, Search, X, Menu } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
+import CommandPalette from "./CommandPalette"
 
 function timeAgo(date) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
@@ -45,6 +46,7 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState([])
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const notifRef = useRef(null)
 
   const firstName = user?.name?.split(" ")[0] || "Maya"
@@ -106,6 +108,18 @@ export default function Layout() {
     return () => document.removeEventListener("mousedown", handleClick)
   }, [])
 
+  // Ctrl+K / Cmd+K to open command palette
+  useEffect(() => {
+    const handleKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault()
+        setCommandPaletteOpen(prev => !prev)
+      }
+    }
+    document.addEventListener("keydown", handleKey)
+    return () => document.removeEventListener("keydown", handleKey)
+  }, [])
+
   const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })))
   const dismiss = (id) => setNotifications(prev => prev.filter(n => n.id !== id))
 
@@ -138,13 +152,23 @@ export default function Layout() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="relative hidden md:block">
+            <button
+              className="md:hidden relative p-2 rounded-lg transition-colors"
+              style={{ color: "#A89F94" }}
+              onClick={() => setCommandPaletteOpen(true)}
+              onMouseEnter={e => e.currentTarget.style.background = "#F2EDE6"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
+              <Search size={18} />
+            </button>
+            <div className="relative hidden md:block cursor-pointer" onClick={() => setCommandPaletteOpen(true)}>
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#A89F94" }} />
               <input
                 type="text"
-                placeholder="Search..."
-                className="form-input pl-9 pr-4 py-2 text-sm w-56"
+                placeholder="Search… ⌘K"
+                className="form-input pl-9 pr-4 py-2 text-sm w-56 cursor-pointer"
                 style={{ borderRadius: "10px" }}
+                readOnly
               />
             </div>
             <div className="relative" ref={notifRef}>
@@ -209,9 +233,13 @@ export default function Layout() {
           </div>
         </header>
         <main className="flex-1 p-4 md:p-7">
-          <Outlet />
+          <div key={location.pathname} className="animate-fadeIn">
+            <Outlet />
+          </div>
         </main>
       </div>
+
+      <CommandPalette open={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
     </div>
   )
 }

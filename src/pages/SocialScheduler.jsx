@@ -4,6 +4,7 @@ import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
+import ConfirmModal from "../components/ConfirmModal"
 
 const platformStats = [
   { name: "Instagram", followers: "12.4K", percentage: 78, color: "#B5651D" },
@@ -55,6 +56,7 @@ export default function SocialScheduler() {
   const [editingId, setEditingId] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState({ ...emptyForm })
+  const [confirmTarget, setConfirmTarget] = useState(null)
 
   const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -174,9 +176,11 @@ export default function SocialScheduler() {
   }
 
   /* ---- delete ---- */
-  const handleDelete = async (post) => {
-    if (!confirm(`Delete scheduled post "${post.artwork_title || "Untitled"}"? This cannot be undone.`)) return
+  const handleDelete = (post) => setConfirmTarget(post)
 
+  const handleConfirmDelete = async () => {
+    const post = confirmTarget
+    setConfirmTarget(null)
     try {
       const { error } = await supabase
         .from("scheduled_posts")
@@ -532,6 +536,14 @@ export default function SocialScheduler() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={!!confirmTarget}
+        onClose={() => setConfirmTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Scheduled Post?"
+        message={`Are you sure you want to delete "${confirmTarget?.artwork_title || "Untitled"}"? This cannot be undone.`}
+      />
     </div>
   )
 }

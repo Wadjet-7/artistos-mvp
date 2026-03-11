@@ -243,3 +243,12 @@
   .cal-day.today.has-post::after { background: #D4854A; }
   .cal-day.muted { color: #A89F94; }
 }
+
+/* Page transitions */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}

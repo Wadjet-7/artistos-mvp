@@ -1,18 +1,3 @@
-export const artworks = [
-  { id: 1, title: "Solstice No. 3", medium: "Oil on Canvas", tag: "Oil", price: 2400, status: "Available", dimensions: '36×48"', seed: 17 },
-  { id: 2, title: "Forest Dreams", medium: "Acrylic", tag: "Acrylic", price: 1800, status: "Sold", dimensions: '24×30"', seed: 34 },
-  { id: 3, title: "Urban Rhythm", medium: "Mixed Media", tag: "Mixed Media", price: 3200, status: "Available", dimensions: '40×50"', seed: 51 },
-  { id: 4, title: "Golden Hour", medium: "Photography", tag: "Photography", price: 950, status: "Available", dimensions: '20×30"', seed: 68 },
-  { id: 5, title: "Silent Echo", medium: "Sculpture", tag: "Sculpture", price: 4500, status: "Available", dimensions: "Unique", seed: 85 },
-]
-
-export const invoices = [
-  { id: 1, client: "David Kim", description: "Commission Deposit — Abstract Triptych", amount: "$1,260", date: "Feb 20", status: "Paid", statusColor: "badge-forest" },
-  { id: 2, client: "Alex Rivera", description: "Final Payment — Portrait", amount: "$1,600", date: "Feb 18", status: "Overdue", statusColor: "badge-rose" },
-  { id: 3, client: "Gallery Nord", description: 'Consignment Sale — "Solstice No. 1"', amount: "$1,800", date: "Feb 10", status: "Paid", statusColor: "badge-forest" },
-  { id: 4, client: "Sarah M.", description: "Commission Balance — Portrait", amount: "$900", date: "Feb 5", status: "Pending", statusColor: "badge-gold" },
-]
-
 export const styleMarketTrends = [
   { style: "Abstract", change: "+23%", percentage: 85, color: "#B5651D", positive: true },
   { style: "Portrait", change: "+14%", percentage: 62, color: "#2D4A35", positive: true },

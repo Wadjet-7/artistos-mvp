@@ -4,6 +4,7 @@ import toast from "react-hot-toast"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
+import ConfirmModal from "../components/ConfirmModal"
 
 /* ------------------------------------------------------------------ */
 /*  Procedural abstract-art painter — fallback for artworks w/o image */
@@ -151,6 +152,7 @@ export default function Portfolio() {
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [form, setForm] = useState({ title: "", medium: "Oil on Canvas", price: "", dimensions: "", status: "Available" })
+  const [confirmTarget, setConfirmTarget] = useState(null)
   const fileInputRef = useRef(null)
 
   /* ---- fetch artworks from Supabase ---- */
@@ -265,9 +267,11 @@ export default function Portfolio() {
   }
 
   /* ---- delete artwork ---- */
-  const handleDelete = async (artwork) => {
-    if (!confirm(`Delete "${artwork.title}"? This cannot be undone.`)) return
+  const handleDelete = (artwork) => setConfirmTarget(artwork)
 
+  const handleConfirmDelete = async () => {
+    const artwork = confirmTarget
+    setConfirmTarget(null)
     try {
       // Delete image from storage if it exists
       if (artwork.image_url && user?.id) {
@@ -505,6 +509,14 @@ export default function Portfolio() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={!!confirmTarget}
+        onClose={() => setConfirmTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Artwork?"
+        message={`Are you sure you want to delete "${confirmTarget?.title}"? This cannot be undone.`}
+      />
     </div>
   )
 }
