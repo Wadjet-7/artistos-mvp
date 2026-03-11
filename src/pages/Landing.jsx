@@ -125,9 +125,9 @@ export default function Landing() {
               style={{ background: "#B5651D", color: "white" }}>
               Start for free <ArrowRight size={18} />
             </Link>
-            <Link to="/login" className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-base transition-colors"
+            <Link to="/artists" className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-base transition-colors"
               style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.2)", color: "white" }}>
-              Browse marketplace
+              Browse artists
             </Link>
           </div>
           <p className="mt-5 text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>No credit card required. Free forever on Starter plan.</p>

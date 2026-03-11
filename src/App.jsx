@@ -19,6 +19,7 @@ const Commissions = lazy(() => import("./pages/Commissions"))
 const Messages = lazy(() => import("./pages/Messages"))
 const Settings = lazy(() => import("./pages/Settings"))
 const ArtistProfile = lazy(() => import("./pages/ArtistProfile"))
+const DiscoverArtists = lazy(() => import("./pages/DiscoverArtists"))
 const NotFound = lazy(() => import("./pages/NotFound"))
 
 function ProtectedRoute({ children }) {
@@ -53,6 +54,7 @@ function AppRoutes() {
         <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
         <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
         <Route path="/artist/:userId" element={<ArtistProfile />} />
+        <Route path="/artists" element={<DiscoverArtists />} />
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/portfolio" element={<Portfolio />} />
