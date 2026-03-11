@@ -3,7 +3,26 @@ import { Outlet, useLocation, Link } from "react-router-dom"
 import Sidebar from "./Sidebar"
 import { Bell, Search, X } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
-import { recentActivity } from "../data/mockData"
+import { supabase } from "../lib/supabase"
+
+function timeAgo(date) {
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
+  if (seconds < 60) return "Just now"
+  if (seconds < 3600) return Math.floor(seconds / 60) + "m ago"
+  if (seconds < 86400) return Math.floor(seconds / 3600) + "h ago"
+  if (seconds < 604800) return Math.floor(seconds / 86400) + "d ago"
+  return new Date(date).toLocaleDateString()
+}
+
+const notifDotColor = (type) => {
+  switch (type) {
+    case "commission": return "#B5651D"
+    case "invoice": return "#2D4A35"
+    case "artwork": return "#C9A84C"
+    case "social": return "#C4705A"
+    default: return "#A89F94"
+  }
+}
 
 const pageTitles = {
   "/dashboard": { title: "Good morning,", accent: "Maya", suffix: " ✦" },
@@ -24,7 +43,7 @@ export default function Layout() {
   const { user } = useAuth()
   const pageInfo = pageTitles[location.pathname] || { title: "ArtistOS", accent: "" }
   const [showNotifications, setShowNotifications] = useState(false)
-  const [notifications, setNotifications] = useState(recentActivity.map((a, i) => ({ ...a, id: i, read: false })))
+  const [notifications, setNotifications] = useState([])
   const notifRef = useRef(null)
 
   const firstName = user?.name?.split(" ")[0] || "Maya"
@@ -36,6 +55,48 @@ export default function Layout() {
 
   const unreadCount = notifications.filter(n => !n.read).length
 
+  // Fetch notifications from activity_log
+  useEffect(() => {
+    if (!user?.id) return
+
+    const fetchNotifications = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("activity_log")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(10)
+
+        if (error) {
+          // Silently ignore — table may not exist yet (Phase 2 SQL not run)
+          setNotifications([])
+          return
+        }
+
+        if (data && data.length > 0) {
+          setNotifications(
+            data.map(item => ({
+              id: item.id,
+              text: item.description,
+              time: timeAgo(item.created_at),
+              type: item.activity_type,
+              read: false,
+            }))
+          )
+        } else {
+          setNotifications([])
+        }
+      } catch (err) {
+        // Silently ignore
+        setNotifications([])
+      }
+    }
+
+    fetchNotifications()
+  }, [user?.id])
+
+  // Close notifications on outside click
   useEffect(() => {
     const handleClick = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotifications(false)
@@ -109,7 +170,7 @@ export default function Layout() {
                         className={"flex items-start gap-3 px-4 py-3 " + (n.read ? "opacity-60" : "")}
                         style={{ borderBottom: "1px solid #F2EDE6" }}>
                         <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
-                          style={{ background: n.type === "commission" ? "#B5651D" : n.type === "invoice" ? "#2D4A35" : n.type === "view" ? "#C9A84C" : "#C4705A" }} />
+                          style={{ background: notifDotColor(n.type) }} />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs leading-snug" style={{ color: "#0E0C0A" }}>{n.text}</p>
                           <p className="text-xs mt-0.5 font-mono" style={{ color: "#A89F94" }}>{n.time}</p>

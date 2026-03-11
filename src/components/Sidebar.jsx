@@ -117,10 +117,14 @@ export default function Sidebar() {
           onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
           onMouseLeave={e => e.currentTarget.style.background = "transparent"}
         >
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold font-serif"
-            style={{ background: "linear-gradient(135deg, #B5651D, #C4705A)" }}>
-            {user?.initials || "M"}
-          </div>
+          {user?.avatar_url ? (
+            <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+          ) : (
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold font-serif"
+              style={{ background: "linear-gradient(135deg, #B5651D, #C4705A)" }}>
+              {user?.initials || "M"}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-normal truncate" style={{ color: "rgba(255,255,255,0.75)" }}>
               {user?.name || "Maya Chen"}

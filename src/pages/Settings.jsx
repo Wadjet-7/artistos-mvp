@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useAuth } from "../context/AuthContext"
-import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2 } from "lucide-react"
+import { supabase } from "../lib/supabase"
+import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera } from "lucide-react"
 
 const tabs = ["Profile", "Notifications", "Billing"]
 
@@ -10,6 +11,8 @@ export default function Settings() {
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const fileInputRef = useRef(null)
   const [form, setForm] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -42,6 +45,29 @@ export default function Settings() {
     }
   }
 
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !user?.id) return
+    setUploadingAvatar(true)
+    setError("")
+    try {
+      const ext = file.name.split(".").pop()
+      const fileName = `${user.id}/avatar.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(fileName, file, { upsert: true, contentType: file.type })
+      if (uploadError) throw uploadError
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(fileName)
+      await updateUser({ avatar_url: urlData.publicUrl + "?t=" + Date.now() })
+    } catch (err) {
+      setError(err.message || "Failed to upload avatar.")
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   return (
     <div className="max-w-3xl space-y-6">
       {/* Tab bar */}
@@ -63,14 +89,34 @@ export default function Settings() {
         <div className="space-y-5">
           <div className="card p-6">
             <div className="flex items-center gap-5 mb-6">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-semibold font-serif"
-                style={{ background: "linear-gradient(135deg, #B5651D, #C4705A)" }}>
-                {user?.initials || "M"}
+              <div className="relative">
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt="Avatar" className="w-16 h-16 rounded-full object-cover" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-semibold font-serif"
+                    style={{ background: "linear-gradient(135deg, #B5651D, #C4705A)" }}>
+                    {user?.initials || "M"}
+                  </div>
+                )}
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                    <Loader2 size={20} className="animate-spin text-white" />
+                  </div>
+                )}
               </div>
               <div>
                 <h3 className="text-base font-semibold" style={{ color: "#0E0C0A" }}>{form.name}</h3>
                 <p className="text-sm" style={{ color: "#A89F94" }}>{form.email}</p>
-                <button className="text-xs font-medium mt-1 hover:underline" style={{ color: "#B5651D" }}>Change photo</button>
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="text-xs font-medium mt-1 hover:underline flex items-center gap-1"
+                  style={{ color: "#B5651D" }}
+                >
+                  <Camera size={12} />
+                  {uploadingAvatar ? "Uploading..." : "Change photo"}
+                </button>
               </div>
             </div>
             {error && (

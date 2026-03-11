@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react"
-import { supabase, isSupabaseConfigured } from "../lib/supabase"
+import { supabase, isSupabaseConfigured, STORAGE_KEY, getValidToken, isTokenExpired } from "../lib/supabase"
 
 const AuthContext = createContext(null)
 
@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
     email: profile.email || "",
     initials: profile.initials || (profile.name || "").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2),
     plan: profile.plan || "Starter",
-    avatar: profile.avatar_url || null,
+    avatar_url: profile.avatar_url || null,
     bio: profile.bio || "",
     website: profile.website || "",
     medium: profile.medium || "",
@@ -39,7 +39,7 @@ export function AuthProvider({ children }) {
         email: authUser.email || "",
         initials: (authUser.user_metadata?.name || "U").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2),
         plan: "Starter",
-        avatar: null,
+        avatar_url: null,
         bio: "", website: "", medium: "", style: "", location: "",
       })
       return
@@ -48,39 +48,67 @@ export function AuthProvider({ children }) {
     setUser(buildUserObj(data))
   }
 
+  // Save session to localStorage (since persistSession is off)
+  const saveSession = (session) => {
+    if (session) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+    } else {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }
+
   /* ---- auth state listener ---- */
   useEffect(() => {
     if (!isSupabaseConfigured) {
-      // Supabase not configured — skip auth, allow app to render
       setLoading(false)
       return
     }
 
-    // Get initial session
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        if (session?.user) {
-          loadProfile(session.user)
-        }
-        setLoading(false)
-      })
-      .catch(() => {
-        setLoading(false)
-      })
+    let mounted = true
 
-    // Listen for auth changes
+    const init = async () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        if (raw) {
+          const stored = JSON.parse(raw)
+          if (stored?.user && mounted) {
+            // Ensure we have a valid (non-expired) token before making any queries
+            const token = await getValidToken()
+            if (!token) {
+              // Token fully expired & refresh failed — clear session
+              console.warn("[Auth] Session expired, clearing")
+              localStorage.removeItem(STORAGE_KEY)
+              if (mounted) setLoading(false)
+              return
+            }
+            await loadProfile(stored.user)
+          }
+        }
+      } catch (e) {
+        console.warn("[Auth] init error:", e)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+
+    init()
+
+    // Listen for auth changes from login/signup
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        if (!mounted) return
         if (session?.user) {
           await loadProfile(session.user)
         } else {
           setUser(null)
         }
-        setLoading(false)
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   /* ---- auth actions ---- */
@@ -96,7 +124,8 @@ export function AuthProvider({ children }) {
     })
 
     if (error) throw error
-    // Profile is auto-created by database trigger
+    // Manually save session (persistSession is off)
+    if (data.session) saveSession(data.session)
     return data
   }
 
@@ -107,11 +136,14 @@ export function AuthProvider({ children }) {
     })
 
     if (error) throw error
+    // Manually save session (persistSession is off)
+    if (data.session) saveSession(data.session)
     return data
   }
 
   const logout = async () => {
     await supabase.auth.signOut()
+    saveSession(null)
     setUser(null)
   }
 
@@ -139,8 +171,9 @@ export function AuthProvider({ children }) {
   }
 
   const refreshProfile = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.user) await loadProfile(session.user)
+    if (user?.id) {
+      await loadProfile({ id: user.id, email: user.email })
+    }
   }
 
   // Show nothing while checking auth state

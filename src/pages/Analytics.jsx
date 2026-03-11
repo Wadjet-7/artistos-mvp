@@ -1,18 +1,82 @@
+import { useState, useEffect } from "react"
+import { supabase } from "../lib/supabase"
+import { useAuth } from "../context/AuthContext"
+import { Loader2 } from "lucide-react"
 import { styleMarketTrends } from "../data/mockData"
 
-const stats = [
-  { label: "Avg. Sale Price", value: "$2,450", delta: "↑ 18% vs 2025", up: true, variant: "copper" },
-  { label: "Price / Sq. Inch", value: "$4.80", delta: "Top 15% of peers", up: true, variant: "forest" },
-  { label: "Collector Reach", value: "1,240", delta: "↑ Profile views (30d)", up: true, variant: "gold" },
-]
-
 export default function Analytics() {
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [avgPrice, setAvgPrice] = useState(0)
+  const [artworkCount, setArtworkCount] = useState(0)
+
+  useEffect(() => {
+    if (!user?.id) return
+
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const { data, error } = await supabase
+          .from("artworks")
+          .select("price, medium, status")
+          .eq("user_id", user.id)
+
+        if (error) {
+          console.error("[Analytics] fetch error:", error)
+          setLoading(false)
+          return
+        }
+
+        const artworks = data || []
+        setArtworkCount(artworks.length)
+
+        if (artworks.length > 0) {
+          const total = artworks.reduce((sum, a) => sum + (Number(a.price) || 0), 0)
+          setAvgPrice(Math.round(total / artworks.length))
+        } else {
+          setAvgPrice(0)
+        }
+      } catch (err) {
+        console.error("[Analytics] error:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [user?.id])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <Loader2 size={32} className="animate-spin" style={{ color: "#B5651D" }} />
+      </div>
+    )
+  }
+
+  const stats = [
+    {
+      label: "Avg. Sale Price",
+      value: avgPrice > 0 ? `$${avgPrice.toLocaleString()}` : "$0",
+      delta: artworkCount > 0 ? `Based on ${artworkCount} artworks` : "No artworks yet",
+      up: avgPrice > 0,
+      variant: "copper",
+    },
+    { label: "Price / Sq. Inch", value: "$4.80", delta: "Top 15% of peers", up: true, variant: "forest" },
+    { label: "Collector Reach", value: "1,240", delta: "↑ Profile views (30d)", up: true, variant: "gold" },
+  ]
+
+  // Market position ring: 74 is static score, but adjust percentage based on artwork count
+  // More artworks = higher ring fill. Cap at 100% (266deg = 74%)
+  const scorePercent = Math.min(74 + artworkCount, 100)
+  const scoreDeg = Math.round((scorePercent / 100) * 360)
+
   return (
     <div className="space-y-5">
       {/* Market Position Score */}
       <div className="rounded-xl p-5 flex items-center gap-4" style={{ background: "#0E0C0A", color: "#FAF8F5" }}>
         <div className="w-[72px] h-[72px] rounded-full flex-shrink-0 flex items-center justify-center relative"
-          style={{ background: "conic-gradient(#D4854A 0deg 266deg, rgba(255,255,255,0.1) 266deg 360deg)" }}>
+          style={{ background: `conic-gradient(#D4854A 0deg ${scoreDeg}deg, rgba(255,255,255,0.1) ${scoreDeg}deg 360deg)` }}>
           <div className="w-[54px] h-[54px] rounded-full flex items-center justify-center font-serif text-[22px] font-semibold"
             style={{ background: "#0E0C0A" }}>74</div>
         </div>
@@ -69,7 +133,9 @@ export default function Analytics() {
                 <circle key={i} cx={cx} cy={cy} r="4" fill="white" stroke="#2D4A35" strokeWidth="2" />
               ))}
               <circle cx="308" cy="30" r="5" fill="#2D4A35" stroke="#2D4A35" strokeWidth="2" />
-              <text x="308" y="20" fill="#2D4A35" fontSize="10" fontFamily="DM Mono" textAnchor="middle" fontWeight="600">$2,450</text>
+              <text x="308" y="20" fill="#2D4A35" fontSize="10" fontFamily="DM Mono" textAnchor="middle" fontWeight="600">
+                {avgPrice > 0 ? `$${avgPrice.toLocaleString()}` : "$0"}
+              </text>
             </svg>
           </div>
         </div>

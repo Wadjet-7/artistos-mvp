@@ -1,6 +1,7 @@
-import { useState } from "react"
-import { FileText, Send, Eye } from "lucide-react"
-import { recentContracts } from "../data/mockData"
+import { useState, useEffect, useCallback } from "react"
+import { FileText, Send, Eye, Loader2, Trash2 } from "lucide-react"
+import { supabase, logActivity } from "../lib/supabase"
+import { useAuth } from "../context/AuthContext"
 
 /* ------------------------------------------------------------------ */
 /*  Contract Generator — form + live preview + recent table           */
@@ -30,7 +31,11 @@ const defaultForm = {
 }
 
 export default function Contracts() {
+  const { user } = useAuth()
   const [form, setForm] = useState(defaultForm)
+  const [contractList, setContractList] = useState([])
+  const [loadingData, setLoadingData] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
   const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
 
@@ -49,6 +54,104 @@ export default function Contracts() {
     if (form.paymentTerms.startsWith("3 equal")) return `3 payments of $${Math.round(p / 3).toLocaleString()}`
     return `${displayPrice} due within 30 days of delivery`
   })()
+
+  /* ---- Build the preview text (reused for saving) ---- */
+  const buildPreviewText = () => {
+    let text = `${form.template || "Commission Agreement"}\n\n`
+    text += `This ${form.template || "Commission Agreement"} ("Agreement") is entered into between ${form.clientName || "___________"} ("Client") and ${user?.name || "Artist"} ("Artist").\n\n`
+    text += `1. Commissioned Work. The Artist agrees to create the artwork titled "${form.artworkTitle || "___________"}" for the total price of ${displayPrice}.\n\n`
+    text += `2. Payment Terms. ${form.paymentTerms}.`
+    if (form.price) text += ` Specifically: ${depositText}.`
+    text += `\n\n`
+    text += `3. Completion Date. The Artist shall deliver the completed work on or before ${displayDate}.\n\n`
+    text += `4. Rights & Usage. Upon full payment, the Client receives display rights. Reproduction rights remain with the Artist unless otherwise agreed.`
+    if (form.clientEmail) {
+      text += `\n\nA copy of this agreement will be sent to ${form.clientEmail} for electronic signature.`
+    }
+    return text
+  }
+
+  /* ---- Fetch contracts from Supabase ---- */
+  const fetchContracts = useCallback(async () => {
+    if (!user?.id) return
+    setLoadingData(true)
+    try {
+      const { data, error } = await supabase
+        .from("contracts")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+      if (error) throw error
+      setContractList(data || [])
+    } catch (err) {
+      console.error("Failed to fetch contracts:", err)
+    } finally {
+      setLoadingData(false)
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    fetchContracts()
+  }, [fetchContracts])
+
+  /* ---- Save contract ---- */
+  const handleSave = async () => {
+    if (!user?.id) return
+    setSubmitting(true)
+    try {
+      const { error } = await supabase.from("contracts").insert({
+        user_id: user.id,
+        client_name: form.clientName,
+        client_email: form.clientEmail,
+        project_title: form.artworkTitle,
+        contract_type: form.template,
+        end_date: form.completionDate || null,
+        value: form.price ? Number(form.price) : null,
+        status: "draft",
+        payment_terms: form.paymentTerms,
+        terms_text: buildPreviewText(),
+      })
+      if (error) throw error
+      await fetchContracts()
+      setForm(defaultForm)
+      await logActivity(user.id, "contract_created", `Created ${form.template} for ${form.clientName}`)
+    } catch (err) {
+      console.error("Failed to save contract:", err)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  /* ---- Delete contract ---- */
+  const handleDelete = async (contractId) => {
+    if (!window.confirm("Are you sure you want to delete this contract?")) return
+    try {
+      const { error } = await supabase.from("contracts").delete().eq("id", contractId)
+      if (error) throw error
+      await fetchContracts()
+      await logActivity(user.id, "contract_deleted", `Deleted contract ${contractId}`)
+    } catch (err) {
+      console.error("Failed to delete contract:", err)
+    }
+  }
+
+  /* ---- Status badge class ---- */
+  const statusBadge = (status) => {
+    switch (status) {
+      case "signed":    return "badge badge-forest"
+      case "draft":     return "badge badge-grey"
+      case "active":    return "badge badge-gold"
+      case "completed": return "badge badge-copper"
+      case "cancelled": return "badge badge-rose"
+      default:          return "badge badge-grey"
+    }
+  }
+
+  /* ---- Format currency ---- */
+  const formatAmount = (value) => {
+    if (value == null || value === "") return "—"
+    return `$${Number(value).toLocaleString()}`
+  }
 
   return (
     <div className="space-y-6">
@@ -125,9 +228,13 @@ export default function Contracts() {
                 <Eye size={15} />
                 Preview PDF
               </button>
-              <button className="btn-copper flex-1 justify-center">
-                <Send size={15} />
-                Send for Signing
+              <button
+                className="btn-copper flex-1 justify-center"
+                onClick={handleSave}
+                disabled={submitting}
+              >
+                {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                {submitting ? "Saving..." : "Send for Signing"}
               </button>
             </div>
           </div>
@@ -150,7 +257,7 @@ export default function Contracts() {
                 <p>
                   This {form.template || "Commission Agreement"} ("Agreement") is entered into
                   between <span className="contract-field">{form.clientName || "___________"}</span>{" "}
-                  ("Client") and <span className="contract-field">Maya Chen</span> ("Artist").
+                  ("Client") and <span className="contract-field">{user?.name || "Artist"}</span> ("Artist").
                 </p>
                 <p style={{ marginTop: 10 }}>
                   <strong>1. Commissioned Work.</strong> The Artist agrees to create the artwork
@@ -186,26 +293,47 @@ export default function Contracts() {
               <span style={{ fontSize: 12, color: "#A89F94", cursor: "pointer" }}>View all</span>
             </div>
             <div className="card-body" style={{ padding: 0 }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Client</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th style={{ textAlign: "right" }}>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentContracts.map((c, i) => (
-                    <tr key={i}>
-                      <td style={{ fontWeight: 500 }}>{c.client}</td>
-                      <td>{c.type}</td>
-                      <td><span className={"badge " + c.statusColor}>{c.status}</span></td>
-                      <td style={{ textAlign: "right", fontWeight: 600 }}>{c.amount}</td>
+              {loadingData ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 size={20} className="animate-spin" style={{ color: "#B5651D" }} />
+                  <span style={{ marginLeft: 8, fontSize: 13, color: "#A89F94" }}>Loading contracts...</span>
+                </div>
+              ) : contractList.length === 0 ? (
+                <div className="flex items-center justify-center py-8">
+                  <span style={{ fontSize: 13, color: "#A89F94" }}>No contracts yet. Create one above.</span>
+                </div>
+              ) : (
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Client</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th style={{ textAlign: "right" }}>Amount</th>
+                      <th style={{ textAlign: "right" }}>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {contractList.map((c) => (
+                      <tr key={c.id}>
+                        <td style={{ fontWeight: 500 }}>{c.client_name}</td>
+                        <td>{c.contract_type}</td>
+                        <td><span className={statusBadge(c.status)}>{c.status}</span></td>
+                        <td style={{ textAlign: "right", fontWeight: 600 }}>{formatAmount(c.value)}</td>
+                        <td style={{ textAlign: "right" }}>
+                          <button
+                            onClick={() => handleDelete(c.id)}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}
+                            title="Delete contract"
+                          >
+                            <Trash2 size={15} style={{ color: "#C27C7C" }} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>
