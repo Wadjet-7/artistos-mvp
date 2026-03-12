@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Plus, Trash2, Upload, Loader2, Award, BookOpen, QrCode } from "lucide-react"
+import { Plus, Trash2, Upload, Loader2, Award, BookOpen, QrCode, Sparkles, DollarSign } from "lucide-react"
 import toast from "react-hot-toast"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
@@ -10,7 +10,8 @@ import CatalogModal from "../components/CatalogModal"
 import QRCodeModal from "../components/QRCodeModal"
 import paintAbstract from "../utils/paintAbstract"
 import { LimitBanner } from "../components/UpgradePrompt"
-import { isAtLimit, normalizePlan } from "../lib/plans"
+import { isAtLimit, normalizePlan, canAccess } from "../lib/plans"
+import { generateArtworkDescription, suggestPricing } from "../lib/ai"
 
 /* ------------------------------------------------------------------ */
 /*  Artwork card — shows real image or canvas fallback                */
@@ -110,7 +111,8 @@ export default function Portfolio() {
   const [submitting, setSubmitting] = useState(false)
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
-  const [form, setForm] = useState({ title: "", medium: "Oil on Canvas", price: "", dimensions: "", status: "Available" })
+  const [form, setForm] = useState({ title: "", medium: "Oil on Canvas", price: "", dimensions: "", status: "Available", description: "" })
+  const [aiLoading, setAiLoading] = useState(null) // "describe" | "price" | null
   const [confirmTarget, setConfirmTarget] = useState(null)
   const [coaTarget, setCoaTarget] = useState(null)
   const [qrTarget, setQrTarget] = useState(null)
@@ -124,7 +126,7 @@ export default function Portfolio() {
     if (!user?.id) return
     const [artRes, profileRes] = await Promise.all([
       supabase.from("artworks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("profiles").select("name").eq("id", user.id).single()
+      supabase.from("profiles").select("name,bio,style,medium,location,website").eq("id", user.id).single()
     ])
 
     if (!artRes.error && artRes.data) setArtworkList(artRes.data)
@@ -212,6 +214,7 @@ export default function Portfolio() {
           price: parseInt(form.price.replace(/,/g, "")) || 0,
           status: form.status,
           dimensions: form.dimensions.trim(),
+          description: form.description.trim() || null,
           image_url: imageUrl,
           seed: Math.floor(Math.random() * 1000), // fallback seed if no image
         })
@@ -219,7 +222,7 @@ export default function Portfolio() {
       if (insertError) throw insertError
 
       // Reset form and close modal
-      setForm({ title: "", medium: "Oil on Canvas", price: "", dimensions: "", status: "Available" })
+      setForm({ title: "", medium: "Oil on Canvas", price: "", dimensions: "", status: "Available", description: "" })
       setImageFile(null)
       setImagePreview(null)
       setModalOpen(false)
@@ -269,7 +272,7 @@ export default function Portfolio() {
     setModalOpen(false)
     setImageFile(null)
     setImagePreview(null)
-    setForm({ title: "", medium: "Oil on Canvas", price: "", dimensions: "", status: "Available" })
+    setForm({ title: "", medium: "Oil on Canvas", price: "", dimensions: "", status: "Available", description: "" })
   }
 
   return (
@@ -400,12 +403,45 @@ export default function Portfolio() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-label">Price (USD)</label>
-              <input
-                className="form-input"
-                placeholder="2,400"
-                value={form.price}
-                onChange={e => setForm({ ...form, price: e.target.value })}
-              />
+              <div className="flex gap-2">
+                <input
+                  className="form-input flex-1"
+                  placeholder="2,400"
+                  value={form.price}
+                  onChange={e => setForm({ ...form, price: e.target.value })}
+                />
+                {canAccess(normalizePlan(user?.plan), "ai") && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!form.medium) return toast.error("Select a medium first")
+                      setAiLoading("price")
+                      try {
+                        const existingPrices = artworkList.filter(a => a.price > 0).map(a => a.price)
+                        const result = await suggestPricing({
+                          medium: form.medium,
+                          dimensions: form.dimensions,
+                          style: artistProfile?.style,
+                          existingPrices,
+                        })
+                        setForm(f => ({ ...f, price: String(result.mid) }))
+                        toast.success(`Suggested: $${result.low.toLocaleString()} – $${result.high.toLocaleString()}`)
+                      } catch (err) {
+                        toast.error("AI pricing failed: " + (err.message || "Unknown error"))
+                      } finally {
+                        setAiLoading(null)
+                      }
+                    }}
+                    disabled={aiLoading === "price"}
+                    className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors"
+                    style={{ background: "#F5E6D8", color: "#B5651D", border: "1px solid #D4854A" }}
+                    title="AI Suggest Price"
+                  >
+                    {aiLoading === "price" ? <Loader2 size={13} className="animate-spin" /> : <DollarSign size={13} />}
+                    AI
+                  </button>
+                )}
+              </div>
             </div>
             <div>
               <label className="form-label">Dimensions</label>
@@ -416,6 +452,56 @@ export default function Portfolio() {
                 onChange={e => setForm({ ...form, dimensions: e.target.value })}
               />
             </div>
+          </div>
+
+          {/* AI Description */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="form-label mb-0">Description</label>
+              {canAccess(normalizePlan(user?.plan), "ai") && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!form.title.trim()) return toast.error("Enter a title first")
+                    setAiLoading("describe")
+                    try {
+                      const desc = await generateArtworkDescription({
+                        title: form.title,
+                        medium: form.medium,
+                        dimensions: form.dimensions,
+                        style: artistProfile?.style || "Contemporary",
+                        artistBio: artistProfile?.bio || "",
+                      })
+                      setForm(f => ({ ...f, description: desc }))
+                      toast.success("Description generated!")
+                    } catch (err) {
+                      toast.error("AI describe failed: " + (err.message || "Unknown error"))
+                    } finally {
+                      setAiLoading(null)
+                    }
+                  }}
+                  disabled={aiLoading === "describe"}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors"
+                  style={{ background: "#F5E6D8", color: "#B5651D", border: "1px solid #D4854A" }}
+                >
+                  {aiLoading === "describe" ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                  AI Describe
+                </button>
+              )}
+            </div>
+            <textarea
+              className="form-input resize-none"
+              rows={2}
+              placeholder="Gallery-quality description of the artwork..."
+              value={form.description}
+              onChange={e => setForm({ ...form, description: e.target.value })}
+            />
+            {!canAccess(normalizePlan(user?.plan), "ai") && (
+              <p className="text-[11px] mt-1" style={{ color: "#A89F94" }}>
+                <Sparkles size={10} className="inline mr-1" style={{ color: "#B5651D" }} />
+                Upgrade to Pro for AI-powered descriptions and pricing
+              </p>
+            )}
           </div>
 
           <div>

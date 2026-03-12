@@ -4,8 +4,9 @@ import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
 import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera, Sparkles, ArrowRight, Check } from "lucide-react"
-import { PLANS, normalizePlan, formatLimit } from "../lib/plans"
+import { PLANS, normalizePlan, formatLimit, canAccess } from "../lib/plans"
 import { isStripeConfigured, redirectToCustomerPortal } from "../lib/stripe"
+import { generateBio } from "../lib/ai"
 
 const tabs = ["Profile", "Notifications", "Billing"]
 
@@ -16,6 +17,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [aiGenerating, setAiGenerating] = useState(false)
   const fileInputRef = useRef(null)
   const [form, setForm] = useState({
     name: user?.name || "",
@@ -148,7 +150,43 @@ export default function Settings() {
                 </div>
               </div>
               <div className="md:col-span-2">
-                <label className="form-label">Bio</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="form-label mb-0">Bio</label>
+                  {canAccess(normalizePlan(user?.plan), "ai") ? (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setAiGenerating(true)
+                        try {
+                          const bio = await generateBio({
+                            name: form.name,
+                            medium: form.medium,
+                            style: form.style,
+                            location: form.location,
+                            existingBio: form.bio,
+                          })
+                          setForm(f => ({ ...f, bio }))
+                          toast.success("Bio generated! Review and save when ready.")
+                        } catch (err) {
+                          toast.error("AI bio failed: " + (err.message || "Unknown error"))
+                        } finally {
+                          setAiGenerating(false)
+                        }
+                      }}
+                      disabled={aiGenerating}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors"
+                      style={{ background: "#F5E6D8", color: "#B5651D", border: "1px solid #D4854A" }}
+                    >
+                      {aiGenerating ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      AI Generate Bio
+                    </button>
+                  ) : (
+                    <span className="text-[11px] flex items-center gap-1" style={{ color: "#A89F94" }}>
+                      <Sparkles size={10} style={{ color: "#B5651D" }} />
+                      Upgrade to Pro for AI bio
+                    </span>
+                  )}
+                </div>
                 <textarea value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} rows={3}
                   className="form-input resize-none" placeholder="Tell collectors about yourself and your work..." />
               </div>
@@ -342,6 +380,7 @@ function BillingTab({ user }) {
         <div className="grid grid-cols-2 gap-2">
           {[
             { label: "Market Analytics", included: planConfig.features.analytics },
+            { label: "AI-Powered Tools", included: planConfig.features.ai },
             { label: "Social Scheduler", included: planConfig.features.socialScheduler },
             { label: "Exhibition Planner", included: planConfig.features.exhibitions },
             { label: "Consignment Tracker", included: planConfig.features.consignments },

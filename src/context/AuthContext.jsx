@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase, isSupabaseConfigured, STORAGE_KEY, getValidToken, isTokenExpired } from "../lib/supabase"
+import { sendWelcomeEmail } from "../lib/email"
 
 const AuthContext = createContext(null)
 
@@ -136,6 +137,14 @@ export function AuthProvider({ children }) {
     if (error) throw error
     // Manually save session (persistSession is off)
     if (data.session) saveSession(data.session)
+
+    // Send welcome email (non-blocking — don't let email failure block signup)
+    try {
+      await sendWelcomeEmail(email)
+    } catch (e) {
+      console.warn("[Auth] Welcome email failed (non-critical):", e)
+    }
+
     return data
   }
 

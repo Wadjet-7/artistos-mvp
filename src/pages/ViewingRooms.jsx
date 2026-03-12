@@ -7,6 +7,7 @@ import { Eye, Plus, Copy, Trash2, ExternalLink, Lock, Globe, Loader2, Mail } fro
 import paintAbstract from "../utils/paintAbstract"
 import { LimitBanner } from "../components/UpgradePrompt"
 import { isAtLimit, normalizePlan } from "../lib/plans"
+import { sendViewingRoomEmail } from "../lib/email"
 
 /* ------------------------------------------------------------------ */
 /*  Artwork thumbnail with canvas fallback                             */
@@ -57,6 +58,7 @@ export default function ViewingRooms() {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [editRoom, setEditRoom] = useState(null)
+  const [sendingEmail, setSendingEmail] = useState(null) // room id being sent
 
   // Form state
   const [form, setForm] = useState({ title: "", description: "", recipientName: "", recipientEmail: "", artworkIds: [] })
@@ -153,14 +155,37 @@ export default function ViewingRooms() {
     toast.success("Link copied!")
   }
 
-  const sendEmail = (room) => {
-    const url = `${window.location.origin}/view/${room.slug}`
-    const to = room.recipient_email || ""
-    const subject = encodeURIComponent(`Viewing Room: ${room.title}`)
-    const body = encodeURIComponent(
-      `Hi${room.recipient_name ? ` ${room.recipient_name}` : ""},\n\nI'd like to share a curated selection of my work with you.\n\nView it here: ${url}\n\n${room.description ? `About this collection:\n${room.description}\n\n` : ""}Best regards`
-    )
-    window.open(`mailto:${to}?subject=${subject}&body=${body}`, "_self")
+  const handleSendEmail = async (room) => {
+    if (!room.recipient_email) {
+      toast.error("No recipient email set. Edit the room to add one.")
+      return
+    }
+    setSendingEmail(room.id)
+    try {
+      const url = `${window.location.origin}/view/${room.slug}`
+      await sendViewingRoomEmail({
+        to: room.recipient_email,
+        artistName: user?.name || "An artist",
+        roomTitle: room.title,
+        roomUrl: url,
+        message: room.description || "",
+      })
+      toast.success(`Email sent to ${room.recipient_email}!`)
+      await logActivity(user.id, "email", `Sent viewing room email for "${room.title}" to ${room.recipient_email}`)
+    } catch (err) {
+      console.error("Email send error:", err)
+      // Fallback to mailto if edge function fails
+      const url = `${window.location.origin}/view/${room.slug}`
+      const to = room.recipient_email || ""
+      const subject = encodeURIComponent(`Viewing Room: ${room.title}`)
+      const body = encodeURIComponent(
+        `Hi${room.recipient_name ? ` ${room.recipient_name}` : ""},\n\nI'd like to share a curated selection of my work with you.\n\nView it here: ${url}\n\n${room.description ? `About this collection:\n${room.description}\n\n` : ""}Best regards`
+      )
+      window.open(`mailto:${to}?subject=${subject}&body=${body}`, "_self")
+      toast("Opened email client as fallback", { icon: "📧" })
+    } finally {
+      setSendingEmail(null)
+    }
   }
 
   return (
@@ -233,10 +258,12 @@ export default function ViewingRooms() {
                         style={{ background: "#F2EDE6", color: "#0E0C0A" }}>
                         <Copy size={11} /> Copy Link
                       </button>
-                      <button onClick={() => sendEmail(room)}
+                      <button onClick={() => handleSendEmail(room)}
+                        disabled={sendingEmail === room.id}
                         className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
                         style={{ background: "#E8F5E9", color: "#2D4A35" }}>
-                        <Mail size={11} /> Send
+                        {sendingEmail === room.id ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} />}
+                        {sendingEmail === room.id ? "Sending..." : "Send"}
                       </button>
                       <a href={`/view/${room.slug}`} target="_blank" rel="noopener noreferrer"
                         className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
