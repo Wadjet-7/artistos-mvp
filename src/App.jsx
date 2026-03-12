@@ -17,6 +17,8 @@ const EmergingArtists = lazy(() => import("./pages/EmergingArtists"))
 const Marketplace = lazy(() => import("./pages/Marketplace"))
 const Commissions = lazy(() => import("./pages/Commissions"))
 const Messages = lazy(() => import("./pages/Messages"))
+const Consignments = lazy(() => import("./pages/Consignments"))
+const Exhibitions = lazy(() => import("./pages/Exhibitions"))
 const Settings = lazy(() => import("./pages/Settings"))
 const ArtistProfile = lazy(() => import("./pages/ArtistProfile"))
 const DiscoverArtists = lazy(() => import("./pages/DiscoverArtists"))
@@ -78,6 +80,8 @@ function AppRoutes() {
           <Route path="/commissions" element={<Commissions />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/cv" element={<ArtistCV />} />
+          <Route path="/consignments" element={<Consignments />} />
+          <Route path="/exhibitions" element={<Exhibitions />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<NotFound />} />

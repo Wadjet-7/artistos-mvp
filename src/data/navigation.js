@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Image, FileText, Calendar, DollarSign,
   BarChart3, Sparkles, ShoppingBag, MessageSquare, Users, Settings,
-  Eye, UserCircle, ScrollText
+  Eye, UserCircle, ScrollText, Package, CalendarDays
 } from "lucide-react"
 
 export const navSections = [
@@ -19,6 +19,8 @@ export const navSections = [
       { to: "/viewing-rooms", icon: Eye, label: "Viewing Rooms" },
       { to: "/social", icon: Calendar, label: "Social Scheduler" },
       { to: "/finances", icon: DollarSign, label: "Finances" },
+      { to: "/consignments", icon: Package, label: "Consignments" },
+      { to: "/exhibitions", icon: CalendarDays, label: "Exhibitions" },
     ],
   },
   {

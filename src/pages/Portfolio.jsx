@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Plus, Trash2, Upload, Loader2, Award, BookOpen } from "lucide-react"
+import { Plus, Trash2, Upload, Loader2, Award, BookOpen, QrCode } from "lucide-react"
 import toast from "react-hot-toast"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
@@ -7,12 +7,13 @@ import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import CertificateModal from "../components/CertificateModal"
 import CatalogModal from "../components/CatalogModal"
+import QRCodeModal from "../components/QRCodeModal"
 import paintAbstract from "../utils/paintAbstract"
 
 /* ------------------------------------------------------------------ */
 /*  Artwork card — shows real image or canvas fallback                */
 /* ------------------------------------------------------------------ */
-function ArtworkCard({ artwork, onDelete, onCOA }) {
+function ArtworkCard({ artwork, onDelete, onCOA, onQR }) {
   const canvasRef = useRef(null)
   const hasImage = !!artwork.image_url
 
@@ -39,6 +40,15 @@ function ArtworkCard({ artwork, onDelete, onCOA }) {
       >
         {/* Top-right action buttons */}
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
+          {onQR && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onQR(artwork) }}
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-blue-500/80 transition-colors"
+              title="QR Code"
+            >
+              <QrCode size={14} className="text-white" />
+            </button>
+          )}
           {onCOA && (
             <button
               onClick={(e) => { e.stopPropagation(); onCOA(artwork) }}
@@ -101,6 +111,7 @@ export default function Portfolio() {
   const [form, setForm] = useState({ title: "", medium: "Oil on Canvas", price: "", dimensions: "", status: "Available" })
   const [confirmTarget, setConfirmTarget] = useState(null)
   const [coaTarget, setCoaTarget] = useState(null)
+  const [qrTarget, setQrTarget] = useState(null)
   const [catalogOpen, setCatalogOpen] = useState(false)
   const [artistName, setArtistName] = useState("")
   const [artistProfile, setArtistProfile] = useState({})
@@ -309,7 +320,7 @@ export default function Portfolio() {
       {!loadingData && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map(artwork => (
-            <ArtworkCard key={artwork.id} artwork={artwork} onDelete={handleDelete} onCOA={setCoaTarget} />
+            <ArtworkCard key={artwork.id} artwork={artwork} onDelete={handleDelete} onCOA={setCoaTarget} onQR={setQrTarget} />
           ))}
 
           {/* Upload placeholder */}
@@ -491,6 +502,12 @@ export default function Portfolio() {
         artistName={artistName}
         artistLocation={artistProfile.location}
         artistWebsite={artistProfile.website}
+      />
+
+      <QRCodeModal
+        open={!!qrTarget}
+        onClose={() => setQrTarget(null)}
+        artwork={qrTarget}
       />
     </div>
   )
