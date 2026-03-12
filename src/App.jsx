@@ -31,6 +31,7 @@ const PublicCV = lazy(() => import("./pages/PublicCV"))
 const Upgrade = lazy(() => import("./pages/Upgrade"))
 const Onboarding = lazy(() => import("./pages/Onboarding"))
 const UpgradeSuccess = lazy(() => import("./pages/UpgradeSuccess"))
+const Legal = lazy(() => import("./pages/Legal"))
 const NotFound = lazy(() => import("./pages/NotFound"))
 
 function ProtectedRoute({ children }) {
@@ -69,6 +70,9 @@ function AppRoutes() {
         <Route path="/artists" element={<DiscoverArtists />} />
         <Route path="/artwork/:id" element={<ArtworkDetail />} />
         <Route path="/view/:slug" element={<ViewingRoom />} />
+        <Route path="/legal" element={<Legal />} />
+        <Route path="/terms" element={<Legal />} />
+        <Route path="/privacy" element={<Legal />} />
         <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
         <Route path="/upgrade/success" element={<ProtectedRoute><UpgradeSuccess /></ProtectedRoute>} />
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>

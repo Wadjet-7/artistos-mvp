@@ -294,9 +294,9 @@ export default function Landing() {
             <span className="text-sm ml-2" style={{ color: "rgba(255,255,255,0.25)" }}>2026 All rights reserved.</span>
           </div>
           <div className="flex gap-8 text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
-            {["Privacy", "Terms", "Blog", "Help Center"].map((link) => (
-              <a key={link} href="#" className="hover:text-white transition-colors">{link}</a>
-            ))}
+            <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+            <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
+            <a href="mailto:larry@synergysourceadvisors.com" className="hover:text-white transition-colors">Contact</a>
           </div>
         </div>
       </footer>
