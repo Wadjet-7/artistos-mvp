@@ -5,6 +5,8 @@ import Modal from "../components/Modal"
 import toast from "react-hot-toast"
 import { Eye, Plus, Copy, Trash2, ExternalLink, Lock, Globe, Loader2, Mail } from "lucide-react"
 import paintAbstract from "../utils/paintAbstract"
+import { LimitBanner } from "../components/UpgradePrompt"
+import { isAtLimit, normalizePlan } from "../lib/plans"
 
 /* ------------------------------------------------------------------ */
 /*  Artwork thumbnail with canvas fallback                             */
@@ -173,6 +175,9 @@ export default function ViewingRooms() {
           <Plus size={15} /> New Room
         </button>
       </div>
+
+      {/* Plan limit banner */}
+      <LimitBanner resource="viewingRooms" currentCount={rooms.length} label="viewing rooms" />
 
       {loading ? (
         <div className="text-center py-16">

@@ -5,6 +5,7 @@ import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import toast from "react-hot-toast"
 import { CalendarDays, Plus, Trash2, Loader2, MapPin, CheckSquare, Square, ChevronDown, ChevronUp } from "lucide-react"
+import { FeatureGate } from "../components/UpgradePrompt"
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -59,6 +60,14 @@ function ChecklistItem({ item, onToggle, onRemove }) {
 /*  Main page                                                          */
 /* ------------------------------------------------------------------ */
 export default function Exhibitions() {
+  return (
+    <FeatureGate feature="exhibitions">
+      <ExhibitionsContent />
+    </FeatureGate>
+  )
+}
+
+function ExhibitionsContent() {
   const { user } = useAuth()
   const [exhibitions, setExhibitions] = useState([])
   const [artworks, setArtworks] = useState([])

@@ -6,6 +6,8 @@ import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import { generateInvoicePDF } from "../components/InvoicePDF"
+import { LimitBanner } from "../components/UpgradePrompt"
+import { isAtLimit, normalizePlan } from "../lib/plans"
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -333,6 +335,9 @@ export default function Finances() {
           Expenses ({expenseList.length})
         </button>
       </div>
+
+      {/* Plan limit banner (invoices) */}
+      {tab === "invoices" && <LimitBanner resource="invoices" currentCount={invoiceList.length} label="invoices" />}
 
       {/* ============================================================ */}
       {/*  INVOICES TAB                                                */}

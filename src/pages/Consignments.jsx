@@ -5,6 +5,7 @@ import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import toast from "react-hot-toast"
 import { Package, Plus, Trash2, Edit2, Loader2, ArrowLeftRight, Calendar, Percent } from "lucide-react"
+import { FeatureGate } from "../components/UpgradePrompt"
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -38,6 +39,14 @@ const emptyForm = {
 /*  Main page                                                          */
 /* ------------------------------------------------------------------ */
 export default function Consignments() {
+  return (
+    <FeatureGate feature="consignments">
+      <ConsignmentsContent />
+    </FeatureGate>
+  )
+}
+
+function ConsignmentsContent() {
   const { user } = useAuth()
   const [consignments, setConsignments] = useState([])
   const [artworks, setArtworks] = useState([])

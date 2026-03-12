@@ -1,8 +1,11 @@
 import { useState, useRef } from "react"
+import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
-import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera } from "lucide-react"
+import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera, Sparkles, ArrowRight, Check } from "lucide-react"
+import { PLANS, normalizePlan, formatLimit } from "../lib/plans"
+import { isStripeConfigured, redirectToCustomerPortal } from "../lib/stripe"
 
 const tabs = ["Profile", "Notifications", "Billing"]
 
@@ -229,49 +232,128 @@ export default function Settings() {
         </div>
       )}
 
-      {activeTab === "Billing" && (
-        <div className="space-y-5">
-          <div className="card p-6">
-            <h3 className="text-base font-semibold mb-4" style={{ color: "#0E0C0A" }}>Current Plan</h3>
-            <div className="flex items-center justify-between rounded-xl p-5" style={{ background: "#F5E6D8", border: "1px solid #D4854A" }}>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg font-semibold font-serif" style={{ color: "#B5651D" }}>{user?.plan || "Starter"}</span>
-                  <span className="badge-copper">Active</span>
-                </div>
-                <p className="text-sm" style={{ color: "#B5651D" }}>
-                  {user?.plan === "Pro Plan"
-                    ? "Unlimited artworks, contracts, full analytics & marketplace"
-                    : "Basic portfolio and contract features"}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold font-serif" style={{ color: "#B5651D" }}>
-                  {user?.plan === "Pro Plan" ? "$19" : "Free"}
-                </p>
-                {user?.plan === "Pro Plan" && <p className="text-xs" style={{ color: "#A89F94" }}>/ month</p>}
-              </div>
+      {activeTab === "Billing" && <BillingTab user={user} />}
+    </div>
+  )
+}
+
+/* ================================================================ */
+/*  Billing Tab — Real plan data + subscription management          */
+/* ================================================================ */
+function BillingTab({ user }) {
+  const navigate = useNavigate()
+  const plan = normalizePlan(user?.plan)
+  const planConfig = PLANS[plan] || PLANS.starter
+  const isActive = user?.subscription_status === "active"
+  const hasSubscription = !!user?.subscription_id
+
+  const handleManageSubscription = async () => {
+    if (!isStripeConfigured()) {
+      toast.error("Stripe is not configured yet")
+      return
+    }
+    try {
+      await redirectToCustomerPortal({ userId: user?.id })
+    } catch (err) {
+      toast.error(err.message || "Failed to open billing portal")
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Current Plan Card */}
+      <div className="card p-6">
+        <h3 className="text-base font-semibold mb-4" style={{ color: "#0E0C0A" }}>Current Plan</h3>
+        <div className="flex items-center justify-between rounded-xl p-5"
+          style={{ background: "#F5E6D8", border: "1px solid #D4854A" }}>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg font-semibold font-serif" style={{ color: "#B5651D" }}>
+                {planConfig.name}
+              </span>
+              <span className="badge-copper">
+                {hasSubscription && isActive ? "Active" : plan === "starter" ? "Free" : "Active"}
+              </span>
             </div>
+            <p className="text-sm" style={{ color: "#B5651D" }}>
+              {planConfig.tagline}
+            </p>
           </div>
-          <div className="card p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <CreditCard size={18} style={{ color: "#A89F94" }} />
-              <h3 className="text-base font-semibold" style={{ color: "#0E0C0A" }}>Payment Method</h3>
-            </div>
-            <div className="flex items-center justify-between rounded-xl p-4" style={{ background: "#FAF8F5", border: "1px solid #E8E2DA" }}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-7 rounded flex items-center justify-center text-white text-xs font-bold"
-                  style={{ background: "linear-gradient(135deg, #2D4A35, #4A7A57)" }}>VISA</div>
-                <div>
-                  <p className="text-sm font-medium" style={{ color: "#0E0C0A" }}>**** **** **** 4242</p>
-                  <p className="text-xs" style={{ color: "#A89F94" }}>Expires 12/2026</p>
-                </div>
-              </div>
-              <button className="text-xs font-medium hover:underline" style={{ color: "#B5651D" }}>Update</button>
-            </div>
+          <div className="text-right">
+            <p className="text-2xl font-bold font-serif" style={{ color: "#B5651D" }}>
+              {planConfig.price === 0 ? "Free" : `$${planConfig.price}`}
+            </p>
+            {planConfig.price > 0 && (
+              <p className="text-xs" style={{ color: "#A89F94" }}>/ month</p>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Next billing date */}
+        {user?.plan_period_end && (
+          <p className="text-xs mt-3" style={{ color: "#A89F94" }}>
+            Next billing date: {new Date(user.plan_period_end).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+          </p>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex gap-3 mt-4">
+          {plan === "starter" ? (
+            <button onClick={() => navigate("/upgrade")}
+              className="btn-copper flex items-center gap-2" style={{ fontSize: 13, padding: "8px 20px" }}>
+              <Sparkles size={14} /> Upgrade Plan <ArrowRight size={14} />
+            </button>
+          ) : (
+            <>
+              <button onClick={handleManageSubscription}
+                className="btn-secondary flex items-center gap-2" style={{ fontSize: 13, padding: "8px 20px" }}>
+                <CreditCard size={14} /> Manage Subscription
+              </button>
+              <button onClick={() => navigate("/upgrade")}
+                className="btn-secondary flex items-center gap-2" style={{ fontSize: 13, padding: "8px 16px" }}>
+                Change Plan
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Plan Limits */}
+      <div className="card p-6">
+        <h3 className="text-base font-semibold mb-4" style={{ color: "#0E0C0A" }}>Plan Limits</h3>
+        <div className="space-y-3">
+          {[
+            { label: "Artworks", limit: planConfig.limits.artworks },
+            { label: "Viewing Rooms", limit: planConfig.limits.viewingRooms },
+            { label: "Contacts", limit: planConfig.limits.contacts },
+            { label: "Invoices", limit: planConfig.limits.invoices },
+          ].map(item => (
+            <div key={item.label} className="flex items-center justify-between py-2" style={{ borderBottom: "1px solid #F2EDE6" }}>
+              <span className="text-sm" style={{ color: "#4A4540" }}>{item.label}</span>
+              <span className="text-sm font-medium" style={{ color: "#0E0C0A" }}>
+                {formatLimit(item.limit)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Features included */}
+        <h4 className="text-sm font-semibold mt-5 mb-3" style={{ color: "#0E0C0A" }}>Features</h4>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { label: "Market Analytics", included: planConfig.features.analytics },
+            { label: "Social Scheduler", included: planConfig.features.socialScheduler },
+            { label: "Exhibition Planner", included: planConfig.features.exhibitions },
+            { label: "Consignment Tracker", included: planConfig.features.consignments },
+            { label: "PDF Catalog", included: planConfig.features.catalog },
+          ].map(f => (
+            <div key={f.label} className="flex items-center gap-2 text-sm" style={{ color: f.included ? "#2D4A35" : "#C5BDB3" }}>
+              <Check size={14} style={{ color: f.included ? "#2D4A35" : "#E8E2DA" }} />
+              {f.label}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

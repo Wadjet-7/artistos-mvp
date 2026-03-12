@@ -8,6 +8,8 @@ import {
   UserCircle, Plus, Search, Phone, Mail, Building2, Tag,
   CalendarClock, DollarSign, Loader2, Trash2, Edit3, StickyNote
 } from "lucide-react"
+import { LimitBanner } from "../components/UpgradePrompt"
+import { isAtLimit, normalizePlan } from "../lib/plans"
 
 /* ------------------------------------------------------------------ */
 /*  Contact type badges                                                */
@@ -271,6 +273,9 @@ export default function Contacts() {
           <Plus size={15} /> Add Contact
         </button>
       </div>
+
+      {/* Plan limit banner */}
+      <LimitBanner resource="contacts" currentCount={contacts.length} label="contacts" />
 
       {/* Search + filters */}
       <div className="space-y-3">

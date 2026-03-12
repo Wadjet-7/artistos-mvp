@@ -8,7 +8,17 @@
       "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\src\\\\pages\\\\BusinessTools.jsx'',''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\extracted_mockup.html'',''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\extract_html.js'',''C:\\\\Users\\\\larry\\\\artistos-mvp\\\\extract_html.cjs'' -Force\")",
       "Bash(git -C \"C:/Users/larry/artistos-mvp\" status)",
       "Bash(npm install)",
-      "Bash(dir srcpagesBusinessTools.jsx)"
+      "Bash(dir srcpagesBusinessTools.jsx)",
+      "WebFetch(domain:artistos-mvp.vercel.app)",
+      "Bash(where node)",
+      "Bash(powershell -Command \"where.exe node\")",
+      "Bash(node --version)",
+      "Bash(powershell.exe -Command \"node --version\")",
+      "Bash(cmd.exe /c \"node --version\")",
+      "WebSearch",
+      "WebFetch(domain:arternal.com)",
+      "WebFetch(domain:artlogic.net)",
+      "Bash(python -m markitdown ArtistOS-Pitch-Deck.pptx)"
     ]
   }
 }

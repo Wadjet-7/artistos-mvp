@@ -9,6 +9,8 @@ import CertificateModal from "../components/CertificateModal"
 import CatalogModal from "../components/CatalogModal"
 import QRCodeModal from "../components/QRCodeModal"
 import paintAbstract from "../utils/paintAbstract"
+import { LimitBanner } from "../components/UpgradePrompt"
+import { isAtLimit, normalizePlan } from "../lib/plans"
 
 /* ------------------------------------------------------------------ */
 /*  Artwork card — shows real image or canvas fallback                */
@@ -172,6 +174,10 @@ export default function Portfolio() {
   /* ---- submit new artwork ---- */
   const handleAddArtwork = async () => {
     if (!form.title.trim()) return
+    if (isAtLimit(normalizePlan(user?.plan), "artworks", artworkList.length)) {
+      toast.error("You've reached your artwork limit. Upgrade to add more!")
+      return
+    }
     setSubmitting(true)
 
     try {
@@ -285,6 +291,9 @@ export default function Portfolio() {
           </button>
         </div>
       </div>
+
+      {/* Plan limit banner */}
+      <LimitBanner resource="artworks" currentCount={artworkList.length} label="artworks" />
 
       {/* Filter pills */}
       <div className="flex flex-wrap items-center gap-2">

@@ -189,6 +189,13 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
+
+  // Redirect to onboarding if not complete
+  useEffect(() => {
+    if (user && user.onboarding_complete === false) {
+      navigate("/onboarding", { replace: true })
+    }
+  }, [user, navigate])
   const [artworks, setArtworks] = useState([])
   const [commissions, setCommissions] = useState([])
   const [invoices, setInvoices] = useState([])

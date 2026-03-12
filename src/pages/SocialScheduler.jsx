@@ -5,6 +5,7 @@ import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
+import { FeatureGate } from "../components/UpgradePrompt"
 
 /* ------------------------------------------------------------------ */
 /*  Platform config                                                    */
@@ -108,6 +109,14 @@ const emptyForm = {
 /*  MAIN COMPONENT                                                     */
 /* ================================================================== */
 export default function SocialScheduler() {
+  return (
+    <FeatureGate feature="socialScheduler">
+      <SocialSchedulerContent />
+    </FeatureGate>
+  )
+}
+
+function SocialSchedulerContent() {
   const { user } = useAuth()
   const [postList, setPostList] = useState([])
   const [artworks, setArtworks] = useState([])

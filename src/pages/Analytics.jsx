@@ -3,8 +3,17 @@ import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import { Loader2 } from "lucide-react"
 import { styleMarketTrends } from "../data/mockData"
+import { FeatureGate } from "../components/UpgradePrompt"
 
 export default function Analytics() {
+  return (
+    <FeatureGate feature="analytics">
+      <AnalyticsContent />
+    </FeatureGate>
+  )
+}
+
+function AnalyticsContent() {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [avgPrice, setAvgPrice] = useState(0)

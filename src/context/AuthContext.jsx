@@ -13,13 +13,18 @@ export function AuthProvider({ children }) {
     name: profile.name || "",
     email: profile.email || "",
     initials: profile.initials || (profile.name || "").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2),
-    plan: profile.plan || "Starter",
+    plan: profile.plan || "starter",
     avatar_url: profile.avatar_url || null,
     bio: profile.bio || "",
     website: profile.website || "",
     medium: profile.medium || "",
     style: profile.style || "",
     location: profile.location || "",
+    onboarding_complete: profile.onboarding_complete ?? true,
+    stripe_customer_id: profile.stripe_customer_id || null,
+    subscription_id: profile.subscription_id || null,
+    subscription_status: profile.subscription_status || "inactive",
+    plan_period_end: profile.plan_period_end || null,
   })
 
   const loadProfile = async (authUser) => {
@@ -38,9 +43,14 @@ export function AuthProvider({ children }) {
         name: authUser.user_metadata?.name || "",
         email: authUser.email || "",
         initials: (authUser.user_metadata?.name || "U").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2),
-        plan: "Starter",
+        plan: "starter",
         avatar_url: null,
         bio: "", website: "", medium: "", style: "", location: "",
+        onboarding_complete: false,
+        stripe_customer_id: null,
+        subscription_id: null,
+        subscription_status: "inactive",
+        plan_period_end: null,
       })
       return
     }
