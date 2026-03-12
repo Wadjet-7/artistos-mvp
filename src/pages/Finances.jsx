@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react"
-import { Plus, Trash2, Edit2, CheckCircle, Loader2, DollarSign, Download } from "lucide-react"
+import { Plus, Trash2, Edit2, CheckCircle, Loader2, DollarSign, Download, FileText } from "lucide-react"
 import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
+import { generateInvoicePDF } from "../components/InvoicePDF"
 
 const emptyForm = {
   client_name: "",
@@ -42,17 +43,18 @@ export default function Finances() {
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [confirmTarget, setConfirmTarget] = useState(null)
+  const [artistProfile, setArtistProfile] = useState({})
 
   /* ---- fetch invoices from Supabase ---- */
   const fetchInvoices = useCallback(async () => {
     if (!user?.id) return
-    const { data, error } = await supabase
-      .from("invoices")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
+    const [invRes, profileRes] = await Promise.all([
+      supabase.from("invoices").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("profiles").select("name, location, email").eq("id", user.id).single(),
+    ])
 
-    if (!error && data) setInvoiceList(data)
+    if (!invRes.error && invRes.data) setInvoiceList(invRes.data)
+    if (profileRes.data) setArtistProfile(profileRes.data)
     setLoading(false)
   }, [user?.id])
 
@@ -301,6 +303,20 @@ export default function Finances() {
                       </td>
                       <td>
                         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                          <button
+                            onClick={() => generateInvoicePDF({
+                              invoice: inv,
+                              artistName: artistProfile.name,
+                              artistLocation: artistProfile.location,
+                              artistEmail: artistProfile.email || user?.email,
+                            })}
+                            title="Download PDF"
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 6, color: "#A89F94", transition: "color 0.15s" }}
+                            onMouseEnter={e => e.currentTarget.style.color = "#B5651D"}
+                            onMouseLeave={e => e.currentTarget.style.color = "#A89F94"}
+                          >
+                            <FileText size={15} />
+                          </button>
                           <button
                             onClick={() => openEdit(inv)}
                             title="Edit"

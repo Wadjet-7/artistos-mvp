@@ -24,6 +24,8 @@ const ViewingRooms = lazy(() => import("./pages/ViewingRooms"))
 const ViewingRoom = lazy(() => import("./pages/ViewingRoom"))
 const Contacts = lazy(() => import("./pages/Contacts"))
 const ArtistCV = lazy(() => import("./pages/ArtistCV"))
+const ArtworkDetail = lazy(() => import("./pages/ArtworkDetail"))
+const PublicCV = lazy(() => import("./pages/PublicCV"))
 const NotFound = lazy(() => import("./pages/NotFound"))
 
 function ProtectedRoute({ children }) {
@@ -58,7 +60,9 @@ function AppRoutes() {
         <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
         <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
         <Route path="/artist/:userId" element={<ArtistProfile />} />
+        <Route path="/artist/:userId/cv" element={<PublicCV />} />
         <Route path="/artists" element={<DiscoverArtists />} />
+        <Route path="/artwork/:id" element={<ArtworkDetail />} />
         <Route path="/view/:slug" element={<ViewingRoom />} />
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />

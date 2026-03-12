@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext"
 import {
   Loader2, Image, Clock, DollarSign, Palette,
   TrendingUp, TrendingDown, Users, Calendar,
-  FileText, BarChart3, Activity
+  FileText, BarChart3, Activity, Eye, UserCircle, ScrollText
 } from "lucide-react"
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid
@@ -442,10 +442,11 @@ export default function Dashboard() {
           <div className="card-body" style={{ padding: "12px" }}>
             <div className="flex flex-col gap-2">
               {[
-                { icon: FileText, label: "Generate Contract", to: "/contracts" },
-                { icon: Calendar, label: "Schedule Post", to: "/social" },
                 { icon: Image, label: "Upload Artwork", to: "/portfolio" },
-                { icon: BarChart3, label: "View Analytics", to: "/analytics" },
+                { icon: Eye, label: "Viewing Rooms", to: "/viewing-rooms" },
+                { icon: FileText, label: "Generate Contract", to: "/contracts" },
+                { icon: UserCircle, label: "Manage Contacts", to: "/contacts" },
+                { icon: ScrollText, label: "Artist CV", to: "/cv" },
               ].map(a => (
                 <button key={a.label} onClick={() => navigate(a.to)} className="btn-secondary text-left w-full justify-start">
                   <a.icon size={15} style={{ marginRight: 6 }} /> {a.label}

@@ -20,7 +20,7 @@ function GalleryCard({ artwork }) {
   }, [artwork, hasImage])
 
   return (
-    <div className="group">
+    <Link to={`/artwork/${artwork.id}`} className="group block">
       <div className="rounded-xl overflow-hidden mb-4" style={{ aspectRatio: "1", background: "#1A1816" }}>
         {hasImage ? (
           <img src={artwork.image_url} alt={artwork.title} className="w-full h-full object-cover block transition-transform duration-500 group-hover:scale-105" />
@@ -40,7 +40,7 @@ function GalleryCard({ artwork }) {
       {artwork.status === "Sold" && (
         <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-1" style={{ background: "rgba(196,112,90,0.15)", color: "#C4705A" }}>Sold</span>
       )}
-    </div>
+    </Link>
   )
 }
 

@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext"
 import { supabase, logActivity } from "../lib/supabase"
 import Modal from "../components/Modal"
 import toast from "react-hot-toast"
-import { Eye, Plus, Copy, Trash2, ExternalLink, Lock, Globe, Loader2 } from "lucide-react"
+import { Eye, Plus, Copy, Trash2, ExternalLink, Lock, Globe, Loader2, Mail } from "lucide-react"
 import paintAbstract from "../utils/paintAbstract"
 
 /* ------------------------------------------------------------------ */
@@ -151,6 +151,16 @@ export default function ViewingRooms() {
     toast.success("Link copied!")
   }
 
+  const sendEmail = (room) => {
+    const url = `${window.location.origin}/view/${room.slug}`
+    const to = room.recipient_email || ""
+    const subject = encodeURIComponent(`Viewing Room: ${room.title}`)
+    const body = encodeURIComponent(
+      `Hi${room.recipient_name ? ` ${room.recipient_name}` : ""},\n\nI'd like to share a curated selection of my work with you.\n\nView it here: ${url}\n\n${room.description ? `About this collection:\n${room.description}\n\n` : ""}Best regards`
+    )
+    window.open(`mailto:${to}?subject=${subject}&body=${body}`, "_self")
+  }
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -217,6 +227,11 @@ export default function ViewingRooms() {
                       <button onClick={() => copyLink(room.slug)} className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
                         style={{ background: "#F2EDE6", color: "#0E0C0A" }}>
                         <Copy size={11} /> Copy Link
+                      </button>
+                      <button onClick={() => sendEmail(room)}
+                        className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                        style={{ background: "#E8F5E9", color: "#2D4A35" }}>
+                        <Mail size={11} /> Send
                       </button>
                       <a href={`/view/${room.slug}`} target="_blank" rel="noopener noreferrer"
                         className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, Link } from "react-router-dom"
 import { supabase } from "../lib/supabase"
-import { MapPin, Globe, Palette, Loader2, ArrowRight, Image } from "lucide-react"
+import { MapPin, Globe, Palette, Loader2, ArrowRight, Image, ScrollText } from "lucide-react"
 import paintAbstract from "../utils/paintAbstract"
 import CommissionRequestForm from "../components/CommissionRequestForm"
 
@@ -21,7 +21,7 @@ function ArtworkCard({ artwork }) {
   }, [artwork.seed, hasImage])
 
   return (
-    <div className="group rounded-xl overflow-hidden" style={{ border: "1px solid #E8E2DA", background: "white" }}>
+    <Link to={`/artwork/${artwork.id}`} className="group rounded-xl overflow-hidden block transition-shadow hover:shadow-lg" style={{ border: "1px solid #E8E2DA", background: "white" }}>
       <div className="relative" style={{ aspectRatio: "1" }}>
         {hasImage ? (
           <img src={artwork.image_url} alt={artwork.title} className="w-full h-full object-cover block" />
@@ -45,7 +45,7 @@ function ArtworkCard({ artwork }) {
           </p>
         )}
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -213,6 +213,10 @@ export default function ArtistProfile() {
             </span>
           </>
         )}
+        <Link to={`/artist/${userId}/cv`} className="text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors"
+          style={{ background: "#F2EDE6", color: "#0E0C0A" }}>
+          <ScrollText size={12} /> View CV
+        </Link>
         <span className="ml-auto badge badge-forest">Accepting Commissions</span>
       </div>
 

@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Plus, Trash2, Upload, Loader2, Award } from "lucide-react"
+import { Plus, Trash2, Upload, Loader2, Award, BookOpen } from "lucide-react"
 import toast from "react-hot-toast"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import CertificateModal from "../components/CertificateModal"
+import CatalogModal from "../components/CatalogModal"
 import paintAbstract from "../utils/paintAbstract"
 
 /* ------------------------------------------------------------------ */
@@ -100,7 +101,9 @@ export default function Portfolio() {
   const [form, setForm] = useState({ title: "", medium: "Oil on Canvas", price: "", dimensions: "", status: "Available" })
   const [confirmTarget, setConfirmTarget] = useState(null)
   const [coaTarget, setCoaTarget] = useState(null)
+  const [catalogOpen, setCatalogOpen] = useState(false)
   const [artistName, setArtistName] = useState("")
+  const [artistProfile, setArtistProfile] = useState({})
   const fileInputRef = useRef(null)
 
   /* ---- fetch artworks from Supabase ---- */
@@ -113,6 +116,7 @@ export default function Portfolio() {
 
     if (!artRes.error && artRes.data) setArtworkList(artRes.data)
     if (profileRes.data?.name) setArtistName(profileRes.data.name)
+    if (profileRes.data) setArtistProfile(profileRes.data)
     setLoadingData(false)
   }, [user?.id])
 
@@ -259,9 +263,16 @@ export default function Portfolio() {
           <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 600, color: "#0E0C0A" }}>Portfolio</h1>
           <p style={{ fontSize: 13, color: "#A89F94", marginTop: 2 }}>Manage your artworks and inventory</p>
         </div>
-        <button className="btn-primary" onClick={() => setModalOpen(true)}>
-          <Plus size={16} /> Add Artwork
-        </button>
+        <div className="flex gap-2">
+          {artworkList.length > 0 && (
+            <button className="btn-secondary flex items-center gap-2" onClick={() => setCatalogOpen(true)}>
+              <BookOpen size={15} /> Export Catalog
+            </button>
+          )}
+          <button className="btn-primary" onClick={() => setModalOpen(true)}>
+            <Plus size={16} /> Add Artwork
+          </button>
+        </div>
       </div>
 
       {/* Filter pills */}
@@ -471,6 +482,15 @@ export default function Portfolio() {
         onClose={() => setCoaTarget(null)}
         artwork={coaTarget}
         artistName={artistName}
+      />
+
+      <CatalogModal
+        open={catalogOpen}
+        onClose={() => setCatalogOpen(false)}
+        artworks={artworkList}
+        artistName={artistName}
+        artistLocation={artistProfile.location}
+        artistWebsite={artistProfile.website}
       />
     </div>
   )
