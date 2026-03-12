@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Plus, Trash2, Upload, Loader2 } from "lucide-react"
+import { Plus, Trash2, Upload, Loader2, Award } from "lucide-react"
 import toast from "react-hot-toast"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
+import CertificateModal from "../components/CertificateModal"
 import paintAbstract from "../utils/paintAbstract"
 
 /* ------------------------------------------------------------------ */
 /*  Artwork card — shows real image or canvas fallback                */
 /* ------------------------------------------------------------------ */
-function ArtworkCard({ artwork, onDelete }) {
+function ArtworkCard({ artwork, onDelete, onCOA }) {
   const canvasRef = useRef(null)
   const hasImage = !!artwork.image_url
 
@@ -35,15 +36,26 @@ function ArtworkCard({ artwork, onDelete }) {
         className="absolute inset-0 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         style={{ background: "linear-gradient(to top, rgba(14,12,10,0.82) 0%, rgba(14,12,10,0.30) 50%, transparent 100%)" }}
       >
-        {/* Delete button */}
-        {onDelete && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(artwork) }}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-red-500/80 transition-colors"
-          >
-            <Trash2 size={14} className="text-white" />
-          </button>
-        )}
+        {/* Top-right action buttons */}
+        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+          {onCOA && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onCOA(artwork) }}
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-amber-500/80 transition-colors"
+              title="Certificate of Authenticity"
+            >
+              <Award size={14} className="text-white" />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(artwork) }}
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-red-500/80 transition-colors"
+            >
+              <Trash2 size={14} className="text-white" />
+            </button>
+          )}
+        </div>
         <div className="flex gap-1.5 mb-2">
           <span className="badge badge-copper">{artwork.tag}</span>
           <span className={"badge " + (artwork.status === "Available" ? "badge-forest" : artwork.status === "Sold" ? "badge-rose" : "badge-gold")}>{artwork.status}</span>
@@ -87,18 +99,20 @@ export default function Portfolio() {
   const [imagePreview, setImagePreview] = useState(null)
   const [form, setForm] = useState({ title: "", medium: "Oil on Canvas", price: "", dimensions: "", status: "Available" })
   const [confirmTarget, setConfirmTarget] = useState(null)
+  const [coaTarget, setCoaTarget] = useState(null)
+  const [artistName, setArtistName] = useState("")
   const fileInputRef = useRef(null)
 
   /* ---- fetch artworks from Supabase ---- */
   const fetchArtworks = useCallback(async () => {
     if (!user?.id) return
-    const { data, error } = await supabase
-      .from("artworks")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
+    const [artRes, profileRes] = await Promise.all([
+      supabase.from("artworks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("profiles").select("name").eq("id", user.id).single()
+    ])
 
-    if (!error && data) setArtworkList(data)
+    if (!artRes.error && artRes.data) setArtworkList(artRes.data)
+    if (profileRes.data?.name) setArtistName(profileRes.data.name)
     setLoadingData(false)
   }, [user?.id])
 
@@ -284,7 +298,7 @@ export default function Portfolio() {
       {!loadingData && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map(artwork => (
-            <ArtworkCard key={artwork.id} artwork={artwork} onDelete={handleDelete} />
+            <ArtworkCard key={artwork.id} artwork={artwork} onDelete={handleDelete} onCOA={setCoaTarget} />
           ))}
 
           {/* Upload placeholder */}
@@ -450,6 +464,13 @@ export default function Portfolio() {
         onConfirm={handleConfirmDelete}
         title="Delete Artwork?"
         message={`Are you sure you want to delete "${confirmTarget?.title}"? This cannot be undone.`}
+      />
+
+      <CertificateModal
+        open={!!coaTarget}
+        onClose={() => setCoaTarget(null)}
+        artwork={coaTarget}
+        artistName={artistName}
       />
     </div>
   )

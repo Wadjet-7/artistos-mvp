@@ -20,6 +20,10 @@ const Messages = lazy(() => import("./pages/Messages"))
 const Settings = lazy(() => import("./pages/Settings"))
 const ArtistProfile = lazy(() => import("./pages/ArtistProfile"))
 const DiscoverArtists = lazy(() => import("./pages/DiscoverArtists"))
+const ViewingRooms = lazy(() => import("./pages/ViewingRooms"))
+const ViewingRoom = lazy(() => import("./pages/ViewingRoom"))
+const Contacts = lazy(() => import("./pages/Contacts"))
+const ArtistCV = lazy(() => import("./pages/ArtistCV"))
 const NotFound = lazy(() => import("./pages/NotFound"))
 
 function ProtectedRoute({ children }) {
@@ -55,17 +59,21 @@ function AppRoutes() {
         <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
         <Route path="/artist/:userId" element={<ArtistProfile />} />
         <Route path="/artists" element={<DiscoverArtists />} />
+        <Route path="/view/:slug" element={<ViewingRoom />} />
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/contracts" element={<Contracts />} />
+          <Route path="/viewing-rooms" element={<ViewingRooms />} />
           <Route path="/social" element={<SocialScheduler />} />
           <Route path="/finances" element={<Finances />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/emerging" element={<EmergingArtists />} />
           <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/contacts" element={<Contacts />} />
           <Route path="/commissions" element={<Commissions />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/cv" element={<ArtistCV />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<NotFound />} />

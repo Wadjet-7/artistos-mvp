@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, Image, FileText, Calendar, DollarSign,
-  BarChart3, Sparkles, ShoppingBag, MessageSquare, Users, Settings
+  BarChart3, Sparkles, ShoppingBag, MessageSquare, Users, Settings,
+  Eye, UserCircle, ScrollText
 } from "lucide-react"
 
 export const navSections = [
@@ -15,8 +16,17 @@ export const navSections = [
     items: [
       { to: "/portfolio", icon: Image, label: "Portfolio" },
       { to: "/contracts", icon: FileText, label: "Contracts" },
+      { to: "/viewing-rooms", icon: Eye, label: "Viewing Rooms" },
       { to: "/social", icon: Calendar, label: "Social Scheduler" },
       { to: "/finances", icon: DollarSign, label: "Finances" },
+    ],
+  },
+  {
+    label: "Relationships",
+    items: [
+      { to: "/contacts", icon: UserCircle, label: "Contacts" },
+      { to: "/commissions", icon: Users, label: "Commissions", badge: 3 },
+      { to: "/messages", icon: MessageSquare, label: "Messages", badge: 2 },
     ],
   },
   {
@@ -30,8 +40,12 @@ export const navSections = [
     label: "Marketplace",
     items: [
       { to: "/marketplace", icon: ShoppingBag, label: "Discover Artists" },
-      { to: "/commissions", icon: Users, label: "Commissions", badge: 3 },
-      { to: "/messages", icon: MessageSquare, label: "Messages", badge: 2 },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { to: "/cv", icon: ScrollText, label: "Artist CV" },
     ],
   },
 ]
