@@ -1,34 +1,23 @@
 // Supabase Edge Function: create-checkout
-// Creates a Stripe Checkout Session for plan upgrades
-// Deploy: supabase functions deploy create-checkout
-
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
-import Stripe from "https://esm.sh/stripe@13.6.0?target=deno"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.0"
-
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
-  apiVersion: "2023-10-16",
-})
-
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-// Price IDs — set these after creating products in Stripe
-const PRICE_IDS: Record<string, string> = {
-  pro: Deno.env.get("STRIPE_PRO_PRICE_ID") || "",
-  studio: Deno.env.get("STRIPE_STUDIO_PRICE_ID") || "",
-}
+// Uses only fetch — zero npm/esm imports
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 }
 
-serve(async (req) => {
-  // Handle CORS preflight
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders })
+  }
+
+  const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY")!
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
+  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+
+  const PRICE_IDS: Record<string, string> = {
+    pro: Deno.env.get("STRIPE_PRO_PRICE_ID") || "",
+    studio: Deno.env.get("STRIPE_STUDIO_PRICE_ID") || "",
   }
 
   try {
@@ -49,43 +38,77 @@ serve(async (req) => {
       )
     }
 
-    // Check if user already has a Stripe customer
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("stripe_customer_id")
-      .eq("id", userId)
-      .single()
-
-    let customerId = profile?.stripe_customer_id
+    // Get user profile from Supabase REST API
+    const profileRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=stripe_customer_id`,
+      {
+        headers: {
+          "apikey": SUPABASE_SERVICE_ROLE_KEY,
+          "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      }
+    )
+    const profiles = await profileRes.json()
+    let customerId = profiles?.[0]?.stripe_customer_id
 
     // Create Stripe customer if needed
     if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: userEmail,
-        metadata: { supabase_user_id: userId },
+      const custRes = await fetch("https://api.stripe.com/v1/customers", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          email: userEmail || "",
+          "metadata[supabase_user_id]": userId,
+        }).toString(),
       })
+      const customer = await custRes.json()
       customerId = customer.id
 
-      // Save customer ID
-      await supabase
-        .from("profiles")
-        .update({ stripe_customer_id: customerId })
-        .eq("id", userId)
+      // Save customer ID to profile
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal",
+          },
+          body: JSON.stringify({ stripe_customer_id: customerId }),
+        }
+      )
     }
 
-    // Determine success/cancel URLs
     const origin = req.headers.get("origin") || "https://artistos-mvp.vercel.app"
 
-    // Create Checkout Session
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
-      mode: "subscription",
-      success_url: `${origin}/upgrade/success?plan=${planId}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/upgrade`,
-      client_reference_id: userId,
-      metadata: { planId, userId },
+    // Create Stripe Checkout Session
+    const sessionRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        customer: customerId,
+        "line_items[0][price]": priceId,
+        "line_items[0][quantity]": "1",
+        mode: "subscription",
+        success_url: `${origin}/upgrade/success?plan=${planId}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/upgrade`,
+        client_reference_id: userId,
+        "metadata[planId]": planId,
+        "metadata[userId]": userId,
+      }).toString(),
     })
+    const session = await sessionRes.json()
+
+    if (session.error) {
+      throw new Error(session.error.message)
+    }
 
     return new Response(
       JSON.stringify({ sessionId: session.id }),
