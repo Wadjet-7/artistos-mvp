@@ -5,6 +5,7 @@ import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import toast from "react-hot-toast"
 import { Package, Plus, Trash2, Edit2, Loader2, ArrowLeftRight, Calendar, Percent } from "lucide-react"
+import PageError from "../components/PageError"
 import { FeatureGate } from "../components/UpgradePrompt"
 
 /* ------------------------------------------------------------------ */
@@ -57,17 +58,26 @@ function ConsignmentsContent() {
   const [filter, setFilter] = useState("all")
   const [confirmTarget, setConfirmTarget] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [fetchError, setFetchError] = useState(false)
 
   const fetchData = useCallback(async () => {
     if (!user) return
     setLoading(true)
-    const [conRes, artRes] = await Promise.all([
-      supabase.from("consignments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("artworks").select("id, title, image_url").eq("user_id", user.id).order("title"),
-    ])
-    setConsignments(conRes.data || [])
-    setArtworks(artRes.data || [])
-    setLoading(false)
+    setFetchError(false)
+    try {
+      const [conRes, artRes] = await Promise.all([
+        supabase.from("consignments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("artworks").select("id, title, image_url").eq("user_id", user.id).order("title"),
+      ])
+      if (conRes.error) throw conRes.error
+      setConsignments(conRes.data || [])
+      setArtworks(artRes.data || [])
+    } catch (err) {
+      console.error("[Consignments] fetch error:", err)
+      setFetchError(true)
+    } finally {
+      setLoading(false)
+    }
   }, [user])
 
   useEffect(() => { fetchData() }, [fetchData])
@@ -205,13 +215,18 @@ function ConsignmentsContent() {
         ))}
       </div>
 
+      {/* Error state */}
+      {fetchError && !loading && (
+        <PageError message="Could not load your consignments. Please check your connection and try again." onRetry={fetchData} />
+      )}
+
       {/* Content */}
-      {loading ? (
+      {!fetchError && loading ? (
         <div className="text-center py-16">
           <Loader2 size={28} className="animate-spin mx-auto mb-3" style={{ color: "#B5651D" }} />
           <p className="text-sm" style={{ color: "#A89F94" }}>Loading...</p>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : !fetchError && filtered.length === 0 ? (
         <div className="text-center py-16 rounded-xl" style={{ background: "white", border: "1px solid #E8E2DA" }}>
           <Package size={36} className="mx-auto mb-3" style={{ color: "#E8E2DA" }} />
           <h3 className="font-serif text-lg font-semibold mb-1" style={{ color: "#0E0C0A" }}>

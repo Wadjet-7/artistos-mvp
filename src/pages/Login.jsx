@@ -73,7 +73,7 @@ export default function Login() {
                 <input type="checkbox" className="w-4 h-4 rounded" style={{ accentColor: "#B5651D" }} />
                 Remember me
               </label>
-              <a href="#" className="text-sm font-medium hover:underline" style={{ color: "#B5651D" }}>Forgot password?</a>
+              <Link to="/forgot-password" className="text-sm font-medium hover:underline" style={{ color: "#B5651D" }}>Forgot password?</Link>
             </div>
             <button type="submit" disabled={loading}
               className="w-full btn-copper flex items-center justify-center gap-2 py-3 disabled:opacity-70">

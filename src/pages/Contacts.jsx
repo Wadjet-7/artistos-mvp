@@ -8,6 +8,7 @@ import {
   UserCircle, Plus, Search, Phone, Mail, Building2, Tag,
   CalendarClock, DollarSign, Loader2, Trash2, Edit3, StickyNote
 } from "lucide-react"
+import PageError from "../components/PageError"
 import { LimitBanner } from "../components/UpgradePrompt"
 import { isAtLimit, normalizePlan } from "../lib/plans"
 
@@ -154,16 +155,26 @@ export default function Contacts() {
     next_followup: "", total_purchases: ""
   })
 
+  const [fetchError, setFetchError] = useState(false)
+
   const fetchContacts = useCallback(async () => {
     if (!user) return
     setLoading(true)
-    const { data } = await supabase
-      .from("contacts")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-    setContacts(data || [])
-    setLoading(false)
+    setFetchError(false)
+    try {
+      const { data, error } = await supabase
+        .from("contacts")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+      if (error) throw error
+      setContacts(data || [])
+    } catch (err) {
+      console.error("[Contacts] fetch error:", err)
+      setFetchError(true)
+    } finally {
+      setLoading(false)
+    }
   }, [user])
 
   useEffect(() => { fetchContacts() }, [fetchContacts])
@@ -308,13 +319,18 @@ export default function Contacts() {
         </div>
       </div>
 
+      {/* Error state */}
+      {fetchError && !loading && (
+        <PageError message="Could not load your contacts. Please check your connection and try again." onRetry={fetchContacts} />
+      )}
+
       {/* Loading */}
-      {loading ? (
+      {!fetchError && loading ? (
         <div className="text-center py-16">
           <Loader2 size={28} className="animate-spin mx-auto mb-3" style={{ color: "#B5651D" }} />
           <p className="text-sm" style={{ color: "#A89F94" }}>Loading contacts...</p>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : !fetchError && filtered.length === 0 ? (
         <div className="text-center py-16 rounded-xl" style={{ background: "white", border: "1px solid #E8E2DA" }}>
           <UserCircle size={36} className="mx-auto mb-3" style={{ color: "#E8E2DA" }} />
           <h3 className="font-serif text-lg font-semibold mb-1" style={{ color: "#0E0C0A" }}>

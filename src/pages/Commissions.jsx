@@ -5,6 +5,7 @@ import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
+import PageError from "../components/PageError"
 
 const defaultForm = {
   client_name: "",
@@ -36,18 +37,27 @@ export default function Commissions() {
   const [confirmTarget, setConfirmTarget] = useState(null)
   const [activeTab, setActiveTab] = useState("active")
   const [form, setForm] = useState(defaultForm)
+  const [fetchError, setFetchError] = useState(false)
 
   /* ---- fetch commissions from Supabase ---- */
   const fetchCommissions = useCallback(async () => {
     if (!user?.id) return
-    const { data, error } = await supabase
-      .from("commissions")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
+    setFetchError(false)
+    try {
+      const { data, error } = await supabase
+        .from("commissions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
 
-    if (!error && data) setCommissionList(data)
-    setLoading(false)
+      if (error) throw error
+      if (data) setCommissionList(data)
+    } catch (err) {
+      console.error("[Commissions] fetch error:", err)
+      setFetchError(true)
+    } finally {
+      setLoading(false)
+    }
   }, [user?.id])
 
   useEffect(() => {
@@ -259,6 +269,11 @@ export default function Commissions() {
           </button>
         ))}
       </div>
+
+      {/* Error state */}
+      {fetchError && !loading && (
+        <PageError message="Could not load your commissions. Please check your connection and try again." onRetry={() => { setLoading(true); fetchCommissions() }} />
+      )}
 
       {/* Loading state */}
       {loading && (

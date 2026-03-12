@@ -4,6 +4,7 @@ import { supabase, logActivity } from "../lib/supabase"
 import Modal from "../components/Modal"
 import toast from "react-hot-toast"
 import { Eye, Plus, Copy, Trash2, ExternalLink, Lock, Globe, Loader2, Mail } from "lucide-react"
+import PageError from "../components/PageError"
 import paintAbstract from "../utils/paintAbstract"
 import { LimitBanner } from "../components/UpgradePrompt"
 import { isAtLimit, normalizePlan } from "../lib/plans"
@@ -59,6 +60,7 @@ export default function ViewingRooms() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editRoom, setEditRoom] = useState(null)
   const [sendingEmail, setSendingEmail] = useState(null) // room id being sent
+  const [fetchError, setFetchError] = useState(false)
 
   // Form state
   const [form, setForm] = useState({ title: "", description: "", recipientName: "", recipientEmail: "", artworkIds: [] })
@@ -66,13 +68,21 @@ export default function ViewingRooms() {
   const fetchData = useCallback(async () => {
     if (!user) return
     setLoading(true)
-    const [roomsRes, artRes] = await Promise.all([
-      supabase.from("viewing_rooms").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("artworks").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
-    ])
-    setRooms(roomsRes.data || [])
-    setArtworks(artRes.data || [])
-    setLoading(false)
+    setFetchError(false)
+    try {
+      const [roomsRes, artRes] = await Promise.all([
+        supabase.from("viewing_rooms").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("artworks").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
+      ])
+      if (roomsRes.error) throw roomsRes.error
+      setRooms(roomsRes.data || [])
+      setArtworks(artRes.data || [])
+    } catch (err) {
+      console.error("[ViewingRooms] fetch error:", err)
+      setFetchError(true)
+    } finally {
+      setLoading(false)
+    }
   }, [user])
 
   useEffect(() => { fetchData() }, [fetchData])
@@ -204,12 +214,17 @@ export default function ViewingRooms() {
       {/* Plan limit banner */}
       <LimitBanner resource="viewingRooms" currentCount={rooms.length} label="viewing rooms" />
 
-      {loading ? (
+      {/* Error state */}
+      {fetchError && !loading && (
+        <PageError message="Could not load your viewing rooms. Please check your connection and try again." onRetry={fetchData} />
+      )}
+
+      {!fetchError && loading ? (
         <div className="text-center py-16">
           <Loader2 size={28} className="animate-spin mx-auto mb-3" style={{ color: "#B5651D" }} />
           <p className="text-sm" style={{ color: "#A89F94" }}>Loading...</p>
         </div>
-      ) : rooms.length === 0 ? (
+      ) : !fetchError && rooms.length === 0 ? (
         <div className="text-center py-16 rounded-xl" style={{ background: "white", border: "1px solid #E8E2DA" }}>
           <Eye size={36} className="mx-auto mb-3" style={{ color: "#E8E2DA" }} />
           <h3 className="font-serif text-lg font-semibold mb-1" style={{ color: "#0E0C0A" }}>No viewing rooms yet</h3>

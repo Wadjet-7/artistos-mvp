@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext"
 import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import { generateInvoicePDF } from "../components/InvoicePDF"
+import PageError from "../components/PageError"
 import { LimitBanner } from "../components/UpgradePrompt"
 import { isAtLimit, normalizePlan } from "../lib/plans"
 
@@ -92,20 +93,29 @@ export default function Finances() {
   const [confirmType, setConfirmType] = useState("invoice")
   const [artistProfile, setArtistProfile] = useState({})
   const [expenseFilter, setExpenseFilter] = useState("all")
+  const [fetchError, setFetchError] = useState(false)
 
   /* ---- fetch all data ---- */
   const fetchData = useCallback(async () => {
     if (!user?.id) return
-    const [invRes, expRes, profileRes] = await Promise.all([
-      supabase.from("invoices").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("expenses").select("*").eq("user_id", user.id).order("date", { ascending: false }),
-      supabase.from("profiles").select("name, location, email").eq("id", user.id).single(),
-    ])
+    setFetchError(false)
+    try {
+      const [invRes, expRes, profileRes] = await Promise.all([
+        supabase.from("invoices").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("expenses").select("*").eq("user_id", user.id).order("date", { ascending: false }),
+        supabase.from("profiles").select("name, location, email").eq("id", user.id).single(),
+      ])
 
-    if (!invRes.error && invRes.data) setInvoiceList(invRes.data)
-    if (!expRes.error && expRes.data) setExpenseList(expRes.data)
-    if (profileRes.data) setArtistProfile(profileRes.data)
-    setLoading(false)
+      if (invRes.error) throw invRes.error
+      if (invRes.data) setInvoiceList(invRes.data)
+      if (!expRes.error && expRes.data) setExpenseList(expRes.data)
+      if (profileRes.data) setArtistProfile(profileRes.data)
+    } catch (err) {
+      console.error("[Finances] fetch error:", err)
+      setFetchError(true)
+    } finally {
+      setLoading(false)
+    }
   }, [user?.id])
 
   useEffect(() => { fetchData() }, [fetchData])
@@ -299,6 +309,10 @@ export default function Finances() {
     { label: "Net Profit", value: formatCurrency(netProfit), delta: netProfit >= 0 ? "Positive cash flow" : "Negative cash flow", up: netProfit >= 0, icon: <DollarSign size={18} />, variant: netProfit >= 0 ? "forest" : "rose" },
     { label: "Pending", value: formatCurrency(pendingAmount), delta: overdueCount > 0 ? `${overdueCount} overdue` : "All clear", up: overdueCount === 0, icon: <Receipt size={18} />, variant: "gold" },
   ]
+
+  if (fetchError && !loading) {
+    return <PageError message="Could not load your financial data. Please check your connection and try again." onRetry={() => { setLoading(true); fetchData() }} />
+  }
 
   return (
     <div className="space-y-5">

@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
+import { normalizePlan } from "../lib/plans"
 import {
   Loader2, Image, Clock, DollarSign, Palette,
   TrendingUp, TrendingDown, Users, Calendar,
-  FileText, BarChart3, Activity, Eye, UserCircle, ScrollText
+  FileText, BarChart3, Activity, Eye, UserCircle, ScrollText, Sparkles, ArrowRight
 } from "lucide-react"
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid
 } from "recharts"
+import PageError from "../components/PageError"
 
 /* ================================================================ */
 /*  HELPERS                                                          */
@@ -189,6 +191,7 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
 
   // Redirect to onboarding if not complete
   useEffect(() => {
@@ -242,6 +245,7 @@ export default function Dashboard() {
         setActivities(actData)
       } catch (err) {
         console.error("[Dashboard] fetch error:", err)
+        setFetchError(true)
       } finally {
         setLoading(false)
       }
@@ -311,6 +315,12 @@ export default function Dashboard() {
   ]
 
   /* ================================================================ */
+  /*  ERROR STATE                                                       */
+  /* ================================================================ */
+  if (fetchError && !loading) {
+    return <PageError message="Could not load your dashboard data. Check your connection and try again." onRetry={() => window.location.reload()} />
+  }
+
   /*  SKELETON LOADING                                                 */
   /* ================================================================ */
   if (loading) {
@@ -358,8 +368,32 @@ export default function Dashboard() {
   /* ================================================================ */
   /*  RENDER                                                           */
   /* ================================================================ */
+  const plan = normalizePlan(user?.plan)
+
   return (
     <div className="space-y-5">
+      {/* Upgrade banner for Starter users */}
+      {plan === "starter" && (
+        <div className="rounded-xl p-4 md:p-5 flex items-center justify-between gap-4 flex-wrap"
+          style={{ background: "linear-gradient(135deg, #0E0C0A 0%, #1A1714 100%)", border: "1px solid rgba(181,101,29,0.3)" }}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ background: "rgba(181,101,29,0.2)" }}>
+              <Sparkles size={18} style={{ color: "#D4854A" }} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white">Unlock AI tools, analytics & more</p>
+              <p className="text-xs" style={{ color: "#A89F94" }}>
+                Upgrade to Pro for AI descriptions, pricing intelligence, and market analytics.
+              </p>
+            </div>
+          </div>
+          <Link to="/upgrade" className="btn-copper text-sm flex items-center gap-1.5 flex-shrink-0">
+            Upgrade to Pro <ArrowRight size={14} />
+          </Link>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map(s => (

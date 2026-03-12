@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
 import { AuthProvider, useAuth } from "./context/AuthContext"
 import Layout from "./components/Layout"
+import ErrorBoundary from "./components/ErrorBoundary"
 
 const Landing = lazy(() => import("./pages/Landing"))
 const Login = lazy(() => import("./pages/Login"))
@@ -32,6 +33,7 @@ const Upgrade = lazy(() => import("./pages/Upgrade"))
 const Onboarding = lazy(() => import("./pages/Onboarding"))
 const UpgradeSuccess = lazy(() => import("./pages/UpgradeSuccess"))
 const Legal = lazy(() => import("./pages/Legal"))
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"))
 const NotFound = lazy(() => import("./pages/NotFound"))
 
 function ProtectedRoute({ children }) {
@@ -65,6 +67,7 @@ function AppRoutes() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
         <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
+        <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
         <Route path="/artist/:userId" element={<ArtistProfile />} />
         <Route path="/artist/:userId/cv" element={<PublicCV />} />
         <Route path="/artists" element={<DiscoverArtists />} />
@@ -102,6 +105,7 @@ function AppRoutes() {
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <AuthProvider>
         <Toaster
@@ -129,5 +133,6 @@ export default function App() {
         <AppRoutes />
       </AuthProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   )
 }

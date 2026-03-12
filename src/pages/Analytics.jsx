@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import { Loader2, TrendingUp, DollarSign, Palette, Package, PieChart, BarChart3 } from "lucide-react"
+import PageError from "../components/PageError"
 import { FeatureGate } from "../components/UpgradePrompt"
 
 export default function Analytics() {
@@ -15,28 +16,31 @@ export default function Analytics() {
 function AnalyticsContent() {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
   const [artworks, setArtworks] = useState([])
   const [activities, setActivities] = useState([])
 
+  const fetchData = async () => {
+    setLoading(true)
+    setFetchError(false)
+    try {
+      const [artRes, actRes] = await Promise.all([
+        supabase.from("artworks").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
+        supabase.from("activity_log").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50),
+      ])
+      if (artRes.error) throw artRes.error
+      setArtworks(artRes.data || [])
+      setActivities(actRes.data || [])
+    } catch (err) {
+      console.error("[Analytics] error:", err)
+      setFetchError(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (!user?.id) return
-
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        const [artRes, actRes] = await Promise.all([
-          supabase.from("artworks").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
-          supabase.from("activity_log").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50),
-        ])
-        setArtworks(artRes.data || [])
-        setActivities(actRes.data || [])
-      } catch (err) {
-        console.error("[Analytics] error:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchData()
   }, [user?.id])
 
@@ -84,6 +88,10 @@ function AnalyticsContent() {
 
     return { total, available, sold, reserved, avgPrice, highestPrice, lowestPrice, totalValue, soldValue, availableValue, byMedium, months, maxMonthly }
   }, [artworks])
+
+  if (fetchError && !loading) {
+    return <PageError message="Could not load your analytics data. Please check your connection and try again." onRetry={fetchData} />
+  }
 
   if (loading) {
     return (

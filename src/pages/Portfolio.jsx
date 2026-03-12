@@ -9,6 +9,7 @@ import CertificateModal from "../components/CertificateModal"
 import CatalogModal from "../components/CatalogModal"
 import QRCodeModal from "../components/QRCodeModal"
 import paintAbstract from "../utils/paintAbstract"
+import PageError from "../components/PageError"
 import { LimitBanner } from "../components/UpgradePrompt"
 import { isAtLimit, normalizePlan, canAccess } from "../lib/plans"
 import { generateArtworkDescription, suggestPricing } from "../lib/ai"
@@ -117,6 +118,7 @@ export default function Portfolio() {
   const [coaTarget, setCoaTarget] = useState(null)
   const [qrTarget, setQrTarget] = useState(null)
   const [catalogOpen, setCatalogOpen] = useState(false)
+  const [fetchError, setFetchError] = useState(false)
   const [artistName, setArtistName] = useState("")
   const [artistProfile, setArtistProfile] = useState({})
   const fileInputRef = useRef(null)
@@ -124,15 +126,23 @@ export default function Portfolio() {
   /* ---- fetch artworks from Supabase ---- */
   const fetchArtworks = useCallback(async () => {
     if (!user?.id) return
-    const [artRes, profileRes] = await Promise.all([
-      supabase.from("artworks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("profiles").select("name,bio,style,medium,location,website").eq("id", user.id).single()
-    ])
+    setFetchError(false)
+    try {
+      const [artRes, profileRes] = await Promise.all([
+        supabase.from("artworks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("profiles").select("name,bio,style,medium,location,website").eq("id", user.id).single()
+      ])
 
-    if (!artRes.error && artRes.data) setArtworkList(artRes.data)
-    if (profileRes.data?.name) setArtistName(profileRes.data.name)
-    if (profileRes.data) setArtistProfile(profileRes.data)
-    setLoadingData(false)
+      if (artRes.error) throw artRes.error
+      if (artRes.data) setArtworkList(artRes.data)
+      if (profileRes.data?.name) setArtistName(profileRes.data.name)
+      if (profileRes.data) setArtistProfile(profileRes.data)
+    } catch (err) {
+      console.error("[Portfolio] fetch error:", err)
+      setFetchError(true)
+    } finally {
+      setLoadingData(false)
+    }
   }, [user?.id])
 
   useEffect(() => {
@@ -317,6 +327,11 @@ export default function Portfolio() {
           Available
         </button>
       </div>
+
+      {/* Error state */}
+      {fetchError && !loadingData && (
+        <PageError message="Could not load your portfolio. Please check your connection and try again." onRetry={() => { setLoadingData(true); fetchArtworks() }} />
+      )}
 
       {/* Skeleton loading state */}
       {loadingData && (

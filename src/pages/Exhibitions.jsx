@@ -5,6 +5,7 @@ import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import toast from "react-hot-toast"
 import { CalendarDays, Plus, Trash2, Loader2, MapPin, CheckSquare, Square, ChevronDown, ChevronUp } from "lucide-react"
+import PageError from "../components/PageError"
 import { FeatureGate } from "../components/UpgradePrompt"
 
 /* ------------------------------------------------------------------ */
@@ -80,17 +81,26 @@ function ExhibitionsContent() {
   const [submitting, setSubmitting] = useState(false)
   const [newCheckItem, setNewCheckItem] = useState("")
   const [expanded, setExpanded] = useState({})
+  const [fetchError, setFetchError] = useState(false)
 
   const fetchData = useCallback(async () => {
     if (!user) return
     setLoading(true)
-    const [exRes, artRes] = await Promise.all([
-      supabase.from("exhibitions").select("*").eq("user_id", user.id).order("start_date", { ascending: true }),
-      supabase.from("artworks").select("id, title, image_url").eq("user_id", user.id).order("title"),
-    ])
-    setExhibitions(exRes.data || [])
-    setArtworks(artRes.data || [])
-    setLoading(false)
+    setFetchError(false)
+    try {
+      const [exRes, artRes] = await Promise.all([
+        supabase.from("exhibitions").select("*").eq("user_id", user.id).order("start_date", { ascending: true }),
+        supabase.from("artworks").select("id, title, image_url").eq("user_id", user.id).order("title"),
+      ])
+      if (exRes.error) throw exRes.error
+      setExhibitions(exRes.data || [])
+      setArtworks(artRes.data || [])
+    } catch (err) {
+      console.error("[Exhibitions] fetch error:", err)
+      setFetchError(true)
+    } finally {
+      setLoading(false)
+    }
   }, [user])
 
   useEffect(() => { fetchData() }, [fetchData])
@@ -262,13 +272,18 @@ function ExhibitionsContent() {
         ))}
       </div>
 
+      {/* Error state */}
+      {fetchError && !loading && (
+        <PageError message="Could not load your exhibitions. Please check your connection and try again." onRetry={fetchData} />
+      )}
+
       {/* Content */}
-      {loading ? (
+      {!fetchError && loading ? (
         <div className="text-center py-16">
           <Loader2 size={28} className="animate-spin mx-auto mb-3" style={{ color: "#B5651D" }} />
           <p className="text-sm" style={{ color: "#A89F94" }}>Loading...</p>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : !fetchError && filtered.length === 0 ? (
         <div className="text-center py-16 rounded-xl" style={{ background: "white", border: "1px solid #E8E2DA" }}>
           <CalendarDays size={36} className="mx-auto mb-3" style={{ color: "#E8E2DA" }} />
           <h3 className="font-serif text-lg font-semibold mb-1" style={{ color: "#0E0C0A" }}>
