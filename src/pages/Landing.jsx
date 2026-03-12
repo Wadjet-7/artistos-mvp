@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
-import { BarChart3, ShoppingBag, Briefcase, ArrowRight, CheckCircle2, Star, TrendingUp, Users, DollarSign, Zap } from "lucide-react"
+import { BarChart3, ShoppingBag, Briefcase, ArrowRight, CheckCircle2, Star, TrendingUp, Users, DollarSign, Zap, Sparkles } from "lucide-react"
 import { useScrollReveal, useStaggerReveal } from "../hooks/useScrollReveal"
+import { PLANS } from "../lib/plans"
 
 /* ---- Animated Counter (counts from 0 to target on scroll) ---- */
 function AnimatedCounter({ end, duration = 2000, prefix = "", suffix = "", decimals = 0 }) {
@@ -41,9 +42,9 @@ function AnimatedCounter({ end, duration = 2000, prefix = "", suffix = "", decim
 
 /* ---- Static Data ---- */
 const features = [
-  { icon: Briefcase, bg: "#F5E6D8", color: "#B5651D", title: "Business Hub", description: "Manage your portfolio, generate contracts, schedule social content, and track finances — all in one place.", bullets: ["Portfolio & artwork management", "Contract generator with live preview", "Social media scheduler"] },
-  { icon: BarChart3, bg: "#E8F2EA", color: "#2D4A35", title: "Market Analytics", description: "Access real-time art market data, benchmark your prices, and discover emerging trends.", bullets: ["Price benchmarking by medium & style", "Market position scoring", "Emerging artist tracking"] },
-  { icon: ShoppingBag, bg: "#FBF2DC", color: "#8A6A1A", title: "Commission Marketplace", description: "Connect directly with collectors and galleries seeking commissioned work that matches your style.", bullets: ["Browse live commission requests", "Smart artist-collector matching", "Secure messaging & contracts"] },
+  { icon: Briefcase, bg: "#F5E6D8", color: "#B5651D", title: "Business Hub", description: "Manage your portfolio, generate contracts, schedule social content, and track finances — all in one place.", bullets: ["Portfolio & artwork management", "Contract generator with live preview", "QR codes & certificates of authenticity"] },
+  { icon: Sparkles, bg: "#FBF2DC", color: "#8A6A1A", title: "AI-Powered Tools", description: "Let AI write gallery-quality descriptions, suggest market-aligned pricing, and generate your professional bio.", bullets: ["AI artwork descriptions", "Smart price suggestions", "Professional bio generator"] },
+  { icon: BarChart3, bg: "#E8F2EA", color: "#2D4A35", title: "Analytics & Growth", description: "Track your portfolio value, sales velocity, and inventory status with real-time data visualizations.", bullets: ["Portfolio value tracking", "Medium & status breakdowns", "Market position scoring"] },
 ]
 
 const steps = [
@@ -65,9 +66,9 @@ const heroStats = [
 ]
 
 const pricing = [
-  { name: "Starter", price: "Free", period: "", description: "Perfect for artists just getting started.", highlight: false, features: ["Up to 10 portfolio artworks", "3 contracts per month", "Basic market overview", "Marketplace browsing"] },
-  { name: "Pro", price: "$19", period: "/ month", description: "For emerging artists growing their practice.", highlight: true, features: ["Unlimited portfolio artworks", "Unlimited contracts & invoices", "Full analytics & benchmarking", "Social media scheduler", "Unlimited marketplace applications", "Priority support"] },
-  { name: "Studio", price: "$49", period: "/ month", description: "For established artists and small studios.", highlight: false, features: ["Everything in Pro", "Up to 5 team members", "Gallery & collector portal", "Advanced market reports", "API access"] },
+  { name: PLANS.starter.name, price: PLANS.starter.priceLabel, period: "", description: PLANS.starter.tagline, highlight: false, features: PLANS.starter.highlights.slice(0, 6) },
+  { name: PLANS.pro.name, price: `$${PLANS.pro.price}`, period: "/ month", description: PLANS.pro.tagline, highlight: true, features: PLANS.pro.highlights.slice(0, 8) },
+  { name: PLANS.studio.name, price: `$${PLANS.studio.price}`, period: "/ month", description: PLANS.studio.tagline, highlight: false, features: PLANS.studio.highlights.slice(0, 7) },
 ]
 
 export default function Landing() {

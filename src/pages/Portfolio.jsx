@@ -318,13 +318,18 @@ export default function Portfolio() {
         </button>
       </div>
 
-      {/* Loading state */}
+      {/* Skeleton loading state */}
       {loadingData && (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <Loader2 size={24} className="animate-spin mx-auto mb-2" style={{ color: "#B5651D" }} />
-            <p className="text-sm" style={{ color: "#A89F94" }}>Loading artworks...</p>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid #E8E2DA" }}>
+              <div className="skeleton" style={{ aspectRatio: "1", borderRadius: 0 }} />
+              <div className="p-4">
+                <div className="skeleton skeleton-text" style={{ width: "70%" }} />
+                <div className="skeleton skeleton-text" style={{ width: "50%", height: 12 }} />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

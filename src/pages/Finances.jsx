@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { Plus, Trash2, Edit2, CheckCircle, Loader2, DollarSign, Download, FileText, Receipt, TrendingDown } from "lucide-react"
+import { Plus, Trash2, Edit2, CheckCircle, Loader2, DollarSign, Download, FileText, Receipt, TrendingDown, AlertTriangle } from "lucide-react"
 import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
@@ -313,6 +313,38 @@ export default function Finances() {
           </div>
         ))}
       </div>
+
+      {/* Overdue invoices banner */}
+      {overdueCount > 0 && (
+        <div className="rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3"
+          style={{ background: "#FFF0ED", border: "1px solid #F0B5A5" }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: "#F5E2DC" }}>
+            <AlertTriangle size={18} style={{ color: "#C4705A" }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium" style={{ color: "#0E0C0A" }}>
+              {overdueCount} overdue invoice{overdueCount > 1 ? "s" : ""} totaling {formatCurrency(
+                invoiceList.filter(i => i.status === "overdue").reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
+              )}
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: "#A89F94" }}>
+              Send reminders to collect outstanding payments
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              invoiceList.filter(i => i.status === "overdue").forEach(inv => {
+                toast(`Reminder: Invoice for ${inv.client_name} ($${Number(inv.amount).toLocaleString()}) is overdue`, { icon: "\u{1F4E7}" })
+              })
+            }}
+            className="px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0"
+            style={{ background: "#C4705A", color: "white" }}
+          >
+            Send Reminders
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: "#F2EDE6" }}>

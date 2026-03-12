@@ -139,7 +139,7 @@ export default function Layout() {
               <Menu size={22} />
             </button>
             <div>
-            <h1 className="font-serif text-[26px] font-normal tracking-wide" style={{ color: "#0E0C0A" }}>
+            <h1 className="font-serif text-[20px] md:text-[26px] font-normal tracking-wide" style={{ color: "#0E0C0A" }}>
               {displayTitle.title}{" "}
               <span className="italic" style={{ color: "#B5651D" }}>{displayTitle.accent}</span>
               {displayTitle.suffix || ""}
@@ -188,7 +188,7 @@ export default function Layout() {
                 )}
               </button>
               {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl z-50"
+                <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-xl z-50"
                   style={{ border: "1px solid #E8E2DA" }}>
                   <div className="flex items-center justify-between px-4 py-3"
                     style={{ borderBottom: "1px solid #F2EDE6" }}>

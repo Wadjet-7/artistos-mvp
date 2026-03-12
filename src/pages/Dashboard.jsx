@@ -497,7 +497,7 @@ export default function Dashboard() {
                         {commissionEmojis[i % 3]}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[13.5px] font-medium">{c.client_name} — {c.title}</div>
+                        <div className="text-[13.5px] font-medium truncate">{c.client_name} — {c.title}</div>
                         <div className="text-xs flex items-center gap-2" style={{ color: "#A89F94" }}>
                           <span className="truncate">{c.description}</span>
                           {urgency && (
@@ -587,23 +587,46 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Market Insight Banner */}
-      <div className="rounded-xl px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-4"
-        style={{ background: "linear-gradient(135deg, #2D4A35, #1A2E20)", color: "white" }}>
-        <div>
-          <div className="text-[12px] uppercase tracking-[2px] mb-1.5" style={{ opacity: 0.6 }}>Market Intelligence</div>
-          <div className="font-serif text-xl font-normal">
-            Abstract art sales are up <strong style={{ color: "#86C996" }}>+23%</strong> this quarter in your region
+      {/* Market Insight Banner — real data */}
+      {(() => {
+        const avgPrice = artworks.length > 0
+          ? Math.round(artworks.filter(a => a.price > 0).reduce((s, a) => s + Number(a.price), 0) / Math.max(artworks.filter(a => a.price > 0).length, 1))
+          : 0
+        const soldCount = artworks.filter(a => a.status === "Sold").length
+        const totalCount = artworks.length
+        const soldPct = totalCount > 0 ? Math.round((soldCount / totalCount) * 100) : 0
+
+        return (
+          <div className="rounded-xl px-5 md:px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-4"
+            style={{ background: "linear-gradient(135deg, #2D4A35, #1A2E20)", color: "white" }}>
+            <div>
+              <div className="text-[12px] uppercase tracking-[2px] mb-1.5" style={{ opacity: 0.6 }}>Portfolio Intelligence</div>
+              <div className="font-serif text-lg md:text-xl font-normal">
+                {totalCount > 0 ? (
+                  <>
+                    {soldCount > 0
+                      ? <>{soldPct}% sell-through rate with <strong style={{ color: "#86C996" }}>${revenue.toLocaleString()}</strong> in revenue</>
+                      : <>Your portfolio of {totalCount} works is valued at <strong style={{ color: "#86C996" }}>${portfolioValue.toLocaleString()}</strong></>
+                    }
+                  </>
+                ) : (
+                  <>Start building your portfolio to unlock market insights</>
+                )}
+              </div>
+              <div className="text-[13px] mt-1" style={{ opacity: 0.65 }}>
+                {avgPrice > 0
+                  ? `Average artwork price: $${avgPrice.toLocaleString()} \u00B7 ${artworks.filter(a => a.status === "Available").length} works available`
+                  : "Add artworks with prices to see your analytics"
+                }
+              </div>
+            </div>
+            <button onClick={() => navigate("/analytics")} className="whitespace-nowrap px-5 py-2.5 rounded-lg text-sm font-medium text-white flex-shrink-0"
+              style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
+              View Full Report \u2192
+            </button>
           </div>
-          <div className="text-[13px] mt-1" style={{ opacity: 0.65 }}>
-            Your avg. price per sq. inch ($4.80) places you in the top 15% of comparable artists
-          </div>
-        </div>
-        <button onClick={() => navigate("/analytics")} className="whitespace-nowrap px-5 py-2.5 rounded-lg text-sm font-medium text-white"
-          style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
-          View Full Report →
-        </button>
-      </div>
+        )
+      })()}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, Link } from "react-router-dom"
 import { supabase } from "../lib/supabase"
-import { MapPin, Globe, Palette, Loader2, ArrowRight, Image, ScrollText } from "lucide-react"
+import { MapPin, Globe, Palette, Loader2, ArrowRight, Image, ScrollText, Share2 } from "lucide-react"
 import paintAbstract from "../utils/paintAbstract"
 import CommissionRequestForm from "../components/CommissionRequestForm"
 
@@ -38,7 +38,10 @@ function ArtworkCard({ artwork }) {
       </div>
       <div className="p-4">
         <h3 className="font-semibold text-sm mb-1" style={{ color: "#0E0C0A" }}>{artwork.title}</h3>
-        <p className="text-xs mb-2" style={{ color: "#A89F94" }}>{artwork.medium}{artwork.dimensions ? ` \u00B7 ${artwork.dimensions}` : ""}</p>
+        <p className="text-xs mb-1" style={{ color: "#A89F94" }}>{artwork.medium}{artwork.dimensions ? ` \u00B7 ${artwork.dimensions}` : ""}</p>
+        {artwork.description && (
+          <p className="text-xs leading-relaxed mb-2 line-clamp-2" style={{ color: "#6B6560" }}>{artwork.description}</p>
+        )}
         {artwork.price && artwork.status === "Available" && (
           <p className="font-serif text-lg font-semibold" style={{ color: "#B5651D" }}>
             ${artwork.price.toLocaleString()}
@@ -75,6 +78,13 @@ export default function ArtistProfile() {
           return
         }
         setArtist(profile)
+
+        // Dynamic SEO: update page title and meta description
+        document.title = `${profile.name} — Artist Portfolio | ArtistOS`
+        const metaDesc = document.querySelector('meta[name="description"]')
+        if (metaDesc) {
+          metaDesc.setAttribute("content", `View ${profile.name}'s art portfolio on ArtistOS. ${profile.medium || "Mixed media"} artist${profile.location ? ` based in ${profile.location}` : ""}. ${profile.bio?.slice(0, 100) || "Browse available works and request commissions."}`)
+        }
 
         const { data: works } = await supabase
           .from("artworks")

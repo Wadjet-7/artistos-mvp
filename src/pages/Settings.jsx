@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
@@ -246,28 +246,7 @@ export default function Settings() {
       )}
 
       {activeTab === "Notifications" && (
-        <div className="card p-6 space-y-5">
-          <div className="flex items-center gap-3 mb-2">
-            <Bell size={18} style={{ color: "#B5651D" }} />
-            <h3 className="text-base font-semibold" style={{ color: "#0E0C0A" }}>Notification Preferences</h3>
-          </div>
-          {[
-            { label: "New commission inquiries", desc: "Get notified when a collector sends you a commission request", default: true },
-            { label: "Invoice updates", desc: "Receive alerts when an invoice is paid or becomes overdue", default: true },
-            { label: "Contract activity", desc: "Notifications when contracts are signed or need attention", default: true },
-            { label: "Market analytics digest", desc: "Weekly digest of market trends relevant to your work", default: true },
-            { label: "Marketplace matches", desc: "Alerts for new commissions matching your style and medium", default: true },
-            { label: "Product updates", desc: "News about new ArtistOS features and improvements", default: false },
-          ].map(n => (
-            <label key={n.label} className="flex items-start gap-4 py-3 cursor-pointer" style={{ borderBottom: "1px solid #F2EDE6" }}>
-              <input type="checkbox" defaultChecked={n.default} className="mt-1 w-4 h-4 rounded" style={{ accentColor: "#B5651D" }} />
-              <div>
-                <p className="text-sm font-medium" style={{ color: "#0E0C0A" }}>{n.label}</p>
-                <p className="text-xs mt-0.5" style={{ color: "#A89F94" }}>{n.desc}</p>
-              </div>
-            </label>
-          ))}
-        </div>
+        <NotificationsTab user={user} />
       )}
 
       {activeTab === "Billing" && <BillingTab user={user} />}
@@ -392,6 +371,110 @@ function BillingTab({ user }) {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  )
+}
+
+/* ================================================================ */
+/*  Notifications Tab — Persisted to profiles.notification_preferences */
+/* ================================================================ */
+const NOTIF_DEFAULTS = {
+  commissions: true,
+  invoices: true,
+  contracts: true,
+  analytics_digest: true,
+  marketplace: true,
+  product_updates: false,
+}
+
+const NOTIF_OPTIONS = [
+  { key: "commissions", label: "New commission inquiries", desc: "Get notified when a collector sends you a commission request" },
+  { key: "invoices", label: "Invoice updates", desc: "Receive alerts when an invoice is paid or becomes overdue" },
+  { key: "contracts", label: "Contract activity", desc: "Notifications when contracts are signed or need attention" },
+  { key: "analytics_digest", label: "Market analytics digest", desc: "Weekly digest of market trends relevant to your work" },
+  { key: "marketplace", label: "Marketplace matches", desc: "Alerts for new commissions matching your style and medium" },
+  { key: "product_updates", label: "Product updates", desc: "News about new ArtistOS features and improvements" },
+]
+
+function NotificationsTab({ user }) {
+  const [prefs, setPrefs] = useState(NOTIF_DEFAULTS)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+
+  // Load saved preferences from profile
+  useEffect(() => {
+    if (!user?.id) return
+    const loadPrefs = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("notification_preferences")
+        .eq("id", user.id)
+        .single()
+      if (data?.notification_preferences) {
+        setPrefs(prev => ({ ...prev, ...data.notification_preferences }))
+      }
+      setLoaded(true)
+    }
+    loadPrefs()
+  }, [user?.id])
+
+  const handleToggle = (key) => {
+    setPrefs(prev => ({ ...prev, [key]: !prev[key] }))
+    setSaved(false)
+  }
+
+  const handleSave = async () => {
+    if (!user?.id) return
+    setSaving(true)
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ notification_preferences: prefs })
+        .eq("id", user.id)
+      if (error) throw error
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+      toast.success("Notification preferences saved!")
+    } catch (err) {
+      toast.error("Failed to save preferences")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="card p-6 space-y-5">
+      <div className="flex items-center gap-3 mb-2">
+        <Bell size={18} style={{ color: "#B5651D" }} />
+        <h3 className="text-base font-semibold" style={{ color: "#0E0C0A" }}>Notification Preferences</h3>
+      </div>
+      {NOTIF_OPTIONS.map(n => (
+        <label key={n.key} className="flex items-start gap-4 py-3 cursor-pointer" style={{ borderBottom: "1px solid #F2EDE6" }}>
+          <input
+            type="checkbox"
+            checked={prefs[n.key] ?? false}
+            onChange={() => handleToggle(n.key)}
+            className="mt-1 w-4 h-4 rounded"
+            style={{ accentColor: "#B5651D" }}
+          />
+          <div>
+            <p className="text-sm font-medium" style={{ color: "#0E0C0A" }}>{n.label}</p>
+            <p className="text-xs mt-0.5" style={{ color: "#A89F94" }}>{n.desc}</p>
+          </div>
+        </label>
+      ))}
+      <div className="flex items-center gap-3 pt-2">
+        <button onClick={handleSave} disabled={saving} className="btn-copper flex items-center gap-2 disabled:opacity-70">
+          {saving ? (
+            <><Loader2 size={15} className="animate-spin" /> Saving...</>
+          ) : saved ? (
+            <><CheckCircle size={15} /> Saved!</>
+          ) : (
+            <><Save size={15} /> Save preferences</>
+          )}
+        </button>
       </div>
     </div>
   )
