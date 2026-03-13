@@ -20,7 +20,8 @@
       "WebFetch(domain:artlogic.net)",
       "Bash(python -m markitdown ArtistOS-Pitch-Deck.pptx)",
       "Bash(ls \"C:\\\\Users\\\\larry\\\\artistos-mvp\\\\public\"\" 2>nul || echo \"No public dir \")",
-      "Bash(node create-deck.cjs)"
+      "Bash(node create-deck.cjs)",
+      "Bash(del \"C:\\\\Users\\\\larry\\\\artistos-mvp\\\\src\\\\data\\\\mockData.js\")"
     ]
   }
 }

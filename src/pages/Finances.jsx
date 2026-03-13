@@ -15,6 +15,7 @@ import { isAtLimit, normalizePlan } from "../lib/plans"
 /* ------------------------------------------------------------------ */
 const emptyInvoiceForm = {
   client_name: "",
+  client_email: "",
   description: "",
   amount: "",
   status: "draft",
@@ -148,6 +149,7 @@ export default function Finances() {
     setEditingId(inv.id)
     setInvoiceForm({
       client_name: inv.client_name || "",
+      client_email: inv.client_email || "",
       description: inv.description || "",
       amount: inv.amount != null ? String(inv.amount) : "",
       status: inv.status || "draft",
@@ -162,6 +164,7 @@ export default function Finances() {
     try {
       const record = {
         client_name: invoiceForm.client_name.trim(),
+        client_email: invoiceForm.client_email.trim() || null,
         description: invoiceForm.description.trim(),
         amount: parseFloat(invoiceForm.amount) || 0,
         status: invoiceForm.status,
@@ -347,10 +350,39 @@ export default function Finances() {
             </p>
           </div>
           <button
-            onClick={() => {
-              invoiceList.filter(i => i.status === "overdue").forEach(inv => {
-                toast(`Reminder: Invoice for ${inv.client_name} ($${Number(inv.amount).toLocaleString()}) is overdue`, { icon: "\u{1F4E7}" })
-              })
+            onClick={async () => {
+              const overdue = invoiceList.filter(i => i.status === "overdue")
+              let sent = 0
+              for (const inv of overdue) {
+                if (!inv.client_email) {
+                  toast(`No email for ${inv.client_name} — skipped`, { icon: "⚠️" })
+                  continue
+                }
+                try {
+                  const { error } = await supabase.functions.invoke("send-email", {
+                    body: {
+                      to: inv.client_email,
+                      type: "invoice_reminder",
+                      data: {
+                        artistName: user?.name || "ArtistOS",
+                        description: inv.description || "Art Commission",
+                        amount: String(Number(inv.amount).toLocaleString()),
+                        dueDate: inv.due_date ? new Date(inv.due_date).toLocaleDateString() : "",
+                      },
+                    },
+                  })
+                  if (error) throw error
+                  sent++
+                } catch {
+                  toast.error(`Failed to email ${inv.client_name}`)
+                }
+              }
+              if (sent > 0) {
+                toast.success(`Sent ${sent} reminder${sent > 1 ? "s" : ""} successfully`)
+                await logActivity(user?.id, "invoice", `Sent ${sent} overdue invoice reminder${sent > 1 ? "s" : ""}`)
+              } else if (overdue.every(i => !i.client_email)) {
+                toast("No client emails on file — add emails to invoices to send reminders", { icon: "📧" })
+              }
             }}
             className="px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0"
             style={{ background: "#C4705A", color: "white" }}
@@ -609,6 +641,11 @@ export default function Finances() {
               <label className="form-label">Client Name</label>
               <input className="form-input" placeholder="e.g. Sarah Mitchell" value={invoiceForm.client_name}
                 onChange={e => setInvoiceForm({ ...invoiceForm, client_name: e.target.value })} />
+            </div>
+            <div>
+              <label className="form-label">Client Email <span className="text-xs font-normal" style={{ color: "#A89F94" }}>(for reminders)</span></label>
+              <input className="form-input" type="email" placeholder="e.g. sarah@example.com" value={invoiceForm.client_email}
+                onChange={e => setInvoiceForm({ ...invoiceForm, client_email: e.target.value })} />
             </div>
             <div>
               <label className="form-label">Description</label>

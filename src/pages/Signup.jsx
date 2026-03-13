@@ -79,7 +79,7 @@ export default function Signup() {
               <label className="form-label">Full name</label>
               <div className="relative">
                 <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#A89F94" }} />
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Maya Chen"
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name"
                   className="form-input pl-10" />
               </div>
             </div>

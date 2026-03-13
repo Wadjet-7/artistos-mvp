@@ -105,7 +105,7 @@ export default function Settings() {
                 ) : (
                   <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-semibold font-serif"
                     style={{ background: "linear-gradient(135deg, #B5651D, #C4705A)" }}>
-                    {user?.initials || "M"}
+                    {user?.initials || user?.name?.charAt(0) || "?"}
                   </div>
                 )}
                 {uploadingAvatar && (

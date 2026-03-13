@@ -92,8 +92,27 @@ export async function redirectToCustomerPortal({ userId }) {
 }
 
 /**
- * Check if Stripe is configured
+ * Check if Stripe is configured (full checkout flow)
  */
 export function isStripeConfigured() {
   return !!STRIPE_KEY
+}
+
+/**
+ * Get a Stripe Payment Link URL for a plan (no backend needed)
+ * Payment Links are created in the Stripe Dashboard and pasted into .env
+ * @param {string} planId - "pro" or "studio"
+ * @param {string} userEmail - pre-fill the customer email
+ * @returns {string|null} the payment link URL or null
+ */
+export function getPaymentLink(planId, userEmail) {
+  const links = {
+    pro: import.meta.env.VITE_STRIPE_PRO_LINK || "",
+    studio: import.meta.env.VITE_STRIPE_STUDIO_LINK || "",
+  }
+  const link = links[planId]
+  if (!link) return null
+  // Append prefilled_email if the link supports it
+  const separator = link.includes("?") ? "&" : "?"
+  return userEmail ? `${link}${separator}prefilled_email=${encodeURIComponent(userEmail)}` : link
 }

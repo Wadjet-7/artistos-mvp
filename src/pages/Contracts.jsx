@@ -26,7 +26,7 @@ const categoryOptions = ["General", "Commission", "Consignment", "Licensing", "S
 
 const defaultForm = {
   template: "Commission Agreement",
-  clientName: "David Kim",
+  clientName: "",
   clientEmail: "",
   artworkTitle: "",
   price: "",

@@ -228,7 +228,7 @@ export default function Layout() {
             <Link to="/settings"
               className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold font-serif"
               style={{ background: "linear-gradient(135deg, #B5651D, #C4705A)" }}>
-              {user?.initials || "M"}
+              {user?.initials || user?.name?.charAt(0) || "?"}
             </Link>
           </div>
         </header>

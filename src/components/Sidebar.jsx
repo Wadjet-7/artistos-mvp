@@ -1,22 +1,58 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom"
-import { useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Settings, LogOut } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
+import { supabase } from "../lib/supabase"
 import { navSections } from "../data/navigation"
+import { normalizePlan } from "../lib/plans"
 
 export default function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [badges, setBadges] = useState({})
 
   useEffect(() => {
     onClose?.()
   }, [location.pathname])
 
+  /* ---- Load real badge counts ---- */
+  useEffect(() => {
+    if (!user?.id) return
+    let cancelled = false
+
+    async function fetchBadges() {
+      try {
+        const [commRes, msgRes] = await Promise.allSettled([
+          supabase
+            .from("commissions")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .in("status", ["pending", "quoted"]),
+          supabase
+            .from("conversations")
+            .select("id", { count: "exact", head: true })
+            .contains("participants", [user.id]),
+        ])
+        if (cancelled) return
+        const c = commRes.status === "fulfilled" ? commRes.value.count || 0 : 0
+        const m = msgRes.status === "fulfilled" ? msgRes.value.count || 0 : 0
+        setBadges({ commissions: c, messages: m })
+      } catch {
+        // silently ignore
+      }
+    }
+    fetchBadges()
+    return () => { cancelled = true }
+  }, [user?.id])
+
   const handleLogout = () => {
     logout()
     navigate("/")
   }
+
+  const plan = normalizePlan(user?.plan)
+  const planLabel = plan === "studio" ? "Studio" : plan === "pro" ? "Pro" : "Starter"
 
   return (
     <>
@@ -45,39 +81,42 @@ export default function Sidebar({ isOpen, onClose }) {
               style={{ color: "rgba(255,255,255,0.25)" }}>
               {section.label}
             </div>
-            {section.items.map(({ to, icon: Icon, label, badge }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  "flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13.5px] font-normal transition-all mb-0.5 relative " +
-                  (isActive
-                    ? "text-copper-light"
-                    : "hover:text-white/80")
-                }
-                style={({ isActive }) => ({
-                  background: isActive ? "rgba(181,101,29,0.2)" : "transparent",
-                  color: isActive ? "#D4854A" : "rgba(255,255,255,0.55)",
-                })}
-              >
-                {({ isActive }) => (
-                  <>
-                    {isActive && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] rounded-r-sm"
-                        style={{ background: "#D4854A" }} />
-                    )}
-                    <Icon size={16} style={{ opacity: isActive ? 1 : 0.7 }} />
-                    <span>{label}</span>
-                    {badge && (
-                      <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                        style={{ background: "#C4705A", color: "white" }}>
-                        {badge}
-                      </span>
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
+            {section.items.map(({ to, icon: Icon, label, badgeKey }) => {
+              const count = badgeKey ? badges[badgeKey] || 0 : 0
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    "flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13.5px] font-normal transition-all mb-0.5 relative " +
+                    (isActive
+                      ? "text-copper-light"
+                      : "hover:text-white/80")
+                  }
+                  style={({ isActive }) => ({
+                    background: isActive ? "rgba(181,101,29,0.2)" : "transparent",
+                    color: isActive ? "#D4854A" : "rgba(255,255,255,0.55)",
+                  })}
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] rounded-r-sm"
+                          style={{ background: "#D4854A" }} />
+                      )}
+                      <Icon size={16} style={{ opacity: isActive ? 1 : 0.7 }} />
+                      <span>{label}</span>
+                      {count > 0 && (
+                        <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                          style={{ background: "#C4705A", color: "white" }}>
+                          {count}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              )
+            })}
           </div>
         ))}
       </nav>
@@ -95,15 +134,15 @@ export default function Sidebar({ isOpen, onClose }) {
           ) : (
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold font-serif"
               style={{ background: "linear-gradient(135deg, #B5651D, #C4705A)" }}>
-              {user?.initials || "M"}
+              {user?.initials || user?.name?.charAt(0) || "?"}
             </div>
           )}
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-normal truncate" style={{ color: "rgba(255,255,255,0.75)" }}>
-              {user?.name || "Maya Chen"}
+              {user?.name || "Artist"}
             </p>
             <p className="text-[10px] tracking-wide" style={{ color: "#D4854A" }}>
-              {user?.plan || "Artist Pro"}
+              {planLabel}
             </p>
           </div>
         </NavLink>

@@ -136,9 +136,9 @@ const makeShadow = () => ({ type: "outer", blur: 8, offset: 3, angle: 135, color
 
   // Three solution pillars
   const pillars = [
-    { icon: "\u{1F3A8}", title: "Portfolio & Inventory", desc: "Upload, catalog, price, and describe artworks with AI assistance" },
-    { icon: "\u{1F4B0}", title: "Financial Command Center", desc: "Invoices, expenses, contracts, and revenue tracking in one place" },
-    { icon: "\u{1F916}", title: "AI-Powered Intelligence", desc: "Smart descriptions, pricing guidance, and bio generation" },
+    { icon: "P", title: "Portfolio & Inventory", desc: "Upload, catalog, price, and describe artworks with AI assistance" },
+    { icon: "$", title: "Financial Command Center", desc: "Invoices, expenses, contracts, and revenue tracking in one place" },
+    { icon: "AI", title: "AI-Powered Intelligence", desc: "Smart descriptions, pricing guidance, and bio generation" },
   ];
 
   pillars.forEach((p, i) => {
@@ -147,10 +147,11 @@ const makeShadow = () => ({ type: "outer", blur: 8, offset: 3, angle: 135, color
     s.addShape(pres.shapes.RECTANGLE, { x: xBase, y: 2.3, w: 2.8, h: 2.7, fill: { color: C.white }, shadow: makeShadow() });
     // Copper top border
     s.addShape(pres.shapes.RECTANGLE, { x: xBase, y: 2.3, w: 2.8, h: 0.06, fill: { color: C.copper } });
-    // Icon
+    // Icon circle
+    s.addShape(pres.shapes.OVAL, { x: xBase + 0.2, y: 2.55, w: 0.6, h: 0.6, fill: { color: C.copper } });
     s.addText(p.icon, {
       x: xBase + 0.2, y: 2.55, w: 0.6, h: 0.6,
-      fontSize: 28, align: "center", valign: "middle", margin: 0,
+      fontFace: SANS, fontSize: 18, color: C.cream, bold: true, align: "center", valign: "middle", margin: 0,
     });
     // Title
     s.addText(p.title, {
@@ -383,8 +384,11 @@ const makeShadow = () => ({ type: "outer", blur: 8, offset: 3, angle: 135, color
     });
   });
 
-  // Revenue projection
-  s.addShape(pres.shapes.RECTANGLE, { x: 0.7, y: 5.25, w: 8.6, h: 0.0, fill: { color: C.cardBg } });
+  // Future revenue note
+  s.addText("Future: Marketplace transaction fees (5\u20138%) \u2022 Premium AI features", {
+    x: 0.7, y: 5.15, w: 8.6, h: 0.3,
+    fontFace: SANS, fontSize: 10, color: C.muted, align: "center", margin: 0,
+  });
 })();
 
 // ================================================================
@@ -811,8 +815,8 @@ const makeShadow = () => ({ type: "outer", blur: 8, offset: 3, angle: 135, color
   s.addShape(pres.shapes.OVAL, { x: 4.2, y: 0.6, w: 1.6, h: 1.6, fill: { color: C.copper, transparency: 88 } });
 
   s.addText([
-    { text: "Every artist deserves the tools\n", options: { fontSize: 28, fontFace: SERIF, color: C.cream } },
-    { text: "to turn their passion into a\n", options: { fontSize: 28, fontFace: SERIF, color: C.cream } },
+    { text: "Every artist deserves the tools", options: { fontSize: 28, fontFace: SERIF, color: C.cream, breakLine: true } },
+    { text: "to turn their passion into a", options: { fontSize: 28, fontFace: SERIF, color: C.cream, breakLine: true } },
     { text: "sustainable career.", options: { fontSize: 28, fontFace: SERIF, color: C.copper, italic: true } },
   ], { x: 0.7, y: 0.9, w: 8.6, h: 1.8, align: "center", margin: 0 });
 

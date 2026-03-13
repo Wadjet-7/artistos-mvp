@@ -39,7 +39,8 @@ export const PLANS = {
     price: 19,
     priceLabel: "$19/mo",
     tagline: "For serious working artists",
-    stripePriceId: null, // Set after Stripe setup
+    stripePriceId: null,
+    paymentLink: import.meta.env.VITE_STRIPE_PRO_LINK || "",
     limits: {
       artworks: 200,
       viewingRooms: 25,
@@ -72,7 +73,8 @@ export const PLANS = {
     price: 49,
     priceLabel: "$49/mo",
     tagline: "Unlimited creative business platform",
-    stripePriceId: null, // Set after Stripe setup
+    stripePriceId: null,
+    paymentLink: import.meta.env.VITE_STRIPE_STUDIO_LINK || "",
     limits: {
       artworks: Infinity,
       viewingRooms: Infinity,

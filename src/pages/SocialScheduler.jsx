@@ -10,11 +10,12 @@ import { FeatureGate } from "../components/UpgradePrompt"
 /* ------------------------------------------------------------------ */
 /*  Platform config                                                    */
 /* ------------------------------------------------------------------ */
-const platformStats = [
-  { name: "Instagram", followers: "12.4K", percentage: 78, color: "#B5651D" },
-  { name: "Twitter/X", followers: "3,210", percentage: 42, color: "#2D4A35" },
-  { name: "Facebook", followers: "2,840", percentage: 35, color: "#C4705A" },
-]
+const platformColors = {
+  Instagram: "#B5651D",
+  "Twitter/X": "#2D4A35",
+  Facebook: "#C4705A",
+  LinkedIn: "#C9A84C",
+}
 
 const platformBadge = (platform) => {
   const p = (platform || "").toLowerCase()
@@ -331,33 +332,54 @@ function SocialSchedulerContent() {
         {/* Right: Platform Stats + Smart Tips */}
         <div className="space-y-5">
           <div className="card">
-            <div className="card-header"><div className="card-title">Platform Stats</div></div>
+            <div className="card-header"><div className="card-title">Posting Activity</div></div>
             <div className="card-body">
-              <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-                {platformStats.map(p => (
-                  <div key={p.name}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "2px" }}>
-                      <span style={{ fontSize: "13.5px", fontWeight: 500 }}>{p.name}</span>
-                      <span style={{ fontSize: "12px", fontFamily: "'DM Mono', monospace", color: "#A89F94" }}>{p.followers}</span>
+              {(() => {
+                const counts = {}
+                postList.forEach(p => {
+                  const plat = p.platform || "Other"
+                  counts[plat] = (counts[plat] || 0) + 1
+                })
+                const entries = Object.entries(counts).sort((a, b) => b[1] - a[1])
+                const maxCount = Math.max(...entries.map(e => e[1]), 1)
+                const totalPosts = postList.length
+                const published = postList.filter(p => p.status === "published").length
+                const scheduled = postList.filter(p => p.status === "scheduled").length
+
+                return entries.length === 0 ? (
+                  <p className="text-sm text-center py-4" style={{ color: "#A89F94" }}>
+                    No posts yet. Create your first post!
+                  </p>
+                ) : (
+                  <>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+                      {entries.map(([name, count]) => (
+                        <div key={name}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "2px" }}>
+                            <span style={{ fontSize: "13.5px", fontWeight: 500 }}>{name}</span>
+                            <span style={{ fontSize: "12px", fontFamily: "'DM Mono', monospace", color: "#A89F94" }}>{count} post{count !== 1 ? "s" : ""}</span>
+                          </div>
+                          <div className="progress-bar">
+                            <div className="progress-fill" style={{ width: `${(count / maxCount) * 100}%`, background: platformColors[name] || "#A89F94" }} />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${p.percentage}%`, background: p.color }} />
+                    <div style={{ borderTop: "1px solid #F2EDE6", marginTop: "20px", paddingTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {[
+                        { label: "Total posts", value: String(totalPosts) },
+                        { label: "Published", value: String(published) },
+                        { label: "Scheduled", value: String(scheduled) },
+                      ].map(s => (
+                        <div key={s.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "12.5px" }}>
+                          <span style={{ color: "#A89F94" }}>{s.label}</span>
+                          <span style={{ fontWeight: 600 }}>{s.value}</span>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ borderTop: "1px solid #F2EDE6", marginTop: "20px", paddingTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                {[
-                  { label: "Avg. reach", value: "2,840/post" },
-                  { label: "Avg. engagement", value: "4.2%" },
-                  { label: "Best time", value: "Tue 7pm" },
-                ].map(s => (
-                  <div key={s.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "12.5px" }}>
-                    <span style={{ color: "#A89F94" }}>{s.label}</span>
-                    <span style={{ fontWeight: 600 }}>{s.value}</span>
-                  </div>
-                ))}
-              </div>
+                  </>
+                )
+              })()}
             </div>
           </div>
 

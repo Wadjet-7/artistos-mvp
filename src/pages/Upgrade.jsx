@@ -2,8 +2,8 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { PLANS, normalizePlan } from "../lib/plans"
-import { redirectToCheckout, isStripeConfigured } from "../lib/stripe"
-import { Check, Sparkles, Crown, Zap, ArrowLeft, Loader2 } from "lucide-react"
+import { redirectToCheckout, isStripeConfigured, getPaymentLink } from "../lib/stripe"
+import { Check, Sparkles, Crown, Zap, ArrowLeft, Loader2, ExternalLink } from "lucide-react"
 import toast from "react-hot-toast"
 
 /* ================================================================ */
@@ -32,23 +32,33 @@ export default function Upgrade() {
     if (planKey === currentPlan) return
     if (planKey === "starter") return // Can't "upgrade" to free
 
-    if (!isStripeConfigured()) {
-      toast.error("Stripe payments are not configured yet. Contact support to upgrade.")
+    // 1. Try Stripe Payment Link (simplest — no backend needed)
+    const paymentLink = getPaymentLink(planKey, user?.email)
+    if (paymentLink) {
+      window.open(paymentLink, "_blank", "noopener")
+      toast.success("Opening secure checkout...")
       return
     }
 
-    setLoadingPlan(planKey)
-    try {
-      await redirectToCheckout({
-        planId: planKey,
-        userId: user?.id,
-        userEmail: user?.email,
-      })
-    } catch (err) {
-      console.error("[Upgrade] checkout error:", err)
-      toast.error(err.message || "Failed to start checkout")
-      setLoadingPlan(null)
+    // 2. Fall back to full Stripe Checkout (requires edge function)
+    if (isStripeConfigured()) {
+      setLoadingPlan(planKey)
+      try {
+        await redirectToCheckout({
+          planId: planKey,
+          userId: user?.id,
+          userEmail: user?.email,
+        })
+      } catch (err) {
+        console.error("[Upgrade] checkout error:", err)
+        toast.error(err.message || "Failed to start checkout")
+        setLoadingPlan(null)
+      }
+      return
     }
+
+    // 3. No payment method configured
+    toast.error("Payments are being set up. Please check back shortly!")
   }
 
   return (

@@ -27,8 +27,8 @@ export const navSections = [
     label: "Relationships",
     items: [
       { to: "/contacts", icon: UserCircle, label: "Contacts" },
-      { to: "/commissions", icon: Users, label: "Commissions", badge: 3 },
-      { to: "/messages", icon: MessageSquare, label: "Messages", badge: 2 },
+      { to: "/commissions", icon: Users, label: "Commissions", badgeKey: "commissions" },
+      { to: "/messages", icon: MessageSquare, label: "Messages", badgeKey: "messages" },
     ],
   },
   {
