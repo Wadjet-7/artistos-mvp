@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
-import { BarChart3, ShoppingBag, Briefcase, ArrowRight, CheckCircle2, Star, TrendingUp, Users, DollarSign, Zap, Sparkles } from "lucide-react"
+import { BarChart3, ShoppingBag, Briefcase, ArrowRight, CheckCircle2, TrendingUp, DollarSign, Zap, Sparkles } from "lucide-react"
 import { useScrollReveal, useStaggerReveal } from "../hooks/useScrollReveal"
 import { PLANS } from "../lib/plans"
 
@@ -53,16 +53,16 @@ const steps = [
   { step: "03", title: "Land commissions & get paid", desc: "Receive matched commission requests, generate contracts, and get paid securely with milestone billing." },
 ]
 
-const testimonials = [
-  { name: "Priya Nair", role: "Illustrator & Surface Designer", avatar: "PN", gradient: "linear-gradient(135deg, #B5651D, #C4705A)", text: "ArtistOS helped me raise my commission rates by 40% after I saw what similar artists were charging. The market data is a game-changer." },
-  { name: "Carlos Mendes", role: "Fine Artist, Oil & Acrylic", avatar: "CM", gradient: "linear-gradient(135deg, #C9A84C, #B5651D)", text: "I used to spend hours on invoicing and chasing payments. Now it is all automated. I spend that time painting instead." },
-  { name: "Sophie Laurent", role: "Digital Artist & Muralist", avatar: "SL", gradient: "linear-gradient(135deg, #2D4A35, #4A7A57)", text: "Through the marketplace I landed a $4,500 mural commission within my first week. This platform actually delivers." },
+const whyArtistOS = [
+  { icon: Zap, title: "Built for artists, not accountants", desc: "Every feature designed around how creative professionals actually work — not adapted from generic business software." },
+  { icon: DollarSign, title: "Get paid faster", desc: "Generate branded invoices, send automatic reminders, and track every dollar — commissions, sales, and expenses in one place." },
+  { icon: TrendingUp, title: "Grow with data", desc: "Understand your portfolio value, track what's selling, and price your work confidently with market-informed analytics." },
 ]
 
 const heroStats = [
-  { icon: Users, end: 2400, prefix: "", suffix: "+", decimals: 0, label: "Artists on platform" },
-  { icon: DollarSign, end: 1.2, prefix: "$", suffix: "M+", decimals: 1, label: "Commissions facilitated" },
-  { icon: TrendingUp, end: 87, prefix: "", suffix: "%", decimals: 0, label: "Avg. revenue increase" },
+  { icon: Briefcase, end: 15, prefix: "", suffix: "+", decimals: 0, label: "Business tools included" },
+  { icon: Sparkles, end: 4, prefix: "", suffix: "", decimals: 0, label: "AI-powered features" },
+  { icon: DollarSign, end: 0, prefix: "$", suffix: "", decimals: 0, label: "To get started" },
 ]
 
 const pricing = [
@@ -113,7 +113,7 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 text-xs font-medium px-3.5 py-1.5 rounded-full mb-6"
             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)" }}>
-            <Zap size={12} style={{ color: "#C9A84C" }} /> Now in public beta - join 2,400+ artists
+            <Zap size={12} style={{ color: "#C9A84C" }} /> Now live — free to get started
           </div>
           <h1 className="font-serif text-5xl md:text-6xl font-semibold leading-tight mb-6 tracking-wide" style={{ color: "#FAF8F5" }}>
             Run your art practice<br /><span style={{ color: "#D4854A", fontStyle: "italic" }}>like a business.</span>
@@ -197,26 +197,23 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Why ArtistOS */}
       <section className="py-24 px-6" style={{ background: "#FAF8F5" }}>
         <div className="max-w-5xl mx-auto">
           <div ref={testimonialsHeaderRef} className="scroll-reveal text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-[2px] mb-3" style={{ color: "#B5651D" }}>Artist stories</p>
-            <h2 className="font-serif text-4xl font-semibold" style={{ color: "#0E0C0A" }}>Built for artists, loved by artists</h2>
+            <p className="text-xs font-semibold uppercase tracking-[2px] mb-3" style={{ color: "#B5651D" }}>Why ArtistOS</p>
+            <h2 className="font-serif text-4xl font-semibold" style={{ color: "#0E0C0A" }}>The platform your art practice deserves</h2>
+            <p className="mt-4 text-lg max-w-xl mx-auto" style={{ color: "#A89F94" }}>Stop juggling spreadsheets, invoicing apps, and social media schedulers. One platform. Everything you need.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-7">
-            {testimonials.map((t, i) => (
-              <div key={t.name} ref={testimonialRef(i)} className="scroll-reveal-stagger card p-7">
-                <div className="flex mb-4">{[...Array(5)].map((_, j) => <Star key={j} size={14} style={{ color: "#C9A84C", fill: "#C9A84C" }} />)}</div>
-                <p className="text-sm leading-relaxed mb-6" style={{ color: "#0E0C0A" }}>{t.text}</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold font-serif"
-                    style={{ background: t.gradient }}>{t.avatar}</div>
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: "#0E0C0A" }}>{t.name}</p>
-                    <p className="text-xs" style={{ color: "#A89F94" }}>{t.role}</p>
-                  </div>
+            {whyArtistOS.map((item, i) => (
+              <div key={item.title} ref={testimonialRef(i)} className="scroll-reveal-stagger card p-7 text-center">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-5"
+                  style={{ background: "#F5E6D8" }}>
+                  <item.icon size={22} style={{ color: "#B5651D" }} />
                 </div>
+                <h3 className="text-lg font-semibold mb-3 font-serif" style={{ color: "#0E0C0A" }}>{item.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "#A89F94" }}>{item.desc}</p>
               </div>
             ))}
           </div>
@@ -256,7 +253,7 @@ export default function Landing() {
                     background: plan.highlight ? "#B5651D" : "#0E0C0A",
                     color: plan.highlight ? "white" : "#FAF8F5",
                   }}>
-                  {plan.highlight ? "Start free trial" : plan.price === "Free" ? "Get started free" : "Contact sales"}
+                  {plan.highlight ? "Start free trial" : plan.price === "Free" ? "Get started free" : "Get started"}
                 </Link>
                 <ul className="space-y-2.5">
                   {plan.features.map((f) => (
@@ -277,7 +274,7 @@ export default function Landing() {
         <div ref={ctaRef} className="scroll-reveal max-w-3xl mx-auto text-center">
           <h2 className="font-serif text-4xl font-semibold text-white mb-5">Ready to professionalize your practice?</h2>
           <p className="text-lg mb-8" style={{ color: "rgba(255,255,255,0.5)" }}>
-            Join thousands of artists using ArtistOS to grow their revenue, understand the market, and land commissions.
+            Portfolio management, invoicing, contracts, AI tools, analytics, and more — free to start, no credit card required.
           </p>
           <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
             style={{ background: "#B5651D", color: "white" }}>
