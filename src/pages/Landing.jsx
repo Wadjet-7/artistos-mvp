@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
-import { BarChart3, ShoppingBag, Briefcase, ArrowRight, CheckCircle2, TrendingUp, DollarSign, Zap, Sparkles } from "lucide-react"
+import { BarChart3, Briefcase, ArrowRight, CheckCircle2, TrendingUp, DollarSign, Zap, Sparkles } from "lucide-react"
 import { useScrollReveal, useStaggerReveal } from "../hooks/useScrollReveal"
 import { PLANS } from "../lib/plans"
 
@@ -82,7 +82,7 @@ export default function Landing() {
   /* Stagger refs for card groups */
   const featureRef = useStaggerReveal(features.length, 150)
   const stepRef = useStaggerReveal(steps.length, 200)
-  const testimonialRef = useStaggerReveal(testimonials.length, 150)
+  const testimonialRef = useStaggerReveal(whyArtistOS.length, 150)
   const pricingRef = useStaggerReveal(pricing.length, 150)
   const statRef = useStaggerReveal(heroStats.length, 120)
 
