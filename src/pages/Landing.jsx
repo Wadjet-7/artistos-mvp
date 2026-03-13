@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
 import { BarChart3, Briefcase, ArrowRight, CheckCircle2, TrendingUp, DollarSign, Zap, Sparkles } from "lucide-react"
 import { useScrollReveal, useStaggerReveal } from "../hooks/useScrollReveal"
+import { useAuth } from "../context/AuthContext"
 import { PLANS } from "../lib/plans"
 
 /* ---- Animated Counter (counts from 0 to target on scroll) ---- */
@@ -72,6 +73,8 @@ const pricing = [
 ]
 
 export default function Landing() {
+  const { user } = useAuth()
+
   /* Scroll-reveal refs for section headers */
   const featuresHeaderRef = useScrollReveal()
   const howItWorksHeaderRef = useScrollReveal()
@@ -100,8 +103,14 @@ export default function Landing() {
             <a href="#pricing" className="hover:text-ink transition-colors">Pricing</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="text-sm font-medium" style={{ color: "#A89F94" }}>Sign in</Link>
-            <Link to="/signup" className="btn-copper">Get started free</Link>
+            {user ? (
+              <Link to="/dashboard" className="btn-copper">Go to Dashboard</Link>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm font-medium" style={{ color: "#A89F94" }}>Sign in</Link>
+                <Link to="/signup" className="btn-copper">Get started free</Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -122,9 +131,9 @@ export default function Landing() {
             ArtistOS gives emerging and mid-career artists the tools, data, and marketplace connections they need to grow - all in one platform built for creative professionals.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/signup" className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
+            <Link to={user ? "/dashboard" : "/signup"} className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
               style={{ background: "#B5651D", color: "white" }}>
-              Start for free <ArrowRight size={18} />
+              {user ? "Go to Dashboard" : "Start for free"} <ArrowRight size={18} />
             </Link>
             <Link to="/artists" className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-base transition-colors"
               style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.2)", color: "white" }}>
@@ -248,12 +257,20 @@ export default function Landing() {
                   <span className="text-4xl font-bold font-serif" style={{ color: plan.highlight ? "#FAF8F5" : "#0E0C0A" }}>{plan.price}</span>
                   <span className="text-sm pb-1" style={{ color: plan.highlight ? "rgba(255,255,255,0.5)" : "#A89F94" }}>{plan.period}</span>
                 </div>
-                <Link to="/signup" className="block text-center py-2.5 rounded-lg text-sm font-semibold mb-7 transition-colors"
+                <Link
+                  to={user
+                    ? (plan.price === "Free" ? "/dashboard" : "/upgrade")
+                    : "/signup"
+                  }
+                  className="block text-center py-2.5 rounded-lg text-sm font-semibold mb-7 transition-colors"
                   style={{
                     background: plan.highlight ? "#B5651D" : "#0E0C0A",
                     color: plan.highlight ? "white" : "#FAF8F5",
                   }}>
-                  {plan.highlight ? "Start free trial" : plan.price === "Free" ? "Get started free" : "Get started"}
+                  {user
+                    ? (plan.price === "Free" ? "Go to Dashboard" : "Upgrade now")
+                    : (plan.price === "Free" ? "Get started free" : "Get started")
+                  }
                 </Link>
                 <ul className="space-y-2.5">
                   {plan.features.map((f) => (
@@ -276,9 +293,9 @@ export default function Landing() {
           <p className="text-lg mb-8" style={{ color: "rgba(255,255,255,0.5)" }}>
             Portfolio management, invoicing, contracts, AI tools, analytics, and more — free to start, no credit card required.
           </p>
-          <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
+          <Link to={user ? "/dashboard" : "/signup"} className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
             style={{ background: "#B5651D", color: "white" }}>
-            Get started for free <ArrowRight size={18} />
+            {user ? "Go to Dashboard" : "Get started for free"} <ArrowRight size={18} />
           </Link>
         </div>
       </section>
