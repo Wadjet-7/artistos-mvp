@@ -80,6 +80,27 @@ function getTemplate(type: string, data: Record<string, string> = {}): { subject
         `),
       }
 
+    case "invoice_payment":
+      return {
+        subject: `Invoice from ${data.artistName || "ArtistOS"} — Pay Online`,
+        html: wrap(`
+          <h2 style="margin: 0 0 12px; font-family: Georgia, serif; font-size: 22px; color: #0E0C0A;">Invoice</h2>
+          <p style="color: #555; line-height: 1.6; margin: 0 0 20px;">
+            ${data.artistName || "An artist"} has sent you an invoice. You can pay securely online using the button below.
+          </p>
+          <div style="background: #FAF8F5; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+            <p style="margin: 0 0 4px; font-size: 14px; color: #A89F94;">Invoice Details</p>
+            <p style="margin: 0 0 4px; font-weight: 600; color: #0E0C0A;">${data.description || "Art Commission"}</p>
+            <p style="margin: 0; font-family: Georgia, serif; font-size: 24px; color: #B5651D;">$${data.amount || "0"}</p>
+            ${data.dueDate ? `<p style="margin: 8px 0 0; font-size: 13px; color: #C4705A;">Due: ${data.dueDate}</p>` : ""}
+          </div>
+          <div style="text-align: center; margin-bottom: 16px;">
+            <a href="${data.paymentUrl || "#"}" style="display: inline-block; background: #B5651D; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Pay Now</a>
+          </div>
+          <p style="color: #A89F94; font-size: 12px; text-align: center;">Secure payment powered by Stripe</p>
+        `),
+      }
+
     case "commission_received":
       return {
         subject: `New Commission Request from ${data.clientName || "a collector"}`,

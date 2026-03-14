@@ -89,6 +89,35 @@ Deno.serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object
+
+        // ── Invoice payment (one-time) ──────────────────────────
+        if (session.metadata?.type === "invoice_payment") {
+          const invoiceId = session.metadata.invoice_id
+          if (!invoiceId) {
+            console.error("No invoice_id in invoice payment session metadata")
+            break
+          }
+
+          // Mark invoice as paid
+          await fetch(`${SUPABASE_URL}/rest/v1/invoices?id=eq.${invoiceId}`, {
+            method: "PATCH",
+            headers: {
+              "apikey": SUPABASE_SERVICE_ROLE_KEY,
+              "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              "Content-Type": "application/json",
+              "Prefer": "return=minimal",
+            },
+            body: JSON.stringify({
+              status: "paid",
+              paid_date: new Date().toISOString().split("T")[0],
+            }),
+          })
+
+          console.log(`Invoice ${invoiceId} marked as paid via Stripe`)
+          break
+        }
+
+        // ── Subscription upgrade (existing flow) ────────────────
         const userId = session.client_reference_id || session.metadata?.userId
         const subscriptionId = session.subscription
 

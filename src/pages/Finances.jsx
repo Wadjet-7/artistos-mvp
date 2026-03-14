@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { Plus, Trash2, Edit2, CheckCircle, Loader2, DollarSign, Download, FileText, Receipt, TrendingDown, AlertTriangle } from "lucide-react"
+import { Plus, Trash2, Edit2, CheckCircle, Loader2, DollarSign, Download, FileText, Receipt, TrendingDown, AlertTriangle, Send, Link2 } from "lucide-react"
 import toast from "react-hot-toast"
 import { supabase, logActivity } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
@@ -95,6 +95,7 @@ export default function Finances() {
   const [artistProfile, setArtistProfile] = useState({})
   const [expenseFilter, setExpenseFilter] = useState("all")
   const [fetchError, setFetchError] = useState(false)
+  const [sendingInvoice, setSendingInvoice] = useState(null)
 
   /* ---- fetch all data ---- */
   const fetchData = useCallback(async () => {
@@ -196,6 +197,74 @@ export default function Finances() {
       await fetchData()
       toast.success("Invoice marked as paid!")
     } catch (err) { toast.error("Failed to mark as paid") }
+  }
+
+  /* ---- Send invoice with Stripe "Pay Now" link ---- */
+  const handleSendInvoice = async (inv) => {
+    if (!inv.client_email) {
+      toast.error("Add a client email to this invoice first")
+      return
+    }
+    setSendingInvoice(inv.id)
+    try {
+      // Step 1: Create Stripe Checkout session
+      const { data, error } = await supabase.functions.invoke("create-invoice-payment", {
+        body: { invoiceId: inv.id, userId: user.id },
+      })
+      if (error) throw error
+      if (data?.error) throw new Error(data.error)
+
+      const checkoutUrl = data.checkoutUrl
+
+      // Step 2: Send email with payment link
+      const { error: emailError } = await supabase.functions.invoke("send-email", {
+        body: {
+          to: inv.client_email,
+          type: "invoice_payment",
+          data: {
+            artistName: artistProfile.name || user?.name || "ArtistOS",
+            description: inv.description || "Art Commission",
+            amount: String(Number(inv.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })),
+            paymentUrl: checkoutUrl,
+            dueDate: inv.due_date ? new Date(inv.due_date + "T00:00:00").toLocaleDateString() : "",
+          },
+        },
+      })
+      if (emailError) throw emailError
+
+      await logActivity(user.id, "invoice", `Sent payment invoice to ${inv.client_name} (${inv.client_email})`)
+      await fetchData()
+      toast.success(`Invoice sent to ${inv.client_email}!`)
+    } catch (err) {
+      console.error("[SendInvoice] error:", err)
+      toast.error("Failed to send invoice: " + (err.message || "Unknown error"))
+    } finally {
+      setSendingInvoice(null)
+    }
+  }
+
+  /* ---- Copy payment link to clipboard ---- */
+  const handleCopyPaymentLink = async (inv) => {
+    try {
+      let url = inv.stripe_payment_url
+      if (!url) {
+        setSendingInvoice(inv.id)
+        const { data, error } = await supabase.functions.invoke("create-invoice-payment", {
+          body: { invoiceId: inv.id, userId: user.id },
+        })
+        if (error) throw error
+        if (data?.error) throw new Error(data.error)
+        url = data.checkoutUrl
+        await fetchData()
+        setSendingInvoice(null)
+      }
+      await navigator.clipboard.writeText(url)
+      toast.success("Payment link copied!")
+    } catch (err) {
+      setSendingInvoice(null)
+      console.error("[CopyLink] error:", err)
+      toast.error("Failed to copy link: " + (err.message || "Unknown error"))
+    }
   }
 
   const handleExportCSV = () => {
@@ -475,6 +544,22 @@ export default function Finances() {
                               onMouseEnter={e => e.currentTarget.style.color = "#B5651D"} onMouseLeave={e => e.currentTarget.style.color = "#A89F94"}>
                               <FileText size={15} />
                             </button>
+                            {inv.status !== "paid" && inv.client_email && (
+                              <button onClick={() => handleSendInvoice(inv)} title="Send Invoice with Payment Link"
+                                disabled={sendingInvoice === inv.id}
+                                style={{ background: "none", border: "none", cursor: sendingInvoice === inv.id ? "wait" : "pointer", padding: 4, borderRadius: 6, color: "#A89F94", transition: "color 0.15s" }}
+                                onMouseEnter={e => e.currentTarget.style.color = "#B5651D"} onMouseLeave={e => e.currentTarget.style.color = "#A89F94"}>
+                                {sendingInvoice === inv.id ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                              </button>
+                            )}
+                            {inv.status !== "paid" && (
+                              <button onClick={() => handleCopyPaymentLink(inv)} title="Copy Payment Link"
+                                disabled={sendingInvoice === inv.id}
+                                style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 6, color: "#A89F94", transition: "color 0.15s" }}
+                                onMouseEnter={e => e.currentTarget.style.color = "#B5651D"} onMouseLeave={e => e.currentTarget.style.color = "#A89F94"}>
+                                <Link2 size={15} />
+                              </button>
+                            )}
                             <button onClick={() => openEditInvoice(inv)} title="Edit" style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 6, color: "#A89F94", transition: "color 0.15s" }}
                               onMouseEnter={e => e.currentTarget.style.color = "#B5651D"} onMouseLeave={e => e.currentTarget.style.color = "#A89F94"}>
                               <Edit2 size={15} />

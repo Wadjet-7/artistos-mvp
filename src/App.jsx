@@ -34,11 +34,21 @@ const Onboarding = lazy(() => import("./pages/Onboarding"))
 const UpgradeSuccess = lazy(() => import("./pages/UpgradeSuccess"))
 const Legal = lazy(() => import("./pages/Legal"))
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"))
+const AdminPanel = lazy(() => import("./pages/AdminPanel"))
+const InvoicePaymentSuccess = lazy(() => import("./pages/InvoicePaymentSuccess"))
+const InvoicePaymentCancelled = lazy(() => import("./pages/InvoicePaymentCancelled"))
 const NotFound = lazy(() => import("./pages/NotFound"))
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
+  return children
+}
+
+function AdminRoute({ children }) {
+  const { user } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+  if (!user.is_admin) return <Navigate to="/dashboard" replace />
   return children
 }
 
@@ -76,6 +86,8 @@ function AppRoutes() {
         <Route path="/legal" element={<Legal />} />
         <Route path="/terms" element={<Legal />} />
         <Route path="/privacy" element={<Legal />} />
+        <Route path="/invoice/success" element={<InvoicePaymentSuccess />} />
+        <Route path="/invoice/cancelled" element={<InvoicePaymentCancelled />} />
         <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
         <Route path="/upgrade/success" element={<ProtectedRoute><UpgradeSuccess /></ProtectedRoute>} />
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -96,6 +108,7 @@ function AppRoutes() {
           <Route path="/exhibitions" element={<Exhibitions />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/upgrade" element={<Upgrade />} />
+          <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
