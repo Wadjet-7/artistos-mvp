@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Image, FileText, Calendar, DollarSign,
   BarChart3, Sparkles, ShoppingBag, MessageSquare, Users, Settings,
-  Eye, UserCircle, ScrollText, Package, CalendarDays
+  Eye, UserCircle, ScrollText, Package, CalendarDays, Shield
 } from "lucide-react"
 
 export const navSections = [
@@ -48,6 +48,13 @@ export const navSections = [
     label: "Tools",
     items: [
       { to: "/cv", icon: ScrollText, label: "Artist CV" },
+    ],
+  },
+  {
+    label: "Admin",
+    adminOnly: true,
+    items: [
+      { to: "/admin", icon: Shield, label: "Admin Panel" },
     ],
   },
 ]

@@ -26,6 +26,7 @@ export function AuthProvider({ children }) {
     subscription_id: profile.subscription_id || null,
     subscription_status: profile.subscription_status || "inactive",
     plan_period_end: profile.plan_period_end || null,
+    is_admin: profile.is_admin || false,
   })
 
   const loadProfile = async (authUser) => {

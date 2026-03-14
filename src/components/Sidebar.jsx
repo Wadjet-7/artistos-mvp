@@ -75,7 +75,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto relative">
-        {navSections.map((section) => (
+        {navSections.filter(s => !s.adminOnly || user?.is_admin).map((section) => (
           <div key={section.label}>
             <div className="text-[9px] uppercase tracking-[2px] font-medium px-3 pt-4 pb-2"
               style={{ color: "rgba(255,255,255,0.25)" }}>

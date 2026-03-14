@@ -67,6 +67,21 @@ export default function Messages() {
     }
   }, [])
 
+  /* ---- Clear unread count when opening a conversation ---- */
+  const clearUnread = useCallback(async (conversationId) => {
+    if (!conversationId) return
+    await supabase
+      .from("conversations")
+      .update({ unread_count: 0 })
+      .eq("id", conversationId)
+
+    setConversationList((prev) =>
+      prev.map((c) =>
+        c.id === conversationId ? { ...c, unread_count: 0 } : c
+      )
+    )
+  }, [])
+
   /* ---- Initial load ---- */
   useEffect(() => {
     if (!user?.id) return
@@ -80,12 +95,76 @@ export default function Messages() {
     return () => { mounted = false }
   }, [user?.id, fetchConversations])
 
-  /* ---- When selectedId changes, fetch messages ---- */
+  /* ---- When selectedId changes, fetch messages + clear unread ---- */
   useEffect(() => {
     if (selectedId) {
       fetchMessages(selectedId)
+      clearUnread(selectedId)
     }
-  }, [selectedId, fetchMessages])
+  }, [selectedId, fetchMessages, clearUnread])
+
+  /* ---- Realtime: subscribe to new messages ---- */
+  useEffect(() => {
+    if (!user?.id) return
+
+    const channel = supabase
+      .channel("messages-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+        },
+        (payload) => {
+          const newMsg = payload.new
+
+          // Append the new message to the correct conversation
+          setMessageMap((prev) => {
+            const existing = prev[newMsg.conversation_id] || []
+            // Avoid duplicates (e.g. if we inserted it ourselves)
+            if (existing.some((m) => m.id === newMsg.id)) return prev
+            return {
+              ...prev,
+              [newMsg.conversation_id]: [...existing, newMsg],
+            }
+          })
+
+          // Refresh conversation list to update last_message, timestamps, unread
+          fetchConversations()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id, fetchConversations])
+
+  /* ---- Realtime: subscribe to conversation updates ---- */
+  useEffect(() => {
+    if (!user?.id) return
+
+    const channel = supabase
+      .channel("conversations-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "conversations",
+        },
+        () => {
+          // Refresh the conversation list when any conversation changes
+          fetchConversations()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id, fetchConversations])
 
   /* ---- Auto-scroll to bottom ---- */
   const currentMessages = messageMap[selectedId] || []
@@ -110,6 +189,19 @@ export default function Messages() {
 
     setDraft("")
 
+    // Optimistic: append message immediately for instant feel
+    const optimisticMsg = {
+      id: `temp-${Date.now()}`,
+      conversation_id: selectedId,
+      sender: "me",
+      content: text,
+      created_at: new Date().toISOString(),
+    }
+    setMessageMap((prev) => ({
+      ...prev,
+      [selectedId]: [...(prev[selectedId] || []), optimisticMsg],
+    }))
+
     const { error } = await supabase.from("messages").insert({
       conversation_id: selectedId,
       sender: "me",
@@ -126,9 +218,8 @@ export default function Messages() {
       })
       .eq("id", selectedId)
 
-    await fetchMessages(selectedId)
-    await fetchConversations()
-    await logActivity(user.id, "message_sent", `Sent message in conversation`)
+    // Realtime will handle the rest — but log the activity
+    logActivity(user.id, "message_sent", `Sent message in conversation`)
   }
 
   function handleKeyDown(e) {
