@@ -102,6 +102,7 @@ Deno.serve(async (req) => {
         client_reference_id: userId,
         "metadata[planId]": planId,
         "metadata[userId]": userId,
+        ...(planId === "pro" ? { "subscription_data[trial_period_days]": "14" } : {}),
       }).toString(),
     })
     const session = await sessionRes.json()

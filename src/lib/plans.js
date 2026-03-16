@@ -38,6 +38,7 @@ export const PLANS = {
     name: "Pro",
     price: 19,
     priceLabel: "$19/mo",
+    trialDays: 14,
     tagline: "For serious working artists",
     stripePriceId: null,
     paymentLink: import.meta.env.VITE_STRIPE_PRO_LINK || "",

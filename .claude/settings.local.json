@@ -22,7 +22,8 @@
       "Bash(ls \"C:\\\\Users\\\\larry\\\\artistos-mvp\\\\public\"\" 2>nul || echo \"No public dir \")",
       "Bash(node create-deck.cjs)",
       "Bash(del \"C:\\\\Users\\\\larry\\\\artistos-mvp\\\\src\\\\data\\\\mockData.js\")",
-      "Bash(grep -n \"CREATE TABLE.*invoices\\\\|CREATE TABLE.*expenses\" /c/Users/larry/artistos-mvp/*.sql)"
+      "Bash(grep -n \"CREATE TABLE.*invoices\\\\|CREATE TABLE.*expenses\" /c/Users/larry/artistos-mvp/*.sql)",
+      "Bash(npm list:*)"
     ]
   }
 }

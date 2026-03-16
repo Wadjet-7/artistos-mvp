@@ -133,6 +133,11 @@ export default function Upgrade() {
                   <span className="text-sm ml-1" style={{ color: "#A89F94" }}>/month</span>
                 )}
               </div>
+              {plan.trialDays && !isCurrent && (
+                <p className="text-xs font-semibold mb-1" style={{ color: "#2D4A35" }}>
+                  🎉 {plan.trialDays}-day free trial
+                </p>
+              )}
               <p className="text-xs mb-5" style={{ color: "#A89F94" }}>{plan.tagline}</p>
 
               {/* CTA Button */}
@@ -150,7 +155,7 @@ export default function Upgrade() {
                   {loadingPlan === key ? (
                     <><Loader2 size={15} className="animate-spin" /> Processing...</>
                   ) : (
-                    <><Sparkles size={15} /> Upgrade to {plan.name}</>
+                    <><Sparkles size={15} /> {plan.trialDays ? `Start ${plan.trialDays}-Day Free Trial` : `Upgrade to ${plan.name}`}</>
                   )}
                 </button>
               ) : (
@@ -199,7 +204,7 @@ export default function Upgrade() {
             },
             {
               q: "Is there a free trial?",
-              a: "The Starter plan is free forever! You can use all basic features without a time limit. Upgrade whenever you're ready for more.",
+              a: "Yes! The Pro plan comes with a 14-day free trial — no charge until the trial ends. The Starter plan is also free forever with basic features.",
             },
             {
               q: "How does billing work?",
