@@ -3,16 +3,21 @@ import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
-import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera, Sparkles, ArrowRight, Check } from "lucide-react"
+import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera, Sparkles, ArrowRight, Check, ExternalLink, AlertTriangle } from "lucide-react"
 import { PLANS, normalizePlan, formatLimit, canAccess } from "../lib/plans"
-import { isStripeConfigured, redirectToCustomerPortal } from "../lib/stripe"
+import { isStripeConfigured, redirectToCustomerPortal, createStripeConnectAccount, checkStripeConnectStatus } from "../lib/stripe"
 import { generateBio } from "../lib/ai"
 
 const tabs = ["Profile", "Notifications", "Billing"]
 
 export default function Settings() {
-  const { user, updateUser, logout } = useAuth()
-  const [activeTab, setActiveTab] = useState("Profile")
+  const { user, updateUser, logout, refreshProfile } = useAuth()
+  const navigate = useNavigate()
+
+  // If returning from Stripe Connect onboarding, open Billing tab
+  const searchParams = new URLSearchParams(window.location.search)
+  const stripeConnectParam = searchParams.get("stripe_connect")
+  const [activeTab, setActiveTab] = useState(stripeConnectParam ? "Billing" : "Profile")
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -259,10 +264,52 @@ export default function Settings() {
 /* ================================================================ */
 function BillingTab({ user }) {
   const navigate = useNavigate()
+  const { refreshProfile } = useAuth()
   const plan = normalizePlan(user?.plan)
   const planConfig = PLANS[plan] || PLANS.starter
   const isActive = user?.subscription_status === "active"
   const hasSubscription = !!user?.subscription_id
+  const [connectLoading, setConnectLoading] = useState(false)
+
+  // Handle return from Stripe Connect onboarding
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const connectStatus = params.get("stripe_connect")
+    if (connectStatus === "complete" && user?.id) {
+      const checkStatus = async () => {
+        setConnectLoading(true)
+        try {
+          const result = await checkStripeConnectStatus({ userId: user.id })
+          await refreshProfile()
+          if (result?.charges_enabled) {
+            toast.success("Stripe account connected! You can now receive payments.")
+          } else {
+            toast("Stripe account linked. Complete onboarding to start receiving payments.", { icon: "⏳" })
+          }
+        } catch (err) {
+          toast.error("Failed to verify Stripe account status")
+        } finally {
+          setConnectLoading(false)
+          // Clean up URL
+          window.history.replaceState({}, "", window.location.pathname)
+        }
+      }
+      checkStatus()
+    }
+  }, [user?.id])
+
+  const handleConnectStripe = async () => {
+    setConnectLoading(true)
+    try {
+      const result = await createStripeConnectAccount({ userId: user?.id })
+      if (result?.url) {
+        window.location.href = result.url
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to start Stripe Connect setup")
+      setConnectLoading(false)
+    }
+  }
 
   const handleManageSubscription = async () => {
     if (!isStripeConfigured()) {
@@ -278,6 +325,53 @@ function BillingTab({ user }) {
 
   return (
     <div className="space-y-5">
+      {/* Payment Account (Stripe Connect) */}
+      <div className="card p-6">
+        <h3 className="text-base font-semibold mb-4" style={{ color: "#0E0C0A" }}>Payment Account</h3>
+        <p className="text-sm mb-4" style={{ color: "#A89F94" }}>
+          Connect your Stripe account to receive payments directly when clients pay your invoices.
+        </p>
+
+        {user?.stripe_account_status === "active" && user?.stripe_charges_enabled ? (
+          <div className="flex items-center justify-between rounded-xl p-4" style={{ background: "#E8F5E9", border: "1px solid #4CAF50" }}>
+            <div className="flex items-center gap-3">
+              <CheckCircle size={20} style={{ color: "#4CAF50" }} />
+              <div>
+                <p className="text-sm font-medium" style={{ color: "#2D4A35" }}>Stripe Account Connected</p>
+                <p className="text-xs mt-0.5" style={{ color: "#4CAF50" }}>Payments go directly to your account (5% platform fee)</p>
+              </div>
+            </div>
+            <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{ background: "#fff", color: "#4CAF50", border: "1px solid #4CAF50" }}>
+              Stripe Dashboard <ExternalLink size={12} />
+            </a>
+          </div>
+        ) : user?.stripe_account_status === "pending" || user?.stripe_account_status === "restricted" ? (
+          <div className="flex items-center justify-between rounded-xl p-4" style={{ background: "#FFF8E1", border: "1px solid #FFA000" }}>
+            <div className="flex items-center gap-3">
+              <AlertTriangle size={20} style={{ color: "#FFA000" }} />
+              <div>
+                <p className="text-sm font-medium" style={{ color: "#4A4540" }}>Setup Incomplete</p>
+                <p className="text-xs mt-0.5" style={{ color: "#A89F94" }}>Complete your Stripe onboarding to start receiving payments</p>
+              </div>
+            </div>
+            <button onClick={handleConnectStripe} disabled={connectLoading}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{ background: "#FFA000", color: "#fff" }}>
+              {connectLoading ? <Loader2 size={14} className="animate-spin" /> : null}
+              Continue Setup
+            </button>
+          </div>
+        ) : (
+          <button onClick={handleConnectStripe} disabled={connectLoading}
+            className="btn-copper flex items-center gap-2 w-full justify-center" style={{ fontSize: 14, padding: "12px 24px" }}>
+            {connectLoading ? <Loader2 size={16} className="animate-spin" /> : <CreditCard size={16} />}
+            Connect Stripe Account
+          </button>
+        )}
+      </div>
+
       {/* Current Plan Card */}
       <div className="card p-6">
         <h3 className="text-base font-semibold mb-4" style={{ color: "#0E0C0A" }}>Current Plan</h3>

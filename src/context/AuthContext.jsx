@@ -27,6 +27,9 @@ export function AuthProvider({ children }) {
     subscription_status: profile.subscription_status || "inactive",
     plan_period_end: profile.plan_period_end || null,
     is_admin: profile.is_admin || false,
+    stripe_account_id: profile.stripe_account_id || null,
+    stripe_account_status: profile.stripe_account_status || "not_connected",
+    stripe_charges_enabled: profile.stripe_charges_enabled || false,
   })
 
   const loadProfile = async (authUser) => {
@@ -53,6 +56,9 @@ export function AuthProvider({ children }) {
         subscription_id: null,
         subscription_status: "inactive",
         plan_period_end: null,
+        stripe_account_id: null,
+        stripe_account_status: "not_connected",
+        stripe_charges_enabled: false,
       })
       return
     }

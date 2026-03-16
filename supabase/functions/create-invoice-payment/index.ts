@@ -62,9 +62,9 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Fetch artist name from profiles
+    // Fetch artist name + Stripe Connect info from profiles
     const profileRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=name`,
+      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=name,stripe_account_id,stripe_charges_enabled`,
       {
         headers: {
           "apikey": SUPABASE_SERVICE_ROLE_KEY,
@@ -74,6 +74,8 @@ Deno.serve(async (req) => {
     )
     const profiles = await profileRes.json()
     const artistName = profiles?.[0]?.name || "Artist"
+    const artistStripeAccount = profiles?.[0]?.stripe_account_id || null
+    const artistChargesEnabled = profiles?.[0]?.stripe_charges_enabled || false
 
     // Build origin for success/cancel URLs
     const origin = req.headers.get("origin") || "https://artistos-mvp.vercel.app"
@@ -92,6 +94,14 @@ Deno.serve(async (req) => {
       "metadata[invoice_id]": invoiceId,
       "metadata[user_id]": userId,
     })
+
+    // Route payment to artist's connected Stripe account if available
+    if (artistStripeAccount && artistChargesEnabled) {
+      const feePct = parseInt(Deno.env.get("PLATFORM_FEE_PERCENT") || "5", 10)
+      const feeAmount = Math.round(amountCents * feePct / 100)
+      params.set("payment_intent_data[transfer_data][destination]", artistStripeAccount)
+      params.set("payment_intent_data[application_fee_amount]", String(feeAmount))
+    }
 
     // Pre-fill client email if available
     if (invoice.client_email) {
@@ -113,14 +123,11 @@ Deno.serve(async (req) => {
     }
 
     // Save session ID and checkout URL to the invoice
-    const updateData: Record<string, unknown> = {
+    // Include status field upfront so Deno doesn't reject dynamic property addition
+    const updateData = {
       stripe_session_id: session.id,
       stripe_payment_url: session.url,
-    }
-
-    // Auto-promote draft to pending when payment link is created
-    if (invoice.status === "draft") {
-      updateData.status = "pending"
+      ...(invoice.status === "draft" ? { status: "pending" } : {}),
     }
 
     await fetch(

@@ -105,6 +105,29 @@ export function isStripeConfigured() {
  * @param {string} userEmail - pre-fill the customer email
  * @returns {string|null} the payment link URL or null
  */
+/**
+ * Create a Stripe Connect account for an artist and return the onboarding URL
+ */
+export async function createStripeConnectAccount({ userId }) {
+  const { data, error } = await supabase.functions.invoke("create-stripe-connect", {
+    body: { userId },
+  })
+  if (error) throw error
+  if (!data?.url) throw new Error("Failed to create Connect account")
+  return data
+}
+
+/**
+ * Check the status of an artist's Stripe Connect account
+ */
+export async function checkStripeConnectStatus({ userId }) {
+  const { data, error } = await supabase.functions.invoke("check-stripe-connect", {
+    body: { userId },
+  })
+  if (error) throw error
+  return data
+}
+
 export function getPaymentLink(planId, userEmail) {
   const links = {
     pro: import.meta.env.VITE_STRIPE_PRO_LINK || "",

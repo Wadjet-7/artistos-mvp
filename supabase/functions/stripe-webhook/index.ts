@@ -189,6 +189,33 @@ Deno.serve(async (req) => {
         break
       }
 
+      case "account.updated": {
+        const account = event.data.object
+        const accountId = account.id
+
+        // Find profile with this stripe_account_id
+        const connectProfile = await getProfile(`stripe_account_id=eq.${accountId}`)
+        if (!connectProfile) {
+          console.log(`No profile found for Connect account ${accountId}`)
+          break
+        }
+
+        let connectStatus = "pending"
+        if (account.charges_enabled) {
+          connectStatus = "active"
+        } else if (account.details_submitted) {
+          connectStatus = "restricted"
+        }
+
+        await updateProfile(`id=eq.${connectProfile.id}`, {
+          stripe_charges_enabled: account.charges_enabled,
+          stripe_account_status: connectStatus,
+        })
+
+        console.log(`Connect account ${accountId} updated: status=${connectStatus}, charges_enabled=${account.charges_enabled}`)
+        break
+      }
+
       default:
         console.log(`Unhandled event: ${event.type}`)
     }
