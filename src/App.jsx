@@ -34,6 +34,7 @@ const Onboarding = lazy(() => import("./pages/Onboarding"))
 const UpgradeSuccess = lazy(() => import("./pages/UpgradeSuccess"))
 const Legal = lazy(() => import("./pages/Legal"))
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"))
+const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"))
 const AdminPanel = lazy(() => import("./pages/AdminPanel"))
 const InvoicePaymentSuccess = lazy(() => import("./pages/InvoicePaymentSuccess"))
 const InvoicePaymentCancelled = lazy(() => import("./pages/InvoicePaymentCancelled"))
@@ -106,6 +107,7 @@ function AppRoutes() {
           <Route path="/cv" element={<ArtistCV />} />
           <Route path="/consignments" element={<Consignments />} />
           <Route path="/exhibitions" element={<Exhibitions />} />
+          <Route path="/website" element={<WebsiteBuilder />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/upgrade" element={<Upgrade />} />
           <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />

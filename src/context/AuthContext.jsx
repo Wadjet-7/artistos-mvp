@@ -30,6 +30,8 @@ export function AuthProvider({ children }) {
     stripe_account_id: profile.stripe_account_id || null,
     stripe_account_status: profile.stripe_account_status || "not_connected",
     stripe_charges_enabled: profile.stripe_charges_enabled || false,
+    artist_statement: profile.artist_statement || "",
+    website_settings: profile.website_settings || null,
   })
 
   const loadProfile = async (authUser) => {
@@ -59,6 +61,8 @@ export function AuthProvider({ children }) {
         stripe_account_id: null,
         stripe_account_status: "not_connected",
         stripe_charges_enabled: false,
+        artist_statement: "",
+        website_settings: null,
       })
       return
     }

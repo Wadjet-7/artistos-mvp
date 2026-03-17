@@ -22,6 +22,7 @@ export const PLANS = {
       consignments: false,
       catalog: false,
       ai: false,
+      artistWebsite: false,
     },
     highlights: [
       "Up to 25 artworks",
@@ -55,6 +56,7 @@ export const PLANS = {
       consignments: true,
       catalog: true,
       ai: true,
+      artistWebsite: true,
     },
     highlights: [
       "Up to 200 artworks",
@@ -67,6 +69,7 @@ export const PLANS = {
       "Consignment tracker",
       "PDF catalog export",
       "Expense tracking",
+      "Artist website & themes",
     ],
   },
   studio: {
@@ -89,6 +92,7 @@ export const PLANS = {
       consignments: true,
       catalog: true,
       ai: true,
+      artistWebsite: true,
     },
     highlights: [
       "Unlimited artworks",
@@ -98,6 +102,7 @@ export const PLANS = {
       "Unlimited contacts & invoices",
       "Priority support",
       "Early access to new features",
+      "Artist website & themes",
     ],
   },
 }

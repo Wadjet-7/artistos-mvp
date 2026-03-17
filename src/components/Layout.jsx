@@ -36,6 +36,7 @@ const pageTitles = {
   "/marketplace": { title: "Commission", accent: "Marketplace" },
   "/commissions": { title: "My", accent: "Commissions" },
   "/messages": { title: "", accent: "Messages" },
+  "/website": { title: "My", accent: "Website" },
   "/settings": { title: "", accent: "Settings" },
 }
 
