@@ -305,7 +305,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
             <span className="font-serif font-semibold text-white">ArtistOS</span>
-            <span className="text-sm ml-2" style={{ color: "rgba(255,255,255,0.25)" }}>2026 All rights reserved.</span>
+            <span className="text-sm ml-2" style={{ color: "rgba(255,255,255,0.25)" }}>&copy; 2025 ArtistOS. All rights reserved.</span>
           </div>
           <div className="flex gap-8 text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>

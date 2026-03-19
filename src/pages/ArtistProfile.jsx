@@ -315,7 +315,7 @@ export default function ArtistProfile() {
         <Link to="/" className="font-serif text-lg font-bold tracking-tight" style={{ color: accent }}>
           ArtistOS
         </Link>
-        <p className="text-xs mt-2" style={{ color: "var(--t-footer-text)" }}>2026 All rights reserved.</p>
+        <p className="text-xs mt-2" style={{ color: "var(--t-footer-text)" }}>&copy; 2025 ArtistOS. All rights reserved.</p>
       </footer>
 
       {/* ── Commission Request Modal ── */}

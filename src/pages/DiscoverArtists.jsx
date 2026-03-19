@@ -284,7 +284,7 @@ export default function DiscoverArtists() {
         <Link to="/" className="font-serif text-lg font-bold tracking-tight" style={{ color: "#B5651D" }}>
           ArtistOS
         </Link>
-        <p className="text-xs mt-2" style={{ color: "#A89F94" }}>2026 All rights reserved.</p>
+        <p className="text-xs mt-2" style={{ color: "#A89F94" }}>&copy; 2025 ArtistOS. All rights reserved.</p>
       </footer>
     </div>
   )
