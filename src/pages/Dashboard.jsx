@@ -12,6 +12,7 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid
 } from "recharts"
 import PageError from "../components/PageError"
+import FirstStepsChecklist from "../components/FirstStepsChecklist"
 
 /* ================================================================ */
 /*  HELPERS                                                          */
@@ -372,6 +373,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5">
+      {/* Phase 21: first-session activation checklist (hides when complete) */}
+      <FirstStepsChecklist />
+
       {/* Upgrade banner for Starter users */}
       {plan === "starter" && (
         <div className="rounded-xl p-4 md:p-5 flex items-center justify-between gap-4 flex-wrap"

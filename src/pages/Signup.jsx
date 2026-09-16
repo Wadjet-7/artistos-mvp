@@ -1,12 +1,15 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle2 } from "lucide-react"
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle2, Gift } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
+import { getStoredAttribution, clearStoredAttribution } from "../lib/promo"
 
 export default function Signup() {
+  const stored = getStoredAttribution()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [promo, setPromo] = useState(stored.promo)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -22,7 +25,8 @@ export default function Signup() {
     if (password.length < 6) { setError("Password must be at least 6 characters."); return }
     setLoading(true)
     try {
-      const data = await signup(name, email, password)
+      const data = await signup(name, email, password, { source: stored.source, promo })
+      clearStoredAttribution()
       // If session exists, user is auto-confirmed → go to dashboard
       if (data?.session) {
         navigate("/dashboard")
@@ -103,6 +107,19 @@ export default function Signup() {
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
+            </div>
+            <div>
+              <label className="form-label">Promo code <span style={{ color: "#A89F94", fontWeight: 400 }}>(optional)</span></label>
+              <div className="relative">
+                <Gift size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: promo ? "#B5651D" : "#A89F94" }} />
+                <input type="text" value={promo} onChange={(e) => setPromo(e.target.value.toUpperCase())} placeholder="Have a code? Enter it here"
+                  className="form-input pl-10" style={promo ? { borderColor: "#D4854A", background: "#FDF9F4" } : undefined} />
+              </div>
+              {promo && (
+                <p className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color: "#B5651D" }}>
+                  <CheckCircle2 size={12} /> Code will be applied when your account is created
+                </p>
+              )}
             </div>
             <button type="submit" disabled={loading}
               className="w-full btn-copper flex items-center justify-center gap-2 py-3 disabled:opacity-70">
