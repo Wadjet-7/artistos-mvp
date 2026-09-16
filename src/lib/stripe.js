@@ -45,7 +45,7 @@ export async function getStripe() {
  * Redirect user to Stripe Checkout for a given plan
  * Calls Supabase Edge Function to create checkout session
  */
-export async function redirectToCheckout({ planId, userId, userEmail }) {
+export async function redirectToCheckout({ planId, userId, userEmail, interval = "monthly" }) {
   if (!STRIPE_KEY) {
     throw new Error("Stripe is not configured yet. Please follow STRIPE-SETUP.md to set up payments.")
   }
@@ -56,6 +56,7 @@ export async function redirectToCheckout({ planId, userId, userEmail }) {
       planId,
       userId,
       userEmail,
+      interval,
     },
   })
 
@@ -128,14 +129,17 @@ export async function checkStripeConnectStatus({ userId }) {
   return data
 }
 
-export function getPaymentLink(planId, userEmail) {
+export function getPaymentLink(planId, userEmail, interval = "monthly") {
   const links = {
-    pro: import.meta.env.VITE_STRIPE_PRO_LINK || "",
-    studio: import.meta.env.VITE_STRIPE_STUDIO_LINK || "",
+    pro: interval === "annual"
+      ? (import.meta.env.VITE_STRIPE_PRO_ANNUAL_LINK || "")
+      : (import.meta.env.VITE_STRIPE_PRO_LINK || ""),
+    studio: interval === "annual"
+      ? (import.meta.env.VITE_STRIPE_STUDIO_ANNUAL_LINK || "")
+      : (import.meta.env.VITE_STRIPE_STUDIO_LINK || ""),
   }
   const link = links[planId]
   if (!link) return null
-  // Append prefilled_email if the link supports it
   const separator = link.includes("?") ? "&" : "?"
   return userEmail ? `${link}${separator}prefilled_email=${encodeURIComponent(userEmail)}` : link
 }

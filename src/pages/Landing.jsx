@@ -66,14 +66,21 @@ const heroStats = [
   { icon: DollarSign, end: 0, prefix: "$", suffix: "", decimals: 0, label: "To get started" },
 ]
 
-const pricing = [
-  { name: PLANS.starter.name, price: PLANS.starter.priceLabel, period: "", description: PLANS.starter.tagline, highlight: false, features: PLANS.starter.highlights.slice(0, 6) },
-  { name: PLANS.pro.name, price: `$${PLANS.pro.price}`, period: "/ month", description: PLANS.pro.tagline, highlight: true, features: PLANS.pro.highlights.slice(0, 8) },
-  { name: PLANS.studio.name, price: `$${PLANS.studio.price}`, period: "/ month", description: PLANS.studio.tagline, highlight: false, features: PLANS.studio.highlights.slice(0, 7) },
-]
+function getPricing(interval) {
+  const proPrice = interval === "annual" ? PLANS.pro.priceAnnual : PLANS.pro.price
+  const studioPrice = interval === "annual" ? PLANS.studio.priceAnnual : PLANS.studio.price
+  const period = interval === "annual" ? "/ year" : "/ month"
+  return [
+    { name: PLANS.starter.name, price: PLANS.starter.priceLabel, period: "", description: PLANS.starter.tagline, highlight: false, features: PLANS.starter.highlights.slice(0, 6), sub: null },
+    { name: PLANS.pro.name, price: `$${proPrice}`, period, description: PLANS.pro.tagline, highlight: true, features: PLANS.pro.highlights.slice(0, 8), sub: interval === "annual" ? `$${Math.round(proPrice / 12)}/mo billed annually` : null },
+    { name: PLANS.studio.name, price: `$${studioPrice}`, period, description: PLANS.studio.tagline, highlight: false, features: PLANS.studio.highlights.slice(0, 7), sub: interval === "annual" ? `$${Math.round(studioPrice / 12)}/mo billed annually` : null },
+  ]
+}
 
 export default function Landing() {
   const { user } = useAuth()
+  const [pricingInterval, setPricingInterval] = useState("annual")
+  const pricing = getPricing(pricingInterval)
 
   /* Scroll-reveal refs for section headers */
   const featuresHeaderRef = useScrollReveal()
@@ -236,6 +243,19 @@ export default function Landing() {
             <p className="text-xs font-semibold uppercase tracking-[2px] mb-3" style={{ color: "#B5651D" }}>Pricing</p>
             <h2 className="font-serif text-4xl font-semibold" style={{ color: "#0E0C0A" }}>Simple, transparent pricing</h2>
             <p className="mt-4 text-lg" style={{ color: "#A89F94" }}>Start free. Upgrade when you are ready to grow.</p>
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <button onClick={() => setPricingInterval("monthly")}
+                className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                style={{ background: pricingInterval === "monthly" ? "#0E0C0A" : "transparent", color: pricingInterval === "monthly" ? "#FAF8F5" : "#A89F94" }}>
+                Monthly
+              </button>
+              <button onClick={() => setPricingInterval("annual")}
+                className="text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                style={{ background: pricingInterval === "annual" ? "#0E0C0A" : "transparent", color: pricingInterval === "annual" ? "#FAF8F5" : "#A89F94" }}>
+                Annual
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#F5E6D8", color: "#B5651D" }}>Save 2 months</span>
+              </button>
+            </div>
           </div>
           <div className="grid md:grid-cols-3 gap-7 items-start">
             {pricing.map((plan, i) => (
@@ -253,10 +273,14 @@ export default function Landing() {
                 )}
                 <h3 className="text-lg font-semibold mb-1" style={{ color: plan.highlight ? "#FAF8F5" : "#0E0C0A" }}>{plan.name}</h3>
                 <p className="text-sm mb-5" style={{ color: plan.highlight ? "rgba(255,255,255,0.5)" : "#A89F94" }}>{plan.description}</p>
-                <div className="flex items-end gap-1 mb-7">
+                <div className="flex items-end gap-1 mb-1">
                   <span className="text-4xl font-bold font-serif" style={{ color: plan.highlight ? "#FAF8F5" : "#0E0C0A" }}>{plan.price}</span>
                   <span className="text-sm pb-1" style={{ color: plan.highlight ? "rgba(255,255,255,0.5)" : "#A89F94" }}>{plan.period}</span>
                 </div>
+                {plan.sub && (
+                  <p className="text-xs mb-1" style={{ color: plan.highlight ? "rgba(255,255,255,0.4)" : "#A89F94" }}>{plan.sub}</p>
+                )}
+                <div className="mb-6" />
                 <Link
                   to={user
                     ? (plan.price === "Free" ? "/dashboard" : "/upgrade")

@@ -32,16 +32,37 @@ export function AuthProvider({ children }) {
     stripe_charges_enabled: profile.stripe_charges_enabled || false,
     artist_statement: profile.artist_statement || "",
     website_settings: profile.website_settings || null,
+    billing_interval: profile.billing_interval || "monthly",
+    legacy_pricing: profile.legacy_pricing || false,
+    legacy_plan_price: profile.legacy_plan_price || null,
   })
 
   const loadProfile = async (authUser) => {
     if (!authUser) { setUser(null); return }
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", authUser.id)
       .single()
+
+    // Phase 21: redeem a pending promo code (captured at signup) exactly once
+    if (data && data.promo_code && !data.promo_redeemed) {
+      try {
+        const { data: result } = await supabase.rpc("redeem_promo_code", { p_code: data.promo_code })
+        if (result?.success) {
+          const { data: fresh } = await supabase
+            .from("profiles").select("*").eq("id", authUser.id).single()
+          if (fresh) data = fresh
+        } else {
+          // Invalid/expired code — mark processed so we don't retry forever
+          await supabase.from("profiles").update({ promo_redeemed: true }).eq("id", authUser.id)
+          data = { ...data, promo_redeemed: true }
+        }
+      } catch (e) {
+        console.warn("[Auth] Promo redemption failed (non-critical):", e)
+      }
+    }
 
     if (error || !data) {
       // Profile might not exist yet (trigger hasn't fired), create minimal user obj
@@ -63,6 +84,9 @@ export function AuthProvider({ children }) {
         stripe_charges_enabled: false,
         artist_statement: "",
         website_settings: null,
+        billing_interval: "monthly",
+        legacy_pricing: false,
+        legacy_plan_price: null,
       })
       return
     }
@@ -134,14 +158,20 @@ export function AuthProvider({ children }) {
   }, [])
 
   /* ---- auth actions ---- */
-  const signup = async (name, email, password) => {
+  const signup = async (name, email, password, extra = {}) => {
     const initials = name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { name, initials },
+        data: {
+          name,
+          initials,
+          // Phase 21: attribution travels via auth metadata → handle_new_user trigger
+          signup_source: extra.source || "",
+          promo_code: (extra.promo || "").toUpperCase(),
+        },
       },
     })
 

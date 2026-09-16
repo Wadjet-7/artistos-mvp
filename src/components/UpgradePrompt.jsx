@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import { Sparkles, Lock, ArrowRight } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
-import { PLANS, normalizePlan, getMinimumPlan, formatLimit } from "../lib/plans"
+import { PLANS, normalizePlan, getMinimumPlan, formatLimit, getStudioFeatureLabel } from "../lib/plans"
 
 /* ------------------------------------------------------------------ */
 /*  UpgradePrompt — Shown when user hits a plan limit or gated feature */
@@ -40,8 +40,10 @@ export function FeatureGate({ feature, children }) {
             Upgrade to {minPlanConfig.name}
           </h3>
           <p className="text-sm mb-5" style={{ color: "#A89F94" }}>
-            This feature is available on the {minPlanConfig.name} plan ({minPlanConfig.priceLabel}).
-            Upgrade to unlock full access.
+            {getStudioFeatureLabel(feature) !== feature
+              ? `${getStudioFeatureLabel(feature)} is available on the ${minPlanConfig.name} plan (${minPlanConfig.priceLabel}).`
+              : `This feature is available on the ${minPlanConfig.name} plan (${minPlanConfig.priceLabel}).`
+            } Upgrade to unlock full access.
           </p>
           <UpgradeButton plan={minPlan} />
           <p className="text-xs mt-3" style={{ color: "#C5BDB3" }}>

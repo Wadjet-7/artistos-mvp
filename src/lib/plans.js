@@ -23,6 +23,12 @@ export const PLANS = {
       catalog: false,
       ai: false,
       artistWebsite: false,
+      careerAnalytics: false,
+      provenance: false,
+      editions: false,
+      appraisal: false,
+      consignmentMap: false,
+      grantEngine: false,
     },
     highlights: [
       "Up to 25 artworks",
@@ -37,12 +43,15 @@ export const PLANS = {
   },
   pro: {
     name: "Pro",
-    price: 19,
-    priceLabel: "$19/mo",
+    price: 29,
+    priceLabel: "$29/mo",
+    priceAnnual: 290,
+    priceAnnualLabel: "$290/yr",
     trialDays: 14,
-    tagline: "For serious working artists",
+    tagline: "For the working artist",
     stripePriceId: null,
     paymentLink: import.meta.env.VITE_STRIPE_PRO_LINK || "",
+    paymentLinkAnnual: import.meta.env.VITE_STRIPE_PRO_ANNUAL_LINK || "",
     limits: {
       artworks: 200,
       viewingRooms: 25,
@@ -57,6 +66,12 @@ export const PLANS = {
       catalog: true,
       ai: true,
       artistWebsite: true,
+      careerAnalytics: false,
+      provenance: false,
+      editions: false,
+      appraisal: false,
+      consignmentMap: false,
+      grantEngine: false,
     },
     highlights: [
       "Up to 200 artworks",
@@ -74,11 +89,14 @@ export const PLANS = {
   },
   studio: {
     name: "Studio",
-    price: 49,
-    priceLabel: "$49/mo",
-    tagline: "Unlimited creative business platform",
+    price: 120,
+    priceLabel: "$120/mo",
+    priceAnnual: 1200,
+    priceAnnualLabel: "$1,200/yr",
+    tagline: "For the artist whose work is an asset",
     stripePriceId: null,
     paymentLink: import.meta.env.VITE_STRIPE_STUDIO_LINK || "",
+    paymentLinkAnnual: import.meta.env.VITE_STRIPE_STUDIO_ANNUAL_LINK || "",
     limits: {
       artworks: Infinity,
       viewingRooms: Infinity,
@@ -93,38 +111,46 @@ export const PLANS = {
       catalog: true,
       ai: true,
       artistWebsite: true,
+      careerAnalytics: true,
+      provenance: true,
+      editions: true,
+      appraisal: true,
+      consignmentMap: true,
+      grantEngine: true,
     },
     highlights: [
-      "Unlimited artworks",
-      "Unlimited viewing rooms",
-      "Everything in Pro, plus:",
-      "AI-powered tools",
-      "Unlimited contacts & invoices",
-      "Priority support",
-      "Early access to new features",
-      "Artist website & themes",
+      "Everything in Pro, unlimited",
+      "Grant & opportunity engine",
+      "Provenance & archive records",
+      "Editions & print management",
+      "Insurance & appraisal reports",
+      "Consignment map",
+      "Career analytics",
+      "Personal onboarding & quarterly review",
     ],
   },
 }
 
-/**
- * Check if a plan has access to a specific feature
- * @param {string} planName - lowercase plan name (starter, pro, studio)
- * @param {string} feature - feature key (analytics, socialScheduler, etc.)
- * @returns {boolean}
- */
+export const LEGACY_PRICES = { pro: 19, studio: 49 }
+
+const STUDIO_FEATURE_LABELS = {
+  careerAnalytics: "Career analytics",
+  provenance: "Provenance & archive",
+  editions: "Editions & print management",
+  appraisal: "Insurance & appraisal reports",
+  consignmentMap: "Consignment map",
+  grantEngine: "Grant & opportunity engine",
+}
+
+export function getStudioFeatureLabel(feature) {
+  return STUDIO_FEATURE_LABELS[feature] || feature
+}
+
 export function canAccess(planName, feature) {
   const plan = PLANS[planName?.toLowerCase()] || PLANS.starter
   return plan.features[feature] ?? false
 }
 
-/**
- * Check if the user has reached a resource limit
- * @param {string} planName - lowercase plan name
- * @param {string} resource - resource key (artworks, viewingRooms, contacts, invoices)
- * @param {number} currentCount - current number of items
- * @returns {boolean} true if at or over limit
- */
 export function isAtLimit(planName, resource, currentCount) {
   const plan = PLANS[planName?.toLowerCase()] || PLANS.starter
   const limit = plan.limits[resource]
@@ -132,45 +158,51 @@ export function isAtLimit(planName, resource, currentCount) {
   return currentCount >= limit
 }
 
-/**
- * Get the limits for a plan
- * @param {string} planName - lowercase plan name
- * @returns {object} limits object
- */
 export function getPlanLimits(planName) {
   const plan = PLANS[planName?.toLowerCase()] || PLANS.starter
   return plan.limits
 }
 
-/**
- * Get the minimum plan needed for a feature
- * @param {string} feature - feature key
- * @returns {string} plan name
- */
 export function getMinimumPlan(feature) {
   if (PLANS.starter.features[feature]) return "starter"
   if (PLANS.pro.features[feature]) return "pro"
   return "studio"
 }
 
-/**
- * Get a formatted limit string
- * @param {number} limit
- * @returns {string}
- */
 export function formatLimit(limit) {
   if (limit === Infinity) return "Unlimited"
   return limit.toLocaleString()
 }
 
-/**
- * Normalize plan name to lowercase
- * @param {string} plan
- * @returns {string}
- */
 export function normalizePlan(plan) {
   if (!plan) return "starter"
   const lower = plan.toLowerCase().replace(/\s+plan$/i, "").trim()
   if (PLANS[lower]) return lower
   return "starter"
+}
+
+export function getPrice(planName, interval = "monthly", user = null) {
+  const plan = PLANS[planName?.toLowerCase()]
+  if (!plan || plan.price === 0) return 0
+  const key = planName.toLowerCase()
+  if (user?.legacy_pricing && user.plan?.toLowerCase() === key) {
+    return LEGACY_PRICES[key] || plan.price
+  }
+  return interval === "annual" ? plan.priceAnnual : plan.price
+}
+
+export function getAnnualSavings(planName) {
+  const plan = PLANS[planName?.toLowerCase()]
+  if (!plan || plan.price === 0) return 0
+  return (plan.price * 12) - plan.priceAnnual
+}
+
+export function getPaymentLinkFor(planName, interval = "monthly") {
+  const plan = PLANS[planName?.toLowerCase()]
+  if (!plan) return ""
+  return interval === "annual" ? (plan.paymentLinkAnnual || "") : (plan.paymentLink || "")
+}
+
+export function isLegacyPricing(user) {
+  return !!user?.legacy_pricing
 }

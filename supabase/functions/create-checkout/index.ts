@@ -15,13 +15,19 @@ Deno.serve(async (req) => {
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 
-  const PRICE_IDS: Record<string, string> = {
-    pro: Deno.env.get("STRIPE_PRO_PRICE_ID") || "",
-    studio: Deno.env.get("STRIPE_STUDIO_PRICE_ID") || "",
+  const PRICE_IDS: Record<string, Record<string, string>> = {
+    pro: {
+      monthly: Deno.env.get("STRIPE_PRICE_PRO_MONTHLY") || Deno.env.get("STRIPE_PRO_PRICE_ID") || "",
+      annual: Deno.env.get("STRIPE_PRICE_PRO_ANNUAL") || "",
+    },
+    studio: {
+      monthly: Deno.env.get("STRIPE_PRICE_STUDIO_MONTHLY") || Deno.env.get("STRIPE_STUDIO_PRICE_ID") || "",
+      annual: Deno.env.get("STRIPE_PRICE_STUDIO_ANNUAL") || "",
+    },
   }
 
   try {
-    const { planId, userId, userEmail } = await req.json()
+    const { planId, userId, userEmail, interval = "monthly" } = await req.json()
 
     if (!planId || !userId) {
       return new Response(
@@ -30,10 +36,11 @@ Deno.serve(async (req) => {
       )
     }
 
-    const priceId = PRICE_IDS[planId]
+    const billingInterval = interval === "annual" ? "annual" : "monthly"
+    const priceId = PRICE_IDS[planId]?.[billingInterval]
     if (!priceId) {
       return new Response(
-        JSON.stringify({ error: `No price configured for plan: ${planId}` }),
+        JSON.stringify({ error: `No price configured for plan: ${planId} (${billingInterval})` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
@@ -102,6 +109,7 @@ Deno.serve(async (req) => {
         client_reference_id: userId,
         "metadata[planId]": planId,
         "metadata[userId]": userId,
+        allow_promotion_codes: "true",
         ...(planId === "pro" ? { "subscription_data[trial_period_days]": "14" } : {}),
       }).toString(),
     })
