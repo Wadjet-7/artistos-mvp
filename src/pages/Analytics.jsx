@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
-import { Loader2, TrendingUp, DollarSign, Palette, Package, PieChart, BarChart3 } from "lucide-react"
+import { canAccess, normalizePlan } from "../lib/plans"
+import { Loader2, TrendingUp, DollarSign, Palette, Package, PieChart, BarChart3, Crown, Lock, Clock } from "lucide-react"
+import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
 import PageError from "../components/PageError"
 import { FeatureGate } from "../components/UpgradePrompt"
 
@@ -323,6 +325,149 @@ function AnalyticsContent() {
           </div>
         </div>
       )}
+
+      {/* ── Career Analytics (Studio only) ── */}
+      <CareerAnalytics artworks={artworks} user={user} />
+    </div>
+  )
+}
+
+function CareerAnalyticsTooltip({ active, payload, label, prefix = "" }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-lg px-3 py-2 shadow-lg" style={{ background: "#0E0C0A", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <p className="text-[10px]" style={{ color: "#A89F94" }}>{label}</p>
+      <p className="text-sm font-bold font-serif" style={{ color: "#FAF8F5" }}>{prefix}{payload[0].value?.toLocaleString()}</p>
+    </div>
+  )
+}
+
+function CareerAnalytics({ artworks, user }) {
+  const plan = normalizePlan(user?.plan)
+  const hasAccess = canAccess(plan, "careerAnalytics")
+  const [invoices, setInvoices] = useState([])
+  const [provenance, setProvenance] = useState([])
+
+  useEffect(() => {
+    if (!hasAccess || !user?.id) return
+    Promise.all([
+      supabase.from("invoices").select("id, amount, status, created_at, artwork_id").eq("user_id", user.id),
+      supabase.from("artwork_provenance").select("*").eq("user_id", user.id),
+    ]).then(([invRes, provRes]) => {
+      setInvoices((invRes.data || []).filter(i => i.status === "paid"))
+      setProvenance(provRes.data || [])
+    }).catch(() => {})
+  }, [hasAccess, user?.id])
+
+  if (!hasAccess) {
+    return (
+      <div className="card p-6 text-center" style={{ background: "#F0F5F1", border: "1px solid #B8D4BE" }}>
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: "#E8F2EA" }}>
+          <Crown size={20} style={{ color: "#2D4A35" }} />
+        </div>
+        <h3 className="text-base font-serif font-semibold mb-1" style={{ color: "#0E0C0A" }}>Career Analytics</h3>
+        <p className="text-xs mb-3" style={{ color: "#A89F94" }}>Price trajectory, sell-through rates, and time-to-sale — available on the Studio plan.</p>
+        <a href="/upgrade" className="btn-copper text-xs inline-flex items-center gap-1.5 px-4 py-2">
+          <Crown size={12} /> Upgrade to Studio
+        </a>
+      </div>
+    )
+  }
+
+  const priceByQuarter = useMemo(() => {
+    const quarters = {}
+    invoices.forEach(inv => {
+      const d = new Date(inv.created_at)
+      const q = `${d.getFullYear()} Q${Math.floor(d.getMonth() / 3) + 1}`
+      if (!quarters[q]) quarters[q] = { total: 0, count: 0 }
+      quarters[q].total += parseFloat(inv.amount) || 0
+      quarters[q].count++
+    })
+    return Object.entries(quarters)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([q, v]) => ({ quarter: q, avg: Math.round(v.total / v.count) }))
+  }, [invoices])
+
+  const timeToSale = useMemo(() => {
+    const byMedium = {}
+    const soldEvents = provenance.filter(p => p.event_type === "sold")
+    soldEvents.forEach(ev => {
+      const artwork = artworks.find(a => a.id === ev.artwork_id)
+      if (!artwork) return
+      const days = Math.ceil((new Date(ev.event_date) - new Date(artwork.created_at)) / 86400000)
+      if (days < 0) return
+      const medium = artwork.medium || "Other"
+      if (!byMedium[medium]) byMedium[medium] = []
+      byMedium[medium].push(days)
+    })
+    return Object.entries(byMedium).map(([medium, days]) => ({
+      medium,
+      avg: Math.round(days.reduce((s, d) => s + d, 0) / days.length),
+      count: days.length,
+    }))
+  }, [provenance, artworks])
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-2 mt-4">
+        <Crown size={16} style={{ color: "#2D4A35" }} />
+        <h2 className="text-lg font-serif font-semibold" style={{ color: "#0E0C0A" }}>Career Analytics</h2>
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "#E8F2EA", color: "#2D4A35" }}>Studio</span>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Price Trajectory */}
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title">Price Trajectory</div>
+            <div className="card-subtitle">Average sale price by quarter</div>
+          </div>
+          <div className="card-body">
+            {priceByQuarter.length < 2 ? (
+              <p className="text-xs text-center py-8" style={{ color: "#A89F94" }}>
+                Your price trajectory appears once you've had sales across two quarters.
+              </p>
+            ) : (
+              <div style={{ height: 200 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={priceByQuarter}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F2EDE6" />
+                    <XAxis dataKey="quarter" tick={{ fontSize: 10, fill: "#A89F94" }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: "#A89F94" }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
+                    <Tooltip content={<CareerAnalyticsTooltip prefix="$" />} />
+                    <Line type="monotone" dataKey="avg" stroke="#B5651D" strokeWidth={2} dot={{ fill: "#B5651D", r: 4 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Time to Sale */}
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title">Time to Sale</div>
+            <div className="card-subtitle">Average days from creation to sale, by medium</div>
+          </div>
+          <div className="card-body">
+            {timeToSale.length === 0 ? (
+              <p className="text-xs text-center py-8" style={{ color: "#A89F94" }}>
+                Time-to-sale data appears after provenance events are recorded for sold works.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {timeToSale.map(({ medium, avg, count }) => (
+                  <div key={medium} className="rounded-xl p-4 text-center" style={{ background: "#FAF8F5", border: "1px solid #E8E2DA" }}>
+                    <p className="text-2xl font-bold font-serif" style={{ color: "#B5651D" }}>{avg}</p>
+                    <p className="text-[10px] font-medium" style={{ color: "#0E0C0A" }}>days avg</p>
+                    <p className="text-[10px] mt-1" style={{ color: "#A89F94" }}>{medium} ({count} sale{count !== 1 ? "s" : ""})</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
