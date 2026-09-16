@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useEffect } from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
 import { AuthProvider, useAuth } from "./context/AuthContext"
+import { captureAttribution } from "./lib/promo"
 import Layout from "./components/Layout"
 import ErrorBoundary from "./components/ErrorBoundary"
 
@@ -35,6 +36,7 @@ const UpgradeSuccess = lazy(() => import("./pages/UpgradeSuccess"))
 const Legal = lazy(() => import("./pages/Legal"))
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"))
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"))
+const Opportunities = lazy(() => import("./pages/Opportunities"))
 const AdminPanel = lazy(() => import("./pages/AdminPanel"))
 const InvoicePaymentSuccess = lazy(() => import("./pages/InvoicePaymentSuccess"))
 const InvoicePaymentCancelled = lazy(() => import("./pages/InvoicePaymentCancelled"))
@@ -108,6 +110,7 @@ function AppRoutes() {
           <Route path="/consignments" element={<Consignments />} />
           <Route path="/exhibitions" element={<Exhibitions />} />
           <Route path="/website" element={<WebsiteBuilder />} />
+          <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/upgrade" element={<Upgrade />} />
           <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
@@ -119,6 +122,9 @@ function AppRoutes() {
 }
 
 export default function App() {
+  // Phase 21: capture ?ref= / ?code= attribution from any landing URL
+  useEffect(() => { captureAttribution() }, [])
+
   return (
     <ErrorBoundary>
     <BrowserRouter>

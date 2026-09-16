@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Image, FileText, Calendar, DollarSign,
   BarChart3, Sparkles, ShoppingBag, MessageSquare, Users, Settings,
-  Eye, UserCircle, ScrollText, Package, CalendarDays, Shield, Globe
+  Eye, UserCircle, ScrollText, Package, CalendarDays, Shield, Globe, Award
 } from "lucide-react"
 
 export const navSections = [
@@ -43,6 +43,12 @@ export const navSections = [
     label: "Marketplace",
     items: [
       { to: "/marketplace", icon: ShoppingBag, label: "Discover Artists" },
+    ],
+  },
+  {
+    label: "Career",
+    items: [
+      { to: "/opportunities", icon: Award, label: "Opportunities", badgeKey: "opportunities" },
     ],
   },
   {

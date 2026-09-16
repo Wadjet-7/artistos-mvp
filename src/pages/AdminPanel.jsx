@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import {
   Shield, Users, Image, FileText, DollarSign, Eye, Package, CalendarDays,
   Loader2, Search, Download, ExternalLink, RefreshCw, TrendingUp, TrendingDown,
-  BarChart3, UserCircle
+  BarChart3, UserCircle, Award, Plus, Trash2, Edit2, Globe, MapPin
 } from "lucide-react"
 import {
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -81,7 +81,19 @@ function calcDelta(items, dateKey, days = 30) {
 /* ------------------------------------------------------------------ */
 /*  Tabs                                                               */
 /* ------------------------------------------------------------------ */
-const tabs = ["Overview", "Analytics", "Users", "Content", "Platform"]
+const tabs = ["Overview", "Analytics", "Users", "Content", "Opportunities", "Platform"]
+
+const MEDIUMS = ["painting", "photography", "sculpture", "mixed_media", "digital", "ceramics", "printmaking", "textile", "installation", "performance"]
+const OPP_TYPES = ["grant", "residency", "fellowship", "open_call", "award"]
+const CAREER_STAGES = ["any", "emerging", "mid_career", "established"]
+const LOCATION_SCOPES = ["local", "state", "national", "international"]
+
+const defaultOpp = {
+  title: "", organization: "", opportunity_type: "grant", description: "",
+  amount_min: "", amount_max: "", deadline: "", url: "", eligibility_notes: "",
+  mediums: [], location_scope: "national", location_detail: "", career_stage: "any",
+  application_fee: 0, is_active: true,
+}
 
 /* ================================================================== */
 /*  MAIN COMPONENT                                                     */
@@ -100,6 +112,10 @@ export default function AdminPanel() {
   const [recentSignups, setRecentSignups] = useState([])
   const [contentStats, setContentStats] = useState({})
   const [activityLog, setActivityLog] = useState([])
+  const [opportunities, setOpportunities] = useState([])
+  const [oppModal, setOppModal] = useState({ open: false, editing: null })
+  const [oppForm, setOppForm] = useState(defaultOpp)
+  const [savingOpp, setSavingOpp] = useState(false)
 
   const [userSearch, setUserSearch] = useState("")
   const [userFilter, setUserFilter] = useState("all")
@@ -113,7 +129,7 @@ export default function AdminPanel() {
       const [
         profilesRes, artworksRes, invoicesRes, commissionsRes,
         contractsRes, viewingRoomsRes, consignmentsRes, exhibitionsRes,
-        contactsRes, postsRes, expensesRes, activityRes
+        contactsRes, postsRes, expensesRes, activityRes, oppsRes
       ] = await Promise.all([
         supabase.from("profiles").select("id, name, email, plan, avatar_url, initials, is_admin, created_at, subscription_status"),
         supabase.from("artworks").select("id, user_id, status, created_at", { count: "exact", head: false }),
@@ -127,6 +143,7 @@ export default function AdminPanel() {
         supabase.from("scheduled_posts").select("id", { count: "exact", head: true }),
         supabase.from("expenses").select("id, amount"),
         supabase.from("activity_log").select("id, user_id, action, details, created_at").order("created_at", { ascending: false }).limit(20),
+        supabase.from("opportunities").select("*").order("deadline", { ascending: true }),
       ])
 
       const profiles = profilesRes.data || []
@@ -189,6 +206,7 @@ export default function AdminPanel() {
         userName: profileMap[a.user_id]?.name || "Unknown",
         userInitials: profileMap[a.user_id]?.initials || "?",
       })))
+      setOpportunities(oppsRes.data || [])
     } catch (err) {
       console.error("[Admin] fetch error:", err)
       setFetchError(true)
@@ -684,6 +702,218 @@ export default function AdminPanel() {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* ── OPPORTUNITIES ── */}
+          {tab === "Opportunities" && (
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <p className="text-sm" style={{ color: "#A89F94" }}>
+                  {opportunities.filter(o => o.is_active).length} active opportunities
+                </p>
+                <button onClick={() => { setOppForm(defaultOpp); setOppModal({ open: true, editing: null }) }}
+                  className="btn-copper flex items-center gap-2 text-xs px-4 py-2">
+                  <Plus size={14} /> Add Opportunity
+                </button>
+              </div>
+
+              <div className="card overflow-x-auto">
+                <table className="w-full text-sm" style={{ minWidth: 800 }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid #F2EDE6" }}>
+                      {["Title", "Org", "Type", "Amount", "Deadline", "Active", "Actions"].map(h => (
+                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold" style={{ color: "#A89F94" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {opportunities.map(opp => {
+                      const expired = opp.deadline && new Date(opp.deadline) < new Date()
+                      return (
+                        <tr key={opp.id} style={{ borderBottom: "1px solid #F2EDE6", opacity: expired ? 0.5 : 1 }}
+                          className="hover:bg-[#FAF8F5] transition-colors">
+                          <td className="px-4 py-3">
+                            <span className="font-medium text-xs" style={{ color: "#0E0C0A" }}>{opp.title}</span>
+                          </td>
+                          <td className="px-4 py-3 text-xs" style={{ color: "#A89F94" }}>{opp.organization}</td>
+                          <td className="px-4 py-3">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase"
+                              style={{ background: "#F2EDE6", color: "#A89F94" }}>
+                              {opp.opportunity_type?.replace("_", " ")}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs font-mono" style={{ color: "#B5651D" }}>
+                            {opp.amount_max ? `$${opp.amount_max.toLocaleString()}` : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-xs" style={{ color: expired ? "#C4705A" : "#A89F94" }}>
+                            {opp.deadline ? new Date(opp.deadline).toLocaleDateString() : "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button onClick={async () => {
+                              await supabase.from("opportunities").update({ is_active: !opp.is_active }).eq("id", opp.id)
+                              setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, is_active: !opp.is_active } : o))
+                            }}
+                              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                              style={{ background: opp.is_active ? "#E8F2EA" : "#F2EDE6", color: opp.is_active ? "#2D4A35" : "#A89F94" }}>
+                              {opp.is_active ? "Active" : "Inactive"}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => {
+                                setOppForm({ ...opp, amount_min: opp.amount_min || "", amount_max: opp.amount_max || "", application_fee: opp.application_fee || 0, mediums: opp.mediums || [] })
+                                setOppModal({ open: true, editing: opp.id })
+                              }} className="p-1 rounded hover:bg-gray-100"><Edit2 size={13} style={{ color: "#A89F94" }} /></button>
+                              <button onClick={async () => {
+                                if (!confirm("Delete this opportunity?")) return
+                                await supabase.from("opportunities").delete().eq("id", opp.id)
+                                setOpportunities(prev => prev.filter(o => o.id !== opp.id))
+                                toast.success("Opportunity deleted")
+                              }} className="p-1 rounded hover:bg-gray-100"><Trash2 size={13} style={{ color: "#C4705A" }} /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+                {opportunities.length === 0 && (
+                  <p className="text-sm text-center py-8" style={{ color: "#A89F94" }}>No opportunities yet. Add your first one above.</p>
+                )}
+              </div>
+
+              {/* Add/Edit Opportunity Modal */}
+              {oppModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+                  <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6" style={{ border: "1px solid #E8E2DA" }}>
+                    <h2 className="text-lg font-serif font-semibold mb-4" style={{ color: "#0E0C0A" }}>
+                      {oppModal.editing ? "Edit Opportunity" : "Add Opportunity"}
+                    </h2>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="form-label">Title *</label>
+                          <input className="form-input w-full" value={oppForm.title} onChange={e => setOppForm(f => ({ ...f, title: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="form-label">Organization *</label>
+                          <input className="form-input w-full" value={oppForm.organization} onChange={e => setOppForm(f => ({ ...f, organization: e.target.value }))} />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="form-label">Type</label>
+                          <select className="form-select w-full" value={oppForm.opportunity_type} onChange={e => setOppForm(f => ({ ...f, opportunity_type: e.target.value }))}>
+                            {OPP_TYPES.map(t => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="form-label">Career Stage</label>
+                          <select className="form-select w-full" value={oppForm.career_stage} onChange={e => setOppForm(f => ({ ...f, career_stage: e.target.value }))}>
+                            {CAREER_STAGES.map(s => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="form-label">Location Scope</label>
+                          <select className="form-select w-full" value={oppForm.location_scope} onChange={e => setOppForm(f => ({ ...f, location_scope: e.target.value }))}>
+                            {LOCATION_SCOPES.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="form-label">Description</label>
+                        <textarea className="form-input w-full" rows={3} value={oppForm.description} onChange={e => setOppForm(f => ({ ...f, description: e.target.value }))} />
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="form-label">Amount Min ($)</label>
+                          <input type="number" className="form-input w-full" value={oppForm.amount_min} onChange={e => setOppForm(f => ({ ...f, amount_min: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="form-label">Amount Max ($)</label>
+                          <input type="number" className="form-input w-full" value={oppForm.amount_max} onChange={e => setOppForm(f => ({ ...f, amount_max: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="form-label">Deadline</label>
+                          <input type="date" className="form-input w-full" value={oppForm.deadline} onChange={e => setOppForm(f => ({ ...f, deadline: e.target.value }))} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="form-label">Source URL *</label>
+                        <input className="form-input w-full" placeholder="https://..." value={oppForm.url} onChange={e => setOppForm(f => ({ ...f, url: e.target.value }))} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="form-label">Location Detail</label>
+                          <input className="form-input w-full" placeholder="e.g. New York, Louisiana" value={oppForm.location_detail} onChange={e => setOppForm(f => ({ ...f, location_detail: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="form-label">Application Fee ($)</label>
+                          <input type="number" className="form-input w-full" value={oppForm.application_fee} onChange={e => setOppForm(f => ({ ...f, application_fee: parseInt(e.target.value) || 0 }))} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="form-label">Eligibility Notes</label>
+                        <textarea className="form-input w-full" rows={2} value={oppForm.eligibility_notes} onChange={e => setOppForm(f => ({ ...f, eligibility_notes: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="form-label">Mediums</label>
+                        <div className="flex flex-wrap gap-2">
+                          {MEDIUMS.map(m => (
+                            <button key={m} type="button" onClick={() => {
+                              setOppForm(f => ({
+                                ...f,
+                                mediums: f.mediums.includes(m) ? f.mediums.filter(x => x !== m) : [...f.mediums, m]
+                              }))
+                            }}
+                              className="text-[10px] px-2.5 py-1 rounded-full font-medium transition-colors"
+                              style={{
+                                background: oppForm.mediums.includes(m) ? "#B5651D" : "#F2EDE6",
+                                color: oppForm.mediums.includes(m) ? "white" : "#A89F94",
+                              }}>
+                              {m.replace("_", " ")}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 pt-2">
+                        <button onClick={async () => {
+                          if (!oppForm.title || !oppForm.url) { toast.error("Title and URL are required"); return }
+                          setSavingOpp(true)
+                          try {
+                            const payload = {
+                              ...oppForm,
+                              amount_min: oppForm.amount_min ? parseInt(oppForm.amount_min) : null,
+                              amount_max: oppForm.amount_max ? parseInt(oppForm.amount_max) : null,
+                              deadline: oppForm.deadline || null,
+                            }
+                            if (oppModal.editing) {
+                              const { error } = await supabase.from("opportunities").update(payload).eq("id", oppModal.editing)
+                              if (error) throw error
+                              setOpportunities(prev => prev.map(o => o.id === oppModal.editing ? { ...o, ...payload } : o))
+                              toast.success("Opportunity updated")
+                            } else {
+                              const { data, error } = await supabase.from("opportunities").insert(payload).select().single()
+                              if (error) throw error
+                              setOpportunities(prev => [...prev, data].sort((a, b) => new Date(a.deadline || "2999") - new Date(b.deadline || "2999")))
+                              toast.success("Opportunity added!")
+                            }
+                            setOppModal({ open: false, editing: null })
+                          } catch (err) {
+                            console.error(err)
+                            toast.error("Failed to save opportunity")
+                          } finally { setSavingOpp(false) }
+                        }} disabled={savingOpp} className="btn-copper flex items-center gap-2 text-sm px-5 py-2.5">
+                          {savingOpp ? <Loader2 size={14} className="animate-spin" /> : <Award size={14} />}
+                          {oppModal.editing ? "Update" : "Add Opportunity"}
+                        </button>
+                        <button onClick={() => setOppModal({ open: false, editing: null })} className="btn-secondary text-sm px-4 py-2.5">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
