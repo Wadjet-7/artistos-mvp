@@ -1,20 +1,26 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, Link } from "react-router-dom"
 import { supabase } from "../lib/supabase"
-import { MapPin, ArrowLeft, Loader2, Share2, Mail } from "lucide-react"
+import { useAuth } from "../context/AuthContext"
+import { canAccess, normalizePlan } from "../lib/plans"
+import { MapPin, ArrowLeft, Loader2, Share2, Mail, History, Layers } from "lucide-react"
 import paintAbstract from "../utils/paintAbstract"
 import toast from "react-hot-toast"
+import ProvenanceTimeline from "../components/ProvenanceTimeline"
+import EditionsGrid from "../components/EditionsGrid"
 
 /* ------------------------------------------------------------------ */
 /*  Public artwork detail page                                         */
 /* ------------------------------------------------------------------ */
 export default function ArtworkDetail() {
   const { id } = useParams()
+  const { user } = useAuth()
   const [artwork, setArtwork] = useState(null)
   const [artist, setArtist] = useState(null)
   const [otherWorks, setOtherWorks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [detailTab, setDetailTab] = useState("details")
   const canvasRef = useRef(null)
 
   useEffect(() => {
@@ -218,6 +224,36 @@ export default function ArtworkDetail() {
             )}
           </div>
         </div>
+
+        {/* Studio features: Provenance & Editions (owner only) */}
+        {user && artwork && user.id === artwork.user_id && canAccess(normalizePlan(user.plan), "provenance") && (
+          <div className="mt-10">
+            <div className="flex items-center gap-1 p-1 rounded-lg mb-5" style={{ background: "#F2EDE6" }}>
+              {[
+                { key: "provenance", label: "Provenance", icon: History },
+                ...(artwork.is_edition ? [{ key: "editions", label: "Editions", icon: Layers }] : []),
+              ].map(t => (
+                <button key={t.key} onClick={() => setDetailTab(t.key)}
+                  className="flex-1 text-center py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
+                  style={{
+                    background: detailTab === t.key ? "white" : "transparent",
+                    color: detailTab === t.key ? "#0E0C0A" : "#A89F94",
+                    boxShadow: detailTab === t.key ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                  }}>
+                  <t.icon size={14} /> {t.label}
+                </button>
+              ))}
+            </div>
+
+            {detailTab === "provenance" && (
+              <ProvenanceTimeline artworkId={artwork.id} userId={user.id} canEdit={true} />
+            )}
+
+            {detailTab === "editions" && artwork.is_edition && (
+              <EditionsGrid artworkId={artwork.id} userId={user.id} editionSize={artwork.edition_size} canEdit={true} />
+            )}
+          </div>
+        )}
 
         {/* Other works by this artist */}
         {otherWorks.length > 0 && (

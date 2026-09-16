@@ -4,9 +4,11 @@ import { supabase, logActivity } from "../lib/supabase"
 import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import toast from "react-hot-toast"
-import { Package, Plus, Trash2, Edit2, Loader2, ArrowLeftRight, Calendar, Percent } from "lucide-react"
+import { Package, Plus, Trash2, Edit2, Loader2, ArrowLeftRight, Calendar, Percent, MapPin } from "lucide-react"
 import PageError from "../components/PageError"
 import { FeatureGate } from "../components/UpgradePrompt"
+import { canAccess, normalizePlan } from "../lib/plans"
+import ConsignmentMap from "../components/ConsignmentMap"
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -58,6 +60,8 @@ function ConsignmentsContent() {
   const [filter, setFilter] = useState("all")
   const [confirmTarget, setConfirmTarget] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [view, setView] = useState("list")
+  const hasMap = canAccess(normalizePlan(user?.plan), "consignmentMap")
   const [fetchError, setFetchError] = useState(false)
 
   const fetchData = useCallback(async () => {
@@ -177,10 +181,32 @@ function ConsignmentsContent() {
           <h2 className="text-lg font-semibold" style={{ color: "#0E0C0A" }}>Consignment Tracker</h2>
           <p className="text-xs mt-1" style={{ color: "#A89F94" }}>Track artworks placed with galleries and dealers</p>
         </div>
-        <button onClick={openCreate} className="btn-copper flex items-center gap-2" style={{ fontSize: 13, padding: "8px 16px" }}>
-          <Plus size={15} /> New Consignment
-        </button>
+        <div className="flex items-center gap-2">
+          {hasMap && (
+            <div className="flex items-center gap-1 p-0.5 rounded-lg" style={{ background: "#F2EDE6" }}>
+              <button onClick={() => setView("list")} className="text-xs font-medium px-3 py-1.5 rounded-md transition-colors"
+                style={{ background: view === "list" ? "white" : "transparent", color: view === "list" ? "#0E0C0A" : "#A89F94" }}>
+                List
+              </button>
+              <button onClick={() => setView("map")} className="text-xs font-medium px-3 py-1.5 rounded-md transition-colors flex items-center gap-1"
+                style={{ background: view === "map" ? "white" : "transparent", color: view === "map" ? "#0E0C0A" : "#A89F94" }}>
+                <MapPin size={12} /> Where is Everything
+              </button>
+            </div>
+          )}
+          <button onClick={openCreate} className="btn-copper flex items-center gap-2" style={{ fontSize: 13, padding: "8px 16px" }}>
+            <Plus size={15} /> New Consignment
+          </button>
+        </div>
       </div>
+
+      {/* Consignment Map View */}
+      {view === "map" && hasMap && (
+        <ConsignmentMap userId={user.id} />
+      )}
+
+      {/* Stats (list view) */}
+      {view === "list" && (<>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -277,6 +303,8 @@ function ConsignmentsContent() {
           ))}
         </div>
       )}
+
+      </>)}
 
       {/* Create / Edit Modal */}
       <Modal open={modalOpen} onClose={closeModal} title={editingId ? "Edit Consignment" : "New Consignment"} wide>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Plus, Trash2, Upload, Loader2, Award, BookOpen, QrCode, Sparkles, DollarSign } from "lucide-react"
+import { Plus, Trash2, Upload, Loader2, Award, BookOpen, QrCode, Sparkles, DollarSign, FileText } from "lucide-react"
 import toast from "react-hot-toast"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
@@ -7,6 +7,7 @@ import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import CertificateModal from "../components/CertificateModal"
 import CatalogModal from "../components/CatalogModal"
+import { generateAppraisalPDF } from "../components/AppraisalReport"
 import QRCodeModal from "../components/QRCodeModal"
 import paintAbstract from "../utils/paintAbstract"
 import PageError from "../components/PageError"
@@ -299,6 +300,11 @@ export default function Portfolio() {
               <BookOpen size={15} /> Export Catalog
             </button>
           )}
+          {artworkList.length > 0 && canAccess(normalizePlan(user?.plan), "appraisal") && (
+            <button className="btn-secondary flex items-center gap-2" onClick={() => generateAppraisalPDF(user, artworkList)}>
+              <FileText size={15} /> Appraisal Report
+            </button>
+          )}
           <button className="btn-primary" onClick={() => setModalOpen(true)}>
             <Plus size={16} /> Add Artwork
           </button>
@@ -536,6 +542,35 @@ export default function Portfolio() {
               <option>Reserved</option>
             </select>
           </div>
+
+          {/* Studio: Appraisal fields */}
+          {canAccess(normalizePlan(user?.plan), "appraisal") && (
+            <div className="rounded-xl p-4 space-y-3" style={{ background: "#F0F5F1", border: "1px solid #B8D4BE" }}>
+              <p className="text-xs font-semibold flex items-center gap-1.5" style={{ color: "#2D4A35" }}>
+                <Award size={12} /> Appraisal & Insurance
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="form-label">Appraised Value ($)</label>
+                  <input className="form-input" type="number" placeholder="5,000"
+                    value={form.appraised_value || ""}
+                    onChange={e => setForm({ ...form, appraised_value: e.target.value })} />
+                </div>
+                <div>
+                  <label className="form-label">Appraisal Date</label>
+                  <input className="form-input" type="date"
+                    value={form.appraisal_date || ""}
+                    onChange={e => setForm({ ...form, appraisal_date: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <label className="form-label">Appraisal Notes</label>
+                <input className="form-input" placeholder="Appraiser name, method, etc."
+                  value={form.appraisal_notes || ""}
+                  onChange={e => setForm({ ...form, appraisal_notes: e.target.value })} />
+              </div>
+            </div>
+          )}
 
           {/* Upload zone */}
           <div>
