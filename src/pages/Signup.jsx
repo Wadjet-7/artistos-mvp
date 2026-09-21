@@ -94,6 +94,15 @@ export default function Signup() {
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com"
                   className="form-input pl-10" />
               </div>
+              {email.toLowerCase().endsWith(".edu") ? (
+                <p className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color: "#2D4A35" }}>
+                  🎓 Student discount unlocked — 50% off Pro!
+                </p>
+              ) : (
+                <p className="text-xs mt-1.5" style={{ color: "#A89F94" }}>
+                  Students get 50% off Pro with a .edu email
+                </p>
+              )}
             </div>
             <div>
               <label className="form-label">Password</label>

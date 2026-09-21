@@ -280,6 +280,11 @@ export default function Landing() {
                 {plan.sub && (
                   <p className="text-xs mb-1" style={{ color: plan.highlight ? "rgba(255,255,255,0.4)" : "#A89F94" }}>{plan.sub}</p>
                 )}
+                {plan.highlight && (
+                  <p className="text-xs mb-1 flex items-center gap-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+                    🎓 50% off for students with .edu email
+                  </p>
+                )}
                 <div className="mb-6" />
                 <Link
                   to={user
