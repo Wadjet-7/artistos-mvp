@@ -140,6 +140,8 @@ export function getPaymentLink(planId, userEmail, interval = "monthly") {
   }
   const link = links[planId]
   if (!link) return null
-  const separator = link.includes("?") ? "&" : "?"
-  return userEmail ? `${link}${separator}prefilled_email=${encodeURIComponent(userEmail)}` : link
+  let url = link
+  const separator = url.includes("?") ? "&" : "?"
+  if (userEmail) url += `${separator}prefilled_email=${encodeURIComponent(userEmail)}`
+  return url
 }

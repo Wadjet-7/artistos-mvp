@@ -188,6 +188,9 @@ export function getPrice(planName, interval = "monthly", user = null) {
   if (user?.legacy_pricing && user.plan?.toLowerCase() === key) {
     return LEGACY_PRICES[key] || plan.price
   }
+  if (key === "pro" && isEduEmail(user?.email)) {
+    return getStudentPrice("pro", interval)
+  }
   return interval === "annual" ? plan.priceAnnual : plan.price
 }
 
@@ -205,4 +208,16 @@ export function getPaymentLinkFor(planName, interval = "monthly") {
 
 export function isLegacyPricing(user) {
   return !!user?.legacy_pricing
+}
+
+export function isEduEmail(email) {
+  return !!email && email.toLowerCase().endsWith(".edu")
+}
+
+export function getStudentPrice(planName, interval = "monthly") {
+  const plan = PLANS[planName?.toLowerCase()]
+  if (!plan || plan.price === 0) return 0
+  if (planName.toLowerCase() !== "pro") return interval === "annual" ? plan.priceAnnual : plan.price
+  const full = interval === "annual" ? plan.priceAnnual : plan.price
+  return Math.round(full / 2)
 }

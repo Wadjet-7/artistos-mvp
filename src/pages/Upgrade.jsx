@@ -1,9 +1,9 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
-import { PLANS, normalizePlan, getPrice, getAnnualSavings, isLegacyPricing } from "../lib/plans"
+import { PLANS, normalizePlan, getPrice, getAnnualSavings, isLegacyPricing, isEduEmail } from "../lib/plans"
 import { redirectToCheckout, isStripeConfigured, getPaymentLink } from "../lib/stripe"
-import { Check, Sparkles, Crown, Zap, ArrowLeft, Loader2 } from "lucide-react"
+import { Check, Sparkles, Crown, Zap, ArrowLeft, Loader2, GraduationCap } from "lucide-react"
 import toast from "react-hot-toast"
 
 const planIcons = { starter: Zap, pro: Sparkles, studio: Crown }
@@ -52,15 +52,19 @@ export default function Upgrade() {
     toast.error("Payments are being set up. Please check back shortly!")
   }
 
+  const isStudent = isEduEmail(user?.email)
+
   const displayPrice = (planKey) => {
     const plan = PLANS[planKey]
-    if (plan.price === 0) return { main: "Free", sub: null }
+    if (plan.price === 0) return { main: "Free", sub: null, original: null }
     const price = getPrice(planKey, interval, user)
+    const fullPrice = interval === "annual" ? plan.priceAnnual : plan.price
+    const isDiscounted = isStudent && planKey === "pro" && price < fullPrice
     if (interval === "annual") {
       const monthly = Math.round(price / 12)
-      return { main: `$${price}`, sub: `$${monthly}/mo billed annually` }
+      return { main: `$${price}`, sub: `$${monthly}/mo billed annually`, original: isDiscounted ? `$${fullPrice}` : null }
     }
-    return { main: `$${price}`, sub: null }
+    return { main: `$${price}`, sub: null, original: isDiscounted ? `$${fullPrice}` : null }
   }
 
   return (
@@ -87,6 +91,17 @@ export default function Upgrade() {
           <Sparkles size={18} style={{ color: "#2D4A35" }} />
           <p className="text-sm" style={{ color: "#2D4A35" }}>
             You're on founding pricing — <strong>${user.legacy_plan_price}/mo</strong>, locked in for as long as you stay subscribed. New prices don't apply to you.
+          </p>
+        </div>
+      )}
+
+      {/* Student pricing banner */}
+      {isEduEmail(user?.email) && !isLegacyPricing(user) && (
+        <div className="rounded-xl p-4 mb-6 flex items-center gap-3"
+          style={{ background: "#FBF2DC", border: "1px solid #E8D5C0" }}>
+          <GraduationCap size={18} style={{ color: "#8A6A1A" }} />
+          <p className="text-sm" style={{ color: "#8A6A1A" }}>
+            Student pricing detected — <strong>50% off Pro</strong> with your .edu email. Applied automatically at checkout.
           </p>
         </div>
       )}
@@ -126,7 +141,7 @@ export default function Upgrade() {
           const Icon = planIcons[key]
           const isUpgrade = !isCurrent && key !== "starter"
           const isDowngrade = key === "starter" && currentPlan !== "starter"
-          const { main, sub } = displayPrice(key)
+          const { main, sub, original } = displayPrice(key)
 
           return (
             <div key={key}
@@ -162,7 +177,10 @@ export default function Upgrade() {
               </div>
 
               <div className="mb-1">
-                <span className="text-3xl font-serif font-bold" style={{ color: "#0E0C0A" }}>
+                {original && (
+                  <span className="text-lg font-serif line-through mr-2" style={{ color: "#A89F94" }}>{original}</span>
+                )}
+                <span className="text-3xl font-serif font-bold" style={{ color: original ? "#2D4A35" : "#0E0C0A" }}>
                   {main}
                 </span>
                 {plan.price > 0 && interval === "monthly" && (
