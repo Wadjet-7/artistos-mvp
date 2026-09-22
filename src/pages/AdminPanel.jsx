@@ -131,7 +131,7 @@ export default function AdminPanel() {
         contractsRes, viewingRoomsRes, consignmentsRes, exhibitionsRes,
         contactsRes, postsRes, expensesRes, activityRes, oppsRes
       ] = await Promise.all([
-        supabase.from("profiles").select("id, name, email, plan, avatar_url, initials, is_admin, created_at, subscription_status"),
+        supabase.from("profiles").select("id, name, email, plan, avatar_url, initials, is_admin, is_demo, created_at, subscription_status"),
         supabase.from("artworks").select("id, user_id, status, created_at", { count: "exact", head: false }),
         supabase.from("invoices").select("id, amount, status, created_at"),
         supabase.from("commissions").select("id, status, created_at", { count: "exact", head: false }),
@@ -634,6 +634,16 @@ export default function AdminPanel() {
                                 className="text-[10px] px-2 py-1 rounded font-medium transition-colors"
                                 style={{ background: u.is_admin ? "#F5E2DC" : "#F2EDE6", color: u.is_admin ? "#C4705A" : "#A89F94", opacity: u.id === user.id ? 0.4 : 1 }}>
                                 {u.is_admin ? "Remove Admin" : "Make Admin"}
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  await supabase.from("profiles").update({ is_demo: !u.is_demo }).eq("id", u.id)
+                                  setUsers(prev => prev.map(x => x.id === u.id ? { ...x, is_demo: !u.is_demo } : x))
+                                  toast.success(u.is_demo ? "Account visible to public" : "Account hidden (demo)")
+                                }}
+                                className="text-[10px] px-2 py-1 rounded font-medium transition-colors"
+                                style={{ background: u.is_demo ? "#FBF2DC" : "#F2EDE6", color: u.is_demo ? "#8A6A1A" : "#A89F94" }}>
+                                {u.is_demo ? "Unhide" : "Hide"}
                               </button>
                             </div>
                           </td>

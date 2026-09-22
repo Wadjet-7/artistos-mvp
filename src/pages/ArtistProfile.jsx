@@ -70,11 +70,11 @@ export default function ArtistProfile() {
       try {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("id, name, bio, website, medium, style, location, avatar_url, initials, website_settings, artist_statement")
+          .select("id, name, bio, website, medium, style, location, avatar_url, initials, website_settings, artist_statement, is_demo")
           .eq("id", userId)
           .single()
 
-        if (profileError || !profile) {
+        if (profileError || !profile || profile.is_demo) {
           setError("Artist not found")
           return
         }

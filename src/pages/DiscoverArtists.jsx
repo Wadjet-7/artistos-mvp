@@ -122,9 +122,10 @@ export default function DiscoverArtists() {
         // Fetch all artists with a name
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, name, bio, medium, style, location, avatar_url, initials")
+          .select("id, name, bio, medium, style, location, avatar_url, initials, is_demo")
           .not("name", "is", null)
           .order("name")
+          .then(res => ({ ...res, data: (res.data || []).filter(p => !p.is_demo) }))
 
         setArtists(profiles || [])
 
