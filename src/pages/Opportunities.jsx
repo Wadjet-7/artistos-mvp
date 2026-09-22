@@ -153,7 +153,25 @@ function DraftModal({ open, onClose, opportunity, user }) {
     setGenerating(true)
     try {
       const selected = artworks.filter(a => selectedIds.includes(a.id))
-      const result = await draftApplication(opportunity, user, selected)
+      // Pull real CV facts so the draft never has to invent credentials.
+      const { data: cv } = await supabase
+        .from("artist_cv")
+        .select("artist_statement, solo_exhibitions, group_exhibitions, awards, residencies, education")
+        .eq("user_id", user.id)
+        .maybeSingle()
+      const line = (label) => (e) => `${label}: ${e.title}${e.venue ? " — " + e.venue : ""}${e.location ? ", " + e.location : ""}${e.year ? " (" + e.year + ")" : ""}`
+      const cv_highlights = [
+        ...(cv?.solo_exhibitions || []).map(line("Solo exhibition")),
+        ...(cv?.group_exhibitions || []).map(line("Group exhibition")),
+        ...(cv?.awards || []).map(line("Award")),
+        ...(cv?.residencies || []).map(line("Residency")),
+        ...(cv?.education || []).map(line("Education")),
+      ].slice(0, 10)
+      const result = await draftApplication(
+        opportunity,
+        { ...user, artist_statement: cv?.artist_statement || user.artist_statement || "", cv_highlights },
+        selected
+      )
       setDraft(result)
     } catch (err) {
       console.error(err)
@@ -324,22 +342,29 @@ function OpportunitiesContent() {
     }
     setRefreshing(true)
     try {
-      const artworkCount = allOpps.length
+      const [{ count: artworkCount }, { count: exhibitionCount }, { data: cv }] = await Promise.all([
+        supabase.from("artworks").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("exhibitions").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("artist_cv").select("solo_exhibitions, group_exhibitions").eq("user_id", user.id).maybeSingle(),
+      ])
+      const shows = (cv?.solo_exhibitions?.length || 0) + (cv?.group_exhibitions?.length || 0) + (exhibitionCount || 0)
+      const careerStage = shows >= 12 ? "established" : shows >= 4 ? "mid_career" : "emerging"
       const result = await refreshMatches(user.id, {
         medium: user.medium,
         style: user.style,
         location: user.location,
         bio: user.bio,
-        careerStage: "emerging",
-        artworkCount,
-        exhibitionCount: 0,
+        careerStage,
+        artworkCount: artworkCount || 0,
+        exhibitionCount: shows,
       })
       localStorage.setItem("artistos_last_matched", String(Date.now()))
       toast.success(`Found ${result.length} matching opportunities!`)
       await loadData()
     } catch (err) {
       console.error(err)
-      toast.error("Failed to refresh matches")
+      const msg = err?.context?.status === 400 ? "Matching isn't deployed yet — redeploy the ai-assistant function." : (err?.message || "Failed to refresh matches")
+      toast.error(msg)
     } finally {
       setRefreshing(false)
     }

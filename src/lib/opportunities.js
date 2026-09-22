@@ -58,27 +58,37 @@ export async function refreshMatches(userId, artist) {
   if (error) throw error
   const matches = data?.matches || []
 
-  for (const match of matches) {
+  // Keep the user's own decisions: never downgrade saved / dismissed / applied back to "new".
+  const { data: existing } = await supabase
+    .from("opportunity_matches")
+    .select("opportunity_id, status")
+    .eq("user_id", userId)
+  const keep = new Set((existing || []).filter(r => ["saved", "dismissed", "applied"].includes(r.status)).map(r => r.opportunity_id))
+
+  const rows = matches
+    .filter(m => !keep.has(m.id))
+    .map(m => ({
+      user_id: userId,
+      opportunity_id: m.id,
+      match_score: m.score,
+      match_reason: m.reason,
+      status: "new",
+    }))
+
+  if (rows.length) {
     const { error: upsertError } = await supabase
       .from("opportunity_matches")
-      .upsert(
-        {
-          user_id: userId,
-          opportunity_id: match.id,
-          match_score: match.score,
-          match_reason: match.reason,
-          status: "new",
-        },
-        {
-          onConflict: "user_id,opportunity_id",
-          ignoreDuplicates: false,
-        }
-      )
-      .not("status", "in", "(saved,dismissed,applied)")
+      .upsert(rows, { onConflict: "user_id,opportunity_id" })
+    if (upsertError) console.warn("[Opportunities] upsert warning:", upsertError)
+  }
 
-    if (upsertError && !upsertError.message?.includes("duplicate")) {
-      console.warn("[Opportunities] upsert warning:", upsertError)
-    }
+  // Re-score rows the user kept, without touching their status.
+  for (const m of matches.filter(m => keep.has(m.id))) {
+    await supabase
+      .from("opportunity_matches")
+      .update({ match_score: m.score, match_reason: m.reason })
+      .eq("user_id", userId)
+      .eq("opportunity_id", m.id)
   }
 
   return matches
