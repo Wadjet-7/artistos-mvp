@@ -165,6 +165,28 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Demo Video */}
+      <section className="py-20 px-6" style={{ background: "#FAF8F5" }}>
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-xs font-semibold uppercase tracking-[2px] mb-3" style={{ color: "#B5651D" }}>See it in action</p>
+          <h2 className="font-serif text-3xl md:text-4xl font-semibold mb-4" style={{ color: "#0E0C0A" }}>Watch the demo</h2>
+          <p className="text-lg mb-10" style={{ color: "#A89F94" }}>Everything an artist needs to manage, grow, and sell — in under 2 minutes.</p>
+          <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ border: "2px solid #E8E2DA" }}>
+            <video
+              controls
+              playsInline
+              preload="metadata"
+              poster=""
+              className="w-full"
+              style={{ background: "#0E0C0A" }}
+            >
+              <source src="/demo.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section id="features" className="py-24 px-6" style={{ background: "#FAF8F5" }}>
         <div className="max-w-6xl mx-auto">
