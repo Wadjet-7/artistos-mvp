@@ -145,6 +145,15 @@ function ConsignmentsContent() {
         toast.success("Consignment created")
         await logActivity(user.id, "consignment", `Created consignment at ${payload.gallery_name}`)
       }
+      // Keep "Where Is Everything" in sync: an active consignment moves the piece to the gallery,
+      // any other status (returned / expired / sold) sends it back to the studio.
+      if (payload.artwork_id) {
+        const atGallery = payload.status === "active"
+        await supabase.from("artworks").update({
+          current_location: atGallery ? payload.gallery_name : "Studio",
+          current_location_type: atGallery ? "gallery" : "studio",
+        }).eq("id", payload.artwork_id).eq("user_id", user.id)
+      }
       closeModal()
       fetchData()
     } catch (err) {
@@ -161,6 +170,10 @@ function ConsignmentsContent() {
     try {
       const { error } = await supabase.from("consignments").delete().eq("id", c.id)
       if (error) throw error
+      if (c.artwork_id) {
+        await supabase.from("artworks").update({ current_location: "Studio", current_location_type: "studio" })
+          .eq("id", c.artwork_id).eq("user_id", user.id)
+      }
       setConsignments(prev => prev.filter(x => x.id !== c.id))
       toast.success("Consignment deleted")
     } catch (err) {
