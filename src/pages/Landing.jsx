@@ -176,9 +176,8 @@ export default function Landing() {
               controls
               playsInline
               preload="metadata"
-              poster=""
               className="w-full"
-              style={{ background: "#0E0C0A" }}
+              style={{ background: "#0E0C0A", aspectRatio: "16 / 9" }}
             >
               <source src="/demo.mp4" type="video/mp4" />
               Your browser does not support the video tag.
@@ -192,7 +191,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div ref={featuresHeaderRef} className="scroll-reveal text-center mb-14">
             <p className="text-xs font-semibold uppercase tracking-[2px] mb-3" style={{ color: "#B5651D" }}>Three powerful modules</p>
-            <h2 className="font-serif text-4xl font-semibold" style={{ color: "#0E0C0A" }}>Everything you need, nothing you dont</h2>
+            <h2 className="font-serif text-4xl font-semibold" style={{ color: "#0E0C0A" }}>Everything you need, nothing you don’t</h2>
             <p className="mt-4 text-lg max-w-xl mx-auto" style={{ color: "#A89F94" }}>Purpose-built for artists. Not adapted from generic business software.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-7">

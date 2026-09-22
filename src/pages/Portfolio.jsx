@@ -38,6 +38,18 @@ function ArtworkCard({ artwork, onDelete, onCOA, onQR }) {
         <canvas ref={canvasRef} className="w-full h-full object-cover block" style={{ display: "block" }} />
       )}
 
+      {/* Always-visible caption strip */}
+      <div
+        className="absolute inset-x-0 bottom-0 px-4 pt-6 pb-3 pointer-events-none group-hover:opacity-0 transition-opacity duration-300"
+        style={{ background: "linear-gradient(to top, rgba(14,12,10,0.78) 0%, rgba(14,12,10,0.35) 60%, transparent 100%)" }}
+      >
+        <p className="text-white font-semibold leading-tight truncate" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17 }}>{artwork.title}</p>
+        <div className="flex items-center justify-between mt-0.5">
+          <span className="text-white/85 text-xs">{artwork.status === "Sold" ? "Sold" : `$${(artwork.price || 0).toLocaleString()}`}</span>
+          <span className="text-white/60 text-xs">{artwork.dimensions}</span>
+        </div>
+      </div>
+
       {/* Hover overlay */}
       <div
         className="absolute inset-0 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
