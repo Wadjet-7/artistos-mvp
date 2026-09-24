@@ -4,6 +4,7 @@ import { BarChart3, Briefcase, ArrowRight, CheckCircle2, TrendingUp, DollarSign,
 import { useScrollReveal, useStaggerReveal } from "../hooks/useScrollReveal"
 import { useAuth } from "../context/AuthContext"
 import { PLANS } from "../lib/plans"
+import { useSEO } from "../lib/seo"
 
 /* ---- Animated Counter (counts from 0 to target on scroll) ---- */
 function AnimatedCounter({ end, duration = 2000, prefix = "", suffix = "", decimals = 0 }) {
@@ -51,7 +52,7 @@ const features = [
 const steps = [
   { step: "01", title: "Create your artist profile", desc: "Upload your portfolio, set your mediums and styles, and define your commission preferences in minutes." },
   { step: "02", title: "Discover market insights", desc: "See how your work compares to the market. Identify pricing opportunities and trending styles collectors are seeking." },
-  { step: "03", title: "Land commissions & get paid", desc: "Receive matched commission requests, generate contracts, and get paid securely with milestone billing." },
+  { step: "03", title: "Contract, invoice & get paid", desc: "Generate commission contracts, send invoices collectors can pay online, and track deposits and balances for every piece." },
 ]
 
 const whyArtistOS = [
@@ -79,6 +80,11 @@ function getPricing(interval) {
 
 export default function Landing() {
   const { user } = useAuth()
+  useSEO({
+    title: "ArtistOS — Art Business Software for Working Artists",
+    description: "Art business software for working artists: inventory, AI pricing and descriptions, contracts, invoices collectors pay online, and a grant finder. Free to start.",
+    path: "/",
+  })
   const [pricingInterval, setPricingInterval] = useState("annual")
   const pricing = getPricing(pricingInterval)
 
@@ -105,9 +111,10 @@ export default function Landing() {
             <span className="font-serif text-xl font-semibold" style={{ color: "#0E0C0A" }}>ArtistOS</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium" style={{ color: "#A89F94" }}>
-            <a href="#features" className="hover:text-ink transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-ink transition-colors">How it works</a>
-            <a href="#pricing" className="hover:text-ink transition-colors">Pricing</a>
+            <a href="/features" className="hover:text-ink transition-colors">Features</a>
+            <a href="/pricing" className="hover:text-ink transition-colors">Pricing</a>
+            <a href="/guides" className="hover:text-ink transition-colors">Guides</a>
+            <a href="/faq" className="hover:text-ink transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
             {user ? (
@@ -135,7 +142,7 @@ export default function Landing() {
             Run your art practice<br /><span style={{ color: "#D4854A", fontStyle: "italic" }}>like a business.</span>
           </h1>
           <p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
-            ArtistOS gives emerging and mid-career artists the tools, data, and marketplace connections they need to grow - all in one platform built for creative professionals.
+            ArtistOS is business software for working artists: track your art inventory, price work with AI, send contracts and invoices collectors pay online, and find grants you qualify for, all in one place.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to={user ? "/dashboard" : "/signup"} className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
@@ -355,9 +362,16 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
             <span className="font-serif font-semibold text-white">ArtistOS</span>
-            <span className="text-sm ml-2" style={{ color: "rgba(255,255,255,0.25)" }}>&copy; 2025 ArtistOS. All rights reserved.</span>
+            <span className="text-sm ml-2" style={{ color: "rgba(255,255,255,0.25)" }}>&copy; {new Date().getFullYear()} ArtistOS. Made in New Orleans.</span>
           </div>
-          <div className="flex gap-8 text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <a href="/features" className="hover:text-white transition-colors">Features</a>
+            <a href="/pricing" className="hover:text-white transition-colors">Pricing</a>
+            <a href="/guides" className="hover:text-white transition-colors">Guides</a>
+            <a href="/how-to-price-artwork" className="hover:text-white transition-colors">How to price art</a>
+            <a href="/artist-grants-louisiana" className="hover:text-white transition-colors">Louisiana artist grants</a>
+            <a href="/about" className="hover:text-white transition-colors">About</a>
+            <Link to="/artists" className="hover:text-white transition-colors">Artists</Link>
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
             <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
             <a href="mailto:larry@synergysourceadvisors.com" className="hover:text-white transition-colors">Contact</a>

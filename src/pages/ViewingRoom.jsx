@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, Link } from "react-router-dom"
 import { supabase } from "../lib/supabase"
+import { useSEO } from "../lib/seo"
 import { Loader2, Image, ArrowRight, MapPin, Palette } from "lucide-react"
 import paintAbstract from "../utils/paintAbstract"
 
@@ -49,6 +50,7 @@ function GalleryCard({ artwork }) {
 /* ------------------------------------------------------------------ */
 export default function ViewingRoom() {
   const { slug } = useParams()
+  useSEO({ title: "Private viewing room — ArtistOS", path: null, noindex: true })
   const [room, setRoom] = useState(null)
   const [artist, setArtist] = useState(null)
   const [artworks, setArtworks] = useState([])

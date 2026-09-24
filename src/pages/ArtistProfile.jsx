@@ -5,6 +5,7 @@ import { MapPin, Globe, Palette, Loader2, ArrowRight, Image, ScrollText, Share2 
 import paintAbstract from "../utils/paintAbstract"
 import CommissionRequestForm from "../components/CommissionRequestForm"
 import { buildThemeStyle, DEFAULT_WEBSITE_SETTINGS } from "../lib/themes"
+import { applySEO } from "../lib/seo"
 
 /* ------------------------------------------------------------------ */
 /*  Artwork card — procedural canvas or real image                     */
@@ -75,17 +76,18 @@ export default function ArtistProfile() {
           .single()
 
         if (profileError || !profile || profile.is_demo) {
+          applySEO({ title: "Artist not found — ArtistOS", path: null, noindex: true })
           setError("Artist not found")
           return
         }
         setArtist(profile)
 
-        // Dynamic SEO: update page title and meta description
-        document.title = `${profile.name} — Artist Portfolio | ArtistOS`
-        const metaDesc = document.querySelector('meta[name="description"]')
-        if (metaDesc) {
-          metaDesc.setAttribute("content", `View ${profile.name}'s art portfolio on ArtistOS. ${profile.medium || "Mixed media"} artist${profile.location ? ` based in ${profile.location}` : ""}. ${profile.bio?.slice(0, 100) || "Browse available works and request commissions."}`)
-        }
+        // Dynamic SEO: title, description and canonical for this artist
+        applySEO({
+          title: `${profile.name}${profile.medium ? ` — ${profile.medium}` : " — Artist"}${profile.location ? `, ${profile.location}` : ""} | ArtistOS`,
+          description: `${profile.name} is ${profile.medium ? `a ${profile.medium.toLowerCase()} artist` : "an artist"}${profile.location ? ` based in ${profile.location}` : ""}. ${profile.bio ? profile.bio.slice(0, 160) : "View available works, CV and commission information on ArtistOS."}`,
+          path: `/artist/${profile.id}`,
+        })
 
         const { data: works } = await supabase
           .from("artworks")

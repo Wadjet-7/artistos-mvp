@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, Link } from "react-router-dom"
 import { supabase } from "../lib/supabase"
+import { applySEO } from "../lib/seo"
 import { useAuth } from "../context/AuthContext"
 import { canAccess, normalizePlan } from "../lib/plans"
 import { MapPin, ArrowLeft, Loader2, Share2, Mail, History, Layers } from "lucide-react"
@@ -47,6 +48,12 @@ export default function ArtworkDetail() {
           .single()
 
         if (profile) setArtist(profile)
+        applySEO({
+          title: `${art.title}${profile?.name ? ` by ${profile.name}` : ""} | ArtistOS`,
+          description: [art.title, art.medium, art.dimensions, profile?.name ? `by ${profile.name}` : "", art.description].filter(Boolean).join(" · ").slice(0, 300),
+          path: `/artwork/${art.id}`,
+          image: art.image_url || undefined,
+        })
 
         // Fetch other works by same artist (excluding current)
         const { data: others } = await supabase

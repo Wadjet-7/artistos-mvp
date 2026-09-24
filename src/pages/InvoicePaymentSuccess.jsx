@@ -1,9 +1,11 @@
 import { CheckCircle } from "lucide-react"
+import { useSEO } from "../lib/seo"
 
 /* ------------------------------------------------------------------ */
 /*  Public page — shown to clients after successful invoice payment   */
 /* ------------------------------------------------------------------ */
 export default function InvoicePaymentSuccess() {
+  useSEO({ title: "Payment received — ArtistOS", path: null, noindex: true })
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "#FAF8F5" }}>
       <div className="w-full max-w-md text-center">

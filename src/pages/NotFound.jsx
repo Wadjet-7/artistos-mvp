@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom"
+import { useSEO } from "../lib/seo"
 
 export default function NotFound() {
+  useSEO({ title: "Page not found — ArtistOS", path: null, noindex: true })
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "#FAF8F5" }}>
       <div className="text-center">

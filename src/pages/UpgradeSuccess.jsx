@@ -2,12 +2,14 @@ import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { CheckCircle, ArrowRight, Loader2 } from "lucide-react"
+import { useSEO } from "../lib/seo"
 
 /* ================================================================ */
 /*  Upgrade Success — Shown after Stripe checkout completion        */
 /* ================================================================ */
 
 export default function UpgradeSuccess() {
+  useSEO({ title: "Welcome to your new plan — ArtistOS", path: null, noindex: true })
   const navigate = useNavigate()
   const { refreshProfile, user } = useAuth()
   const [searchParams] = useSearchParams()

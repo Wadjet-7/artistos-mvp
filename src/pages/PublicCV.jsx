@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { supabase } from "../lib/supabase"
+import { applySEO } from "../lib/seo"
 import { ArrowLeft, Loader2, MapPin, Globe, Download } from "lucide-react"
 
 /* ------------------------------------------------------------------ */
@@ -40,6 +41,11 @@ export default function PublicCV() {
           return
         }
         setArtist(profileRes.data)
+        applySEO({
+          title: `${profileRes.data.name} — Artist CV | ArtistOS`,
+          description: `Artist CV for ${profileRes.data.name}${profileRes.data.location ? `, ${profileRes.data.location}` : ""}: exhibitions, education, awards, residencies and collections.`,
+          path: `/artist/${profileRes.data.id}/cv`,
+        })
 
         if (cvRes.data) setCv(cvRes.data)
         else setError("No CV available for this artist")
