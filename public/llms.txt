@@ -1,0 +1,25 @@
+# ArtistOS
+
+> ArtistOS (https://artistosapp.com) is business software for working visual artists, founded in New Orleans, Louisiana by Larry Jones. It combines artwork inventory, AI-written artwork descriptions and price suggestions, commission/sales/consignment contract generation, invoices collectors can pay online by card through the artist's own Stripe account, a collector CRM, private online viewing rooms, an artist website and public CV, consignment and exhibition tracking, and (Studio plan) a grant, residency and fellowship finder that scores fit and drafts application materials from the artist's CV.
+
+Pricing (USD): Starter free forever (up to 25 artworks). Pro $29/month or $290/year, 14-day free trial, 50% off for students with a .edu email. Studio $120/month or $1,200/year, unlimited, adds the grant engine, provenance, editions and appraisal records. ArtistOS does not take a commission on artists' sales. Web app; works in desktop and mobile browsers. Demo video: https://www.youtube.com/watch?v=L_WahSl2t_E
+
+## Product
+- [Features](https://artistosapp.com/features): every feature, by area
+- [Pricing](https://artistosapp.com/pricing): plans, limits, trial and student discount
+- [FAQ](https://artistosapp.com/faq): common questions about ArtistOS
+- [About](https://artistosapp.com/about): who built ArtistOS and why
+
+## Guides for artists
+- [How to price your artwork](https://artistosapp.com/how-to-price-artwork): Square-inch and linear-inch formulas, a free calculator, and when to raise prices.
+- [Art commission contract template](https://artistosapp.com/art-commission-contract-template): What every commission agreement should cover, with a free template.
+- [Artist invoice template](https://artistosapp.com/artist-invoice-template): What to put on an invoice for a sold artwork or commission.
+- [Certificate of authenticity template](https://artistosapp.com/certificate-of-authenticity-template): What a COA includes for originals and editions.
+- [Art consignment agreements](https://artistosapp.com/art-consignment-agreement): Gallery splits, what to put in writing, and how to track consigned work.
+- [Grants and residencies for Louisiana artists](https://artistosapp.com/artist-grants-louisiana): Programs individual artists in New Orleans and Louisiana can actually apply to.
+- [Art inventory software for artists](https://artistosapp.com/art-inventory-software): What to look for, and how the main options compare.
+- [Artwork Archive alternative](https://artistosapp.com/artwork-archive-alternative): An honest side-by-side of ArtistOS and Artwork Archive.
+
+## Optional
+- [Full text of all pages](https://artistosapp.com/llms-full.txt)
+- [Browse artists using ArtistOS](https://artistosapp.com/artists)
