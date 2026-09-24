@@ -5,6 +5,7 @@ import { Bell, Search, X, Menu } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
 import CommandPalette from "./CommandPalette"
+import { applySEO } from "../lib/seo"
 
 function timeAgo(date) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
@@ -43,6 +44,7 @@ const pageTitles = {
 
 export default function Layout() {
   const location = useLocation()
+  useEffect(() => { applySEO({ path: null, noindex: true }) }, [location.pathname])
   const { user } = useAuth()
   const pageInfo = pageTitles[location.pathname] || { title: "ArtistOS", accent: "" }
   const [sidebarOpen, setSidebarOpen] = useState(false)
