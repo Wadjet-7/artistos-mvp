@@ -2,8 +2,10 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
+import { useSEO } from "../lib/seo"
 
 export default function Login() {
+  useSEO({ title: "Sign in — ArtistOS", description: "Sign in to your ArtistOS account.", path: null, noindex: true })
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)

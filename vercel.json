@@ -1,5 +1,17 @@
 {
+  "cleanUrls": true,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/sitemap-artists.xml",
+      "destination": "/api/sitemap-artists"
+    },
+    {
+      "source": "/artist/:id",
+      "destination": "/api/artist-page?id=:id"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/app"
+    }
   ]
 }

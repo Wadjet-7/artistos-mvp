@@ -2,8 +2,10 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Mail, ArrowLeft, CheckCircle2 } from "lucide-react"
 import { supabase } from "../lib/supabase"
+import { useSEO } from "../lib/seo"
 
 export default function ForgotPassword() {
+  useSEO({ title: "Reset password — ArtistOS", path: null, noindex: true })
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)

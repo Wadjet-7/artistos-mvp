@@ -1,0 +1,812 @@
+# ArtistOS
+
+> ArtistOS (https://artistosapp.com) is business software for working visual artists, founded in New Orleans, Louisiana by Larry Jones. It combines artwork inventory, AI-written artwork descriptions and price suggestions, commission/sales/consignment contract generation, invoices collectors can pay online by card through the artist's own Stripe account, a collector CRM, private online viewing rooms, an artist website and public CV, consignment and exhibition tracking, and (Studio plan) a grant, residency and fellowship finder that scores fit and drafts application materials from the artist's CV.
+
+Pricing (USD): Starter free forever (up to 25 artworks). Pro $29/month or $290/year, 14-day free trial, 50% off for students with a .edu email. Studio $120/month or $1,200/year, unlimited, adds the grant engine, provenance, editions and appraisal records. ArtistOS does not take a commission on artists' sales. Web app; works in desktop and mobile browsers. Demo video: https://www.youtube.com/watch?v=L_WahSl2t_E
+
+## Product
+- [Features](https://artistosapp.com/features): every feature, by area
+- [Pricing](https://artistosapp.com/pricing): plans, limits, trial and student discount
+- [FAQ](https://artistosapp.com/faq): common questions about ArtistOS
+- [About](https://artistosapp.com/about): who built ArtistOS and why
+
+## Guides for artists
+- [How to price your artwork](https://artistosapp.com/how-to-price-artwork): Square-inch and linear-inch formulas, a free calculator, and when to raise prices.
+- [Art commission contract template](https://artistosapp.com/art-commission-contract-template): What every commission agreement should cover, with a free template.
+- [Artist invoice template](https://artistosapp.com/artist-invoice-template): What to put on an invoice for a sold artwork or commission.
+- [Certificate of authenticity template](https://artistosapp.com/certificate-of-authenticity-template): What a COA includes for originals and editions.
+- [Art consignment agreements](https://artistosapp.com/art-consignment-agreement): Gallery splits, what to put in writing, and how to track consigned work.
+- [Grants and residencies for Louisiana artists](https://artistosapp.com/artist-grants-louisiana): Programs individual artists in New Orleans and Louisiana can actually apply to.
+- [Art inventory software for artists](https://artistosapp.com/art-inventory-software): What to look for, and how the main options compare.
+- [Artwork Archive alternative](https://artistosapp.com/artwork-archive-alternative): An honest side-by-side of ArtistOS and Artwork Archive.
+
+## Optional
+- [Full text of all pages](https://artistosapp.com/llms-full.txt)
+- [Browse artists using ArtistOS](https://artistosapp.com/artists)
+
+
+
+
+---
+
+# Everything the business side of your art practice needs
+URL: https://artistosapp.com/features
+
+ArtistOS replaces the spreadsheet, the notes app, the invoice tool and the Instagram DMs with one place built for working artists.
+
+ArtistOS is an all-in-one business platform for visual artists. It tracks your artwork inventory, writes gallery-ready descriptions and suggests prices with AI, generates commission and consignment contracts, sends invoices collectors can pay online, keeps your collector list, publishes your artist website and CV, and, on the Studio plan, finds grants and residencies you qualify for and drafts the application.
+
+The ArtistOS dashboard: inventory, commissions, revenue and portfolio value at a glance.
+
+Artwork inventory and portfolio
+
+Catalog every piece with title, medium, dimensions, year, price, status (available, sold, on consignment and more) and images. Filter and search your whole body of work, export a PDF catalog (Pro), and generate QR codes and certificates of authenticity for any piece. Your inventory powers everything else, so a sale, an invoice and a consignment all stay connected to the same artwork record.
+
+AI descriptions and price suggestions
+
+Enter a title, medium and size and ArtistOS writes a gallery-quality description you can edit in seconds. The price suggestion looks at your medium, dimensions and your own sales history to recommend a range, so pricing stops being a guess. The same AI writes your professional bio. AI tools are included on Pro and Studio.
+
+Want to understand the math first? Read how to price artwork and try the free calculator.
+
+Contracts
+
+Generate commission, sales and consignment agreements with a live preview: scope, deposit, timeline, revisions, delivery, cancellation and reproduction rights. Download or print them to sign. See what a commission contract should include.
+
+Invoices collectors can pay online
+
+Create branded invoices for sales, deposits and commission milestones. Connect your Stripe account and collectors can pay by card from a secure link. See at a glance what's pending, paid and overdue, and log expenses on Pro. Here's what to put on an artist invoice.
+
+Collectors, contacts and commissions
+
+Keep collectors, galleries, curators and interior designers in one CRM with notes, tags and purchase history. Manage commission requests from inquiry to delivery with stages, deposits and deadlines, and keep conversations organized with built-in messaging.
+
+Private viewing rooms
+
+Send a collector a private, beautifully laid-out online room of selected works instead of a folder of photos or a PDF. Starter includes 3 rooms, Pro 25, Studio unlimited.
+
+Artist website and CV
+
+Publish a public artist page with your bio, statement and available work, and build a properly formatted artist CV (exhibitions, education, awards, residencies, collections) with its own shareable page. Themes and the full artist website are on Pro and Studio.
+
+Consignments and exhibitions
+
+Track which gallery has which piece, agreed commission percentages and end dates, so "where is everything?" always has an answer. Plan exhibitions and link the works in each show. Studio adds a consignment map. Read more about consignment agreements and splits.
+
+Social scheduler and analytics
+
+Plan Instagram and social posts around new work and shows. Analytics show portfolio value, sales velocity, what's selling by medium and inventory status (Pro and Studio).
+
+Grant, residency and fellowship finder (Studio)
+
+The Studio plan matches your medium, location and career stage against the grants, residencies, fellowships and open calls in the ArtistOS opportunity database, scores each one for fit, flags deadlines and location restrictions, and drafts your artist statement, project description, bio and "why this opportunity" answer from your actual CV. It won't invent credentials. For Louisiana artists, see our guide to grants and residencies you can apply to.
+
+Archive-grade records (Studio)
+
+For artists whose work is an asset: provenance timelines for each piece, editions and print management, insurance and appraisal reports, career analytics, and personal onboarding with a quarterly review.
+
+Compare plans
+
+Starter is free forever (up to 25 artworks). Pro is $29/month or $290/year. Studio is $120/month or $1,200/year. See full pricing.
+
+FAQ
+Q: Is ArtistOS free?
+A: Yes. The Starter plan is free forever and includes up to 25 artworks, 3 viewing rooms, the contract generator, invoice tracking, commission management, messaging and the artist CV builder. No credit card is required.
+
+Q: Does ArtistOS work on my phone?
+A: Yes. ArtistOS runs in any modern web browser on desktop, tablet and phone, and can be added to your home screen like an app.
+
+Q: Can collectors pay my invoices online?
+A: Yes. Connect your Stripe account in Settings and collectors can pay ArtistOS invoices by card from a link. Payments go to your Stripe account.
+
+Q: Does the AI make up facts about my work?
+A: The AI drafts descriptions and application text from what you enter and from your CV, and you edit before anything is shared. The grant application drafts are instructed not to invent exhibitions, awards or credentials.
+
+---
+
+# Simple pricing for working artists
+URL: https://artistosapp.com/pricing
+
+Start free. Upgrade when your practice needs more. Annual plans get two months free.
+
+ArtistOS has three plans. Starter is free forever (up to 25 artworks). Pro costs $29 per month or $290 per year and adds AI tools, analytics, consignments and an artist website, with a 14-day free trial. Studio costs $120 per month or $1,200 per year and adds unlimited everything, the grant and residency finder, provenance, editions and appraisal records. Students with a .edu email get 50% off Pro.
+
+Starter
+Get started with the essentials
+Free
+Forever. No card.
+
+Up to 25 artworks
+3 viewing rooms
+20 contacts
+10 invoices
+Contract generator
+Commission management
+Messaging
+Artist CV builder
+QR codes
+
+Start free
+
+Pro
+For the working artist
+$29/mo
+or $290/year · 14-day free trial · 50% off with .edu email
+
+Up to 200 artworks
+25 viewing rooms, 500 contacts, 100 invoices
+AI descriptions, price suggestions and bio
+Market and portfolio analytics
+Social media scheduler
+Exhibition planner
+Consignment tracker
+PDF catalog export
+Expense tracking
+Artist website and themes
+
+Start 14-day trial
+
+Studio
+For the artist whose work is an asset
+$120/mo
+or $1,200/year
+
+Everything in Pro, unlimited
+Grant and opportunity engine with application drafts
+Provenance and archive records
+Editions and print management
+Insurance and appraisal reports
+Consignment map
+Career analytics
+Personal onboarding and quarterly review
+
+Get Studio
+
+Which plan is right for me?
+
+Starter fits artists who are organizing their first body of work or selling occasionally. Pro fits artists who sell regularly, take commissions or work with galleries, and want AI help with descriptions and pricing. Studio fits established artists with large inventories, editions, consignments across several galleries, or who apply to grants and residencies every year.
+
+Not sure? Start on Starter. Everything you add carries over when you upgrade. See all features or compare with Artwork Archive.
+
+FAQ
+Q: Is there a free trial of Pro?
+A: Yes. Pro includes a 14-day free trial. The Starter plan is free with no time limit.
+
+Q: Do students get a discount?
+A: Yes. Students who sign up with a .edu email address get 50% off Pro, applied automatically at checkout.
+
+Q: Can I switch or cancel anytime?
+A: Yes. You can upgrade, downgrade or cancel from your account. Paid plans are billed monthly or annually through Stripe.
+
+Q: How much do I save with annual billing?
+A: Annual billing costs the same as ten months: Pro is $290 per year instead of $348, and Studio is $1,200 per year instead of $1,440.
+
+Q: Does ArtistOS take a commission on my sales?
+A: ArtistOS does not take a percentage of your art sales. Card payments on invoices are processed by Stripe under your own Stripe account, and Stripe charges its standard processing fees.
+
+---
+
+# Frequently asked questions
+URL: https://artistosapp.com/faq
+
+Straight answers about what ArtistOS does and doesn't do.
+
+ArtistOS is business software for working visual artists, built in New Orleans. It's free to start, runs in the browser, and covers inventory, AI descriptions and pricing, contracts, invoices, collectors, viewing rooms, an artist website and CV, and a grant finder on the Studio plan.
+
+FAQ
+Q: What is ArtistOS?
+A: ArtistOS is an all-in-one platform for the business side of an art practice: artwork inventory, AI-written descriptions and price suggestions, commission and consignment contracts, invoices collectors can pay online, a collector CRM, private viewing rooms, an artist website and CV, and on the Studio plan, a grant and residency finder that drafts applications.
+
+Q: Who is ArtistOS for?
+A: Independent visual artists: painters, printmakers, photographers, ceramicists, sculptors, illustrators, muralists and mixed-media artists, from students and emerging artists to established artists with gallery representation. It is built for individual artists rather than galleries.
+
+Q: How much does ArtistOS cost?
+A: Starter is free forever. Pro is $29 per month or $290 per year with a 14-day free trial. Studio is $120 per month or $1,200 per year. Students with a .edu email get 50% off Pro.
+
+Q: Do I need a credit card to sign up?
+A: No. You can create a free Starter account without a credit card.
+
+Q: How does the AI price suggestion work?
+A: You enter the medium and dimensions of a piece. ArtistOS considers those along with your own past sales in the platform and suggests a price range. You always set the final price. The guide on how to price artwork explains the formulas most artists use.
+
+Q: Can collectors pay me through ArtistOS?
+A: Yes. After you connect your own Stripe account, invoices include a secure payment link and collectors can pay by card. The money goes to your Stripe account; ArtistOS does not take a cut of your sales.
+
+Q: What does the grant finder do?
+A: On the Studio plan, ArtistOS compares your medium, location and career stage with the grants, residencies, fellowships and open calls in its opportunity database, scores each for fit, flags deadlines and location restrictions, and drafts your application materials from your CV.
+
+Q: Can I sign contracts inside ArtistOS?
+A: ArtistOS generates commission, sales and consignment contracts with a live preview that you can download or print to sign. Built-in electronic signature is not available yet.
+
+Q: Who owns my artwork images and data?
+A: You do. Your images, inventory and client records belong to you, and ArtistOS does not take a cut of your sales. See the privacy policy for details.
+
+Q: Is ArtistOS a marketplace that sells my art?
+A: No. ArtistOS is a tool you use to run your own practice. You sell directly to your collectors and galleries. There is a public artist directory where you can choose to be listed.
+
+Q: How is ArtistOS different from Artwork Archive?
+A: Both track artwork inventory. ArtistOS adds AI descriptions and price suggestions, a contract generator, Stripe invoice payments, and a grant finder, and it has a free plan. Artwork Archive is older, has an iOS app and more reporting templates. See the full comparison.
+
+Q: Where is ArtistOS based?
+A: ArtistOS was founded in New Orleans, Louisiana, by Larry Jones.
+
+---
+
+# Artists are small businesses that were never given small-business tools
+URL: https://artistosapp.com/about
+
+ArtistOS exists so the business side of an art practice takes less time than the art.
+
+ArtistOS was founded in New Orleans by Larry Jones. Before writing a line of code, Larry spent months in artists' studios between New Orleans and New York asking one question: what is the most frustrating part of being a working artist?
+
+Nobody said "making the work." They said guessing what to charge. Skipping the contract because writing one takes an afternoon. Chasing a collector for payment through Instagram DMs. Keeping inventory in a spreadsheet, prices in a notes app, and client history in their head. The business of a practice lived in five different places, and none of them were built for artists.
+
+ArtistOS puts it in one place: inventory, AI descriptions and pricing, contracts, invoices collectors pay online, collectors, viewing rooms, an artist website and CV, and a grant and residency finder that drafts applications from an artist's own CV.
+
+What we believe
+
+Pricing should be explainable. Artists deserve a clear, consistent method, not a guess.
+
+Paperwork protects the work. A simple contract and a clean invoice prevent most of the problems artists tell us about.
+
+Funding shouldn't be a part-time job to find. Grants and residencies go unapplied-for because they're hard to find and slow to write for.
+
+Artists own their work and their data. ArtistOS doesn't take a cut of your sales.
+
+Founding Artists
+
+We're building ArtistOS with a small group of Founding Artists who use it in their real practice and tell us what to fix. If you're a working artist and want to help shape it, email Larry.
+
+Contact
+
+Email larry@synergysourceadvisors.com. For schools and arts organizations interested in free access for students or members, mention your program in the subject line.
+
+---
+
+# Art business guides
+URL: https://artistosapp.com/guides
+
+Practical, plain-English guides to the business side of an art practice. Free templates included.
+
+How to price your artwork
+Square-inch and linear-inch formulas, a free calculator, and when to raise prices.
+Read the guide →
+Art commission contract template
+What every commission agreement should cover, with a free template.
+Read the guide →
+Artist invoice template
+What to put on an invoice for a sold artwork or commission.
+Read the guide →
+Certificate of authenticity template
+What a COA includes for originals and editions.
+Read the guide →
+Art consignment agreements
+Gallery splits, what to put in writing, and how to track consigned work.
+Read the guide →
+Grants and residencies for Louisiana artists
+Programs individual artists in New Orleans and Louisiana can actually apply to.
+Read the guide →
+Art inventory software for artists
+What to look for, and how the main options compare.
+Read the guide →
+Artwork Archive alternative
+An honest side-by-side of ArtistOS and Artwork Archive.
+Read the guide →
+
+---
+
+# How to price your artwork
+URL: https://artistosapp.com/how-to-price-artwork
+
+The two formulas most working artists use, the rates that are typical at each stage, and a free calculator.
+
+Short answer: most artists price original work by size using a consistent formula. Square-inch method: width × height × a dollar rate per square inch, plus materials. Linear-inch method: (width + height) × a multiplier, plus materials. Emerging artists commonly use about $2–4 per square inch or a linear-inch multiplier of about 10–25, then raise the rate as their work sells consistently. Keep the same prices everywhere you sell.
+
+Free art pricing calculator
+
+Width (inches)
+
+Height (inches)
+
+MethodSquare inchLinear inch
+
+Rate ($ per inch)
+
+Materials & framing ($)
+
+ Double the materials cost (a common rule of thumb)
+—
+
+Rounded to the nearest $10. A starting point, not a rule: adjust for your market, sales history and where you sell. ArtistOS Pro suggests a price range from your medium, size and your own past sales.
+
+Method 1: price per square inch
+
+Formula: (width × height × rate) + materials. Example: an 18 × 24 inch painting is 432 square inches. At $4 per square inch that's $1,728; add $100 of materials counted twice ($200) and the price is about $1,930.
+
+Typical starting rates: artists new to selling often begin around $1–2 per square inch; emerging artists with some sales history commonly sit around $2–4, and rates rise with demand, gallery representation and reputation.
+
+The catch: square-inch pricing makes small works too cheap and very large works too expensive. Many gallerists recommend charging a higher rate per square inch for small pieces and a lower one for large pieces so your price list rises smoothly with size.
+
+Method 2: price per linear inch
+
+Formula: (width + height) × multiplier + materials. Example: a 24 × 36 inch piece is 60 linear inches; at a multiplier of 15, that's $900 before materials. Multipliers of roughly 10 to 25 are commonly cited for emerging and mid-career artists. The linear-inch method scales more gently than square inches, which is why many painters prefer it for work of very different sizes.
+
+Rules that matter more than the formula
+
+Be consistent everywhere. Your price at an art fair, on your website and in a gallery should match. Collectors compare, and galleries expect it.
+
+Price the gallery commission in, not on top. If a gallery takes 50%, your retail price is the price; don't charge your studio buyers less than gallery buyers.
+
+Raise prices on evidence. Raise your rate when work sells steadily, you have a waitlist, or you add a significant show or representation. Never lower prices on work that has already sold.
+
+Keep a record. Pricing gets easier when you can see what sold, at what size and medium, and how fast. That's exactly what ArtistOS tracks.
+
+How to price prints and editions
+
+Price limited editions below the original and in relation to edition size, paper and process: smaller editions and hand-pulled processes (etching, lithography, screenprint) justify higher prices than large open-edition digital prints. Number and sign editions, and give each a certificate of authenticity.
+
+How to price commissions
+
+Start from your normal formula for the size and medium, then add for custom work: extra sketches or revisions, rush timelines, travel or site visits, and installation. Take a deposit (50% is common) before starting. See our commission contract template.
+
+Sources
+Artwork Archive — How to price consistently for art sales success
+FoundMyself — How to price your art
+Pastel Society of Colorado — Pricing your artwork: the linear inch method (PDF)
+RedDotBlog — Ask a gallery owner: pricing
+
+FAQ
+Q: How much should I charge for my art as a beginner?
+A: Many beginners start at about $1–2 per square inch (or a linear-inch multiplier near 10) plus materials, then raise the rate as work sells consistently. The key is using one consistent formula so your prices make sense to collectors.
+
+Q: What is the square inch method for pricing art?
+A: Multiply the width by the height to get square inches, multiply by your dollar rate per square inch, then add the cost of materials (often doubled). An 18 × 24 inch piece at $3 per square inch is $1,296 plus materials.
+
+Q: What is the linear inch method for pricing art?
+A: Add the width and height, then multiply by a multiplier, commonly between about 10 and 25 for emerging and mid-career artists, and add materials. A 24 × 36 inch piece at a multiplier of 15 is $900 plus materials.
+
+Q: Should my prices be the same in galleries and at art fairs?
+A: Yes. Keep one retail price everywhere you sell. If a gallery takes a commission, that comes out of the retail price rather than being added on top.
+
+Q: When should I raise my art prices?
+A: Raise prices when your work sells steadily, when you have a waitlist or more demand than supply, or after meaningful milestones like gallery representation. Raise gradually and never reduce prices on work that has already sold.
+
+---
+
+# Art commission contract template
+URL: https://artistosapp.com/art-commission-contract-template
+
+What every commission agreement should cover, and a free template you can copy.
+
+A commission contract should state: what you'll make (size, medium, subject), how many sketches and revisions are included, the total price and a deposit (commonly 50%, non-refundable, due before work starts), the timeline, delivery and shipping, what happens if either side cancels, and that you keep the copyright and reproduction rights. Both parties sign before work begins.
+
+Commission contract checklist
+
+Parties: your name or studio and the client's name and contact details.
+
+Description of the work: subject, size, medium, materials, framing, and any reference images.
+
+Creative control and approvals: how many preliminary sketches, how many rounds of revisions, and what counts as a change that costs extra.
+
+Price and payment schedule: total price, deposit amount, when the balance is due (usually before delivery), accepted payment methods.
+
+Timeline: estimated completion date that starts when the deposit is received, and how delays on either side are handled.
+
+Delivery, shipping and installation: who pays, who insures the work in transit, and when ownership transfers.
+
+Cancellation (kill fee): what the client owes if they cancel at each stage, and what you refund if you can't complete the work.
+
+Copyright and reproduction: the client owns the physical work; you keep the copyright and the right to photograph and show it in your portfolio.
+
+Signatures and date.
+
+Free commission contract template
+
+A general template, not legal advice. Laws vary by state and country; have an attorney review agreements for large commissions.
+
+ART COMMISSION AGREEMENT
+
+This agreement is made on [DATE] between [ARTIST NAME / STUDIO] ("Artist") and [CLIENT NAME] ("Client").
+
+1. THE WORK
+The Artist will create an original artwork: [SUBJECT], [MEDIUM], approximately [WIDTH × HEIGHT] inches, [FRAMED / UNFRAMED].
+
+2. APPROVALS
+The Artist will provide [2] preliminary sketches. The price includes [2] rounds of revisions at the sketch stage. Changes after the sketch is approved may be billed at [$ / hour or flat fee].
+
+3. PRICE AND PAYMENT
+Total price: $[AMOUNT]. A non-refundable deposit of $[50% OF TOTAL] is due on signing, and work begins when it is received. The balance of $[AMOUNT] is due before delivery.
+
+4. TIMELINE
+Estimated completion: [DATE or NUMBER OF WEEKS] after the deposit is received. The Artist will notify the Client of any delay.
+
+5. DELIVERY
+[Pickup / shipping / installation] on or about [DATE]. Shipping and insurance are paid by [CLIENT / ARTIST]. Ownership of the physical artwork transfers to the Client when payment is complete.
+
+6. CANCELLATION
+If the Client cancels after the sketch is approved, the deposit is kept and [__%] of the balance is due. If the Artist cannot complete the work, the Artist refunds [all payments beyond the deposit / the full amount].
+
+7. COPYRIGHT
+The Artist retains all copyright and reproduction rights. The Client may not reproduce the artwork commercially without written permission. The Artist may photograph and exhibit images of the work.
+
+Artist signature: __________________ Date: ________
+Client signature: __________________ Date: ________
+
+ArtistOS generates commission, sales and consignment agreements with these sections filled in from your client and artwork records, with a live preview you can download or print. It also tracks the deposit and the balance as invoices.
+
+Sources
+RedDotBlog — The artist's guide to commission agreements
+ArtConnect — Guide to artist contracts and agreements
+
+FAQ
+Q: How much deposit should I take for an art commission?
+A: A 50% deposit due before you start is the most common practice, usually stated as non-refundable once work begins, with the balance due before delivery.
+
+Q: Who owns the copyright to a commissioned painting?
+A: Unless the contract says otherwise, the artist generally keeps the copyright and the client owns the physical artwork. State this plainly in the contract, including your right to photograph and show the work.
+
+Q: What if the client wants changes?
+A: Specify how many sketches and revision rounds are included, and charge for changes beyond that or after the sketch is approved.
+
+Q: Do I need a contract for a small commission?
+A: Yes. Even a one-page agreement that covers the work, price, deposit, timeline and cancellation prevents most disputes.
+
+---
+
+# Artist invoice template
+URL: https://artistosapp.com/artist-invoice-template
+
+What to include on an invoice when you sell a painting, print or commission, and a free template.
+
+An artist's invoice should include: your name and contact details, an invoice number and date, the buyer's name and contact details, the artwork's title, medium, dimensions and year, the price, any deposit already paid, sales tax if it applies, shipping or installation, the total due, the due date, how to pay, and a line stating that you keep the copyright.
+
+Checklist
+
+Your name or studio name, email, phone and address or city
+
+Invoice number (sequential) and invoice date
+
+Buyer or client name, email and billing address
+
+Artwork details: title, medium, dimensions, year, edition number if a print
+
+Price, less any deposit received
+
+Sales tax, if your state requires you to collect it
+
+Framing, shipping, crating or installation as separate lines
+
+Total due, due date and payment methods (card link, bank transfer, check)
+
+Notes: "Title transfers upon payment in full. Artist retains all copyright and reproduction rights."
+
+Free artist invoice template
+
+INVOICE #[0001] Date: [DATE]
+From: [ARTIST NAME] · [EMAIL] · [PHONE] · [CITY, STATE]
+Bill to: [BUYER NAME] · [EMAIL] · [ADDRESS]
+
+Artwork: "[TITLE]", [YEAR]
+[MEDIUM], [W × H] in [Edition 3/25, if applicable]
+
+Artwork price ................................ $[0,000.00]
+Framing ...................................... $[000.00]
+Shipping & insurance ......................... $[000.00]
+Sales tax ([RATE]%, if applicable) ............ $[000.00]
+Less deposit received ([DATE]) ............... –$[000.00]
+TOTAL DUE .................................... $[0,000.00]
+
+Due: [DATE] Pay by: [card link / bank transfer / check]
+
+Title to the artwork transfers upon payment in full.
+The artist retains all copyright and reproduction rights.
+Thank you for supporting my work.
+
+A note on sales tax
+
+Whether you must collect sales tax on art depends on your state and how and where you sell (studio, fair, online, out of state). Many states require a seller's permit even for occasional sales at fairs. Check your state revenue department's guidance or ask a tax professional. This guide is not tax advice.
+
+Get paid faster
+
+ArtistOS creates invoices from your artwork and client records and, once you connect Stripe, includes a secure link so collectors can pay by card. You can see which invoices are pending, paid or overdue, and deposits for commissions are tracked against the final invoice.
+
+Sources
+Artwork Archive — What to include in your invoice: a checklist for artists
+TaxJar — Sales tax guide for artists
+
+FAQ
+Q: What should an invoice for a painting include?
+A: Your details, an invoice number and date, the buyer's details, the painting's title, medium, size and year, the price, any deposit paid, sales tax if applicable, shipping, the total, the due date, payment methods, and a note that you keep the copyright.
+
+Q: Should I charge sales tax on my art?
+A: In many U.S. states, yes, sales of physical artwork are taxable and you need a seller's permit. Rules differ by state and by where the buyer is, so check your state revenue department or a tax professional.
+
+Q: How can collectors pay an artist's invoice online?
+A: Use an invoicing tool with card payments. In ArtistOS, connect your Stripe account and each invoice includes a secure payment link; money goes to your Stripe account.
+
+---
+
+# Certificate of authenticity template for artists
+URL: https://artistosapp.com/certificate-of-authenticity-template
+
+What to put on a certificate of authenticity for an original or a limited edition, and a free template.
+
+A certificate of authenticity (COA) should include: the artist's name, the artwork's title, year, dimensions and medium, a photo of the work, a statement that it is an original (or edition number, e.g. 3/25, with the print process and paper), the artist's signature and date, and a copyright notice. Many artists add a unique ID number, contact details and exhibition history.
+
+Free COA template
+
+CERTIFICATE OF AUTHENTICITY
+
+[PHOTO OF THE ARTWORK]
+
+Title: [TITLE]
+Artist: [ARTIST NAME]
+Year: [YEAR]
+Medium: [MEDIUM] Dimensions: [W × H (× D)] in
+Edition: [Original, one of a kind] or [3/25 — process, paper]
+Certificate ID: [UNIQUE NUMBER]
+
+I certify that this is an authentic artwork created by me.
+All copyright and reproduction rights are retained by the artist.
+
+Signature: ______________________ Date: __________
+[ARTIST WEBSITE / EMAIL]
+
+Tips
+
+Use a unique ID that matches your inventory record so the certificate can always be traced to the piece.
+
+For editions, state the total edition size and any artist's proofs.
+
+Keep a copy. A COA is part of the work's provenance.
+
+ArtistOS generates a certificate of authenticity and a QR code for any artwork in your inventory, and on Studio keeps a full provenance timeline for each piece.
+
+Sources
+Format — Certificates of authenticity for artwork
+Artwork Archive Help — Generating a certificate of authenticity
+
+FAQ
+Q: Do I need a certificate of authenticity for my art?
+A: It isn't legally required, but collectors increasingly expect one for originals and limited editions, and it helps document provenance.
+
+Q: Should a certificate of authenticity be signed?
+A: Yes. The artist should sign and date it, ideally in ink, and keep a matching record in their inventory.
+
+---
+
+# Art consignment agreements: splits and what to include
+URL: https://artistosapp.com/art-consignment-agreement
+
+How consignment with a gallery works, what the standard split is, and what to get in writing.
+
+In a consignment, the artist keeps ownership while a gallery shows and sells the work, and the sale is split. The standard split in commercial galleries is 50/50 of the retail price; some galleries offer 60/40 in the artist's favor. The agreement should list each work and its retail price, the commission, the consignment period, who pays for framing, shipping and insurance, how quickly you get paid after a sale, and how unsold work is returned.
+
+What to include in a consignment agreement
+
+An inventory list: title, medium, size and agreed retail price for every work
+
+Commission percentage, and whether it applies to studio sales or commissions the gallery refers
+
+Consignment period and how either side can end it
+
+Payment terms: how many days after a sale you are paid, and whether you get the buyer's name
+
+Discounts: whether the gallery can discount and whose share it comes from
+
+Insurance while the work is at the gallery and in transit
+
+Framing and shipping costs, and whether they come off the top before the split
+
+Return of unsold work, condition, and who pays for it
+
+Copyright stays with the artist
+
+Track what's where
+
+Once work is spread across galleries, fairs and your studio, the hard part is knowing where each piece is and what you're owed. ArtistOS tracks every consignment (gallery, commission rate, dates) and updates each artwork's location, and Studio shows it all on a consignment map. Pair each agreement with a consignment sheet listing the works and prices.
+
+Sources
+Hyperallergic — It's time to rethink the 50/50 split with art galleries
+ArtConnect — Guide to artist contracts and agreements
+Artwork Archive — Consignment agreements for artists
+
+FAQ
+Q: What percentage do art galleries take?
+A: Most commercial galleries take 50% of the retail price on consigned work. Some offer the artist 60%, and nonprofit spaces or co-ops often take less.
+
+Q: Is framing deducted before the gallery split?
+A: It depends on the agreement. Some galleries reimburse framing off the top before splitting; others split the full price. Put it in writing.
+
+Q: How long should a consignment period be?
+A: Many agreements run for the length of a show or a set term such as 6 to 12 months, with a clause for returning unsold work.
+
+---
+
+# Grants and residencies for Louisiana artists
+URL: https://artistosapp.com/artist-grants-louisiana
+
+Which programs individual visual artists in New Orleans and Louisiana can actually apply to, what they pay, and when they open.
+
+Individual visual artists in Louisiana can apply to: the South Arts Southern Prize and State Fellowships ($5,000 fellowship), the New Orleans Jazz & Heritage Foundation's Louisiana Cultural Equity arts grants (up to $7,500), the Joan Mitchell Center artist residency in New Orleans, the Ogden Museum's Louisiana Contemporary open call ($5,000 prize), and national programs like the Pollock-Krasner Foundation grant. Several well-known local grants, including Arts New Orleans' Community Arts Grants and Louisiana Project Grants, are for organizations only.
+
+Last checked September 24, 2026. Deadlines and rules change every cycle; always confirm on the official page before applying.
+
+Programs open to individual artists
+
+Program | Who can apply | Award | Typical timing | 
+
+South Arts Southern Prize & State Fellowships (visual arts) | Visual artists 18+ living in the South Arts region (includes Louisiana) for 2+ years; not students | $5,000 state fellowship; finalists $10,000; Southern Prize $25,000, with a residency | 2026 cycle ran Feb 10 – Mar 18; $25 fee (waivable) | 
+
+Jazz & Heritage Foundation — Louisiana Cultural Equity: Arts + Creation | Individuals based in Louisiana | Up to $7,500 | 2026–27 deadline was July 8, 2026 (projects Sept 2026 – Aug 2027) | 
+
+Joan Mitchell Center Artist-in-Residence (New Orleans) | Visual artists 21+; New Orleans-area artists with 5+ years' residence in Orleans, Jefferson or Plaquemines (or natives); not students | Studio residency with a $150/week stipend | 2027 sessions; applications ran Mar 30 – Jun 1, 2026 | 
+
+Ogden Museum — Louisiana Contemporary | Louisiana residents 18+, recent work | Exhibition; Helis Foundation Art Prize $5,000 | 2026 call ran Apr 6 – May 22; exhibition Aug 2026 – Jan 2027 | 
+
+A Studio in the Woods | Artists in all disciplines; Replenish is for South Louisiana artists and culture bearers | Residency with a weekly stipend | 2026–27 residencies are by invitation; watch for open calls | 
+
+Platforms Fund (Andy Warhol Foundation regrant) | Self-organized, collaborative artist projects in New Orleans | Up to $10,000 per project | Check site for the current cycle | 
+
+Pollock-Krasner Foundation Grant | Working visual artists with financial need (national) | Unrestricted grant | Rolling; review takes 9–12 months | 
+
+Local grants that are for organizations, not individuals
+
+Arts New Orleans Community Arts Grants ("More Joy" and "New Orleans as Cultural Capital") fund nonprofits based in Orleans Parish. Details.
+
+Louisiana Project Grants (Region 1, administered by Arts New Orleans) state that individual artists are no longer eligible. Details.
+
+Louisiana Division of the Arts currently lists project, operating and arts-in-education grants for organizations. For individual artists it offers the Culturalyst artist roster, Percent for Art calls and folklife apprenticeships. Details.
+
+If you want to use one of these, partner with a nonprofit or a fiscal sponsor that can apply on a project's behalf.
+
+Tips for Louisiana applicants
+
+Keep an up-to-date CV, artist statement and 10–20 strong images ready so you can apply the week a call opens.
+
+Read the residency requirement carefully: several programs require years of residence in specific parishes.
+
+Put the spring windows (South Arts in February–March, Joan Mitchell and Ogden in spring) on your calendar now.
+
+ArtistOS Studio's grant finder matches your medium, location and career stage against the opportunities in its database, flags location restrictions and deadlines, and drafts your statement, project description and bio from your CV.
+
+FAQ
+Q: Can individual artists apply for Arts New Orleans grants?
+A: Not for the Community Arts Grants or Louisiana Project Grants, which are for organizations. Individual artists can partner with a nonprofit or fiscal sponsor, or look at programs like the Jazz & Heritage Foundation's Louisiana Cultural Equity grants and South Arts fellowships.
+
+Q: Does Louisiana have an individual artist fellowship?
+A: As of September 2026, the Louisiana Division of the Arts does not list an individual artist fellowship. Louisiana visual artists can apply for the South Arts State Fellowship, which awards $5,000 to artists in each state in the region.
+
+Q: Are there artist residencies in New Orleans?
+A: Yes. The Joan Mitchell Center runs artist residencies in New Orleans, with a stipend, for eligible local and national artists, and A Studio in the Woods offers residencies in South Louisiana.
+
+---
+
+# Art inventory software for artists
+URL: https://artistosapp.com/art-inventory-software
+
+What to look for, what it should cost, and how the main options compare.
+
+Art inventory software keeps a record of every artwork you make (title, medium, size, price, images, status and location) and ties it to sales, collectors and galleries. For an independent artist, the best choice is the one that also handles the work around the inventory: invoices, contracts, consignments and a public portfolio. Popular options include ArtistOS, Artwork Archive, ArtCloud and Artwork Codex; gallery-focused systems like Artlogic and Arternal cost more and are built for dealers.
+
+What to look for
+
+Fast entry. Adding a piece should take a minute, with images and dimensions.
+
+Status and location. Available, sold, on consignment, and which gallery has it.
+
+Connected sales. Invoices and payments that link to the artwork and the buyer.
+
+Collector records. Who bought what, and when.
+
+Documents. Certificates of authenticity, price lists, consignment sheets, catalogs.
+
+A public portfolio. So your inventory doubles as your website.
+
+Price you can justify. A free tier to start, and plans that grow with you.
+
+How the main options compare
+
+ | ArtistOS | Artwork Archive | ArtCloud (artist plans) | Artwork Codex | Artlogic | 
+
+Built for | Independent artists | Artists, collectors, organizations | Galleries and artists | Artists | Galleries first | 
+
+Free plan | Yes (25 artworks) | No (14-day trial) | Yes (50 artworks, no invoices) | Yes (5 artworks) | No | 
+
+Entry paid price | $29/mo | $10/mo ($9/mo annual) | $29/mo | $96/yr | From £95/mo (artist) | 
+
+AI descriptions & price suggestions | Yes | Not found | Not found | Not found | Not found | 
+
+Contract generator | Yes | Not found (document storage) | Not found | Not found | Not found | 
+
+Invoices paid online | Yes, Stripe | Yes, PayPal only | Yes, Stripe | Not verified | Yes, Artlogic Pay | 
+
+Grant & residency finder | Yes (Studio), with drafts | Call-for-entry tracking | No | No | No | 
+
+Mobile app | Web app, works on phones | iOS app | Web | Web | Web | 
+
+Competitor details from each company's public pricing and help pages, checked September 24, 2026. "Not found" means we couldn't find the feature on their public site; tell us if that's changed and we'll update this page.
+
+Where ArtistOS fits
+
+ArtistOS is built for the independent artist who wants inventory and the business around it: AI-written descriptions and price suggestions, a contract generator, invoices collectors pay by card through Stripe, a collector CRM, viewing rooms, an artist website and CV, and on Studio, a grant and residency finder. It's free to start. If you mainly need a mature inventory with an iOS app and lots of report templates, Artwork Archive is a strong choice; galleries with staff should look at gallery systems.
+
+See the detailed ArtistOS vs Artwork Archive comparison or all ArtistOS features.
+
+FAQ
+Q: What is the best art inventory software for artists?
+A: It depends on what else you need. Artwork Archive is a long-established inventory tool with an iOS app. ArtistOS combines inventory with AI pricing and descriptions, contracts, Stripe invoicing and a grant finder, and has a free plan. ArtCloud suits artists who work closely with galleries on its network.
+
+Q: Is there free art inventory software?
+A: Yes. ArtistOS Starter is free for up to 25 artworks, ArtCloud has a free plan for 50 artworks without invoicing, and Artwork Codex is free for 5 artworks.
+
+Q: Can I use a spreadsheet for art inventory?
+A: You can, and many artists start there. Dedicated software becomes worth it when you need images, sales and client history, consignment tracking, certificates and invoices connected to each piece.
+
+---
+
+# ArtistOS vs Artwork Archive
+URL: https://artistosapp.com/artwork-archive-alternative
+
+An honest side-by-side for artists deciding between the two.
+
+The short version: Artwork Archive is a mature art inventory tool with an iOS app and extensive reports, starting at $10/month with no free plan. ArtistOS is a newer, all-in-one business platform with a free plan, AI descriptions and price suggestions, a contract generator, invoices collectors pay by card through Stripe, and a grant and residency finder on its Studio plan. Choose Artwork Archive for a proven inventory and reporting tool; choose ArtistOS if you want inventory plus pricing, paperwork, payments and funding in one place.
+
+Side by side
+
+ | ArtistOS | Artwork Archive | 
+
+Free plan | Yes, up to 25 artworks, no time limit | No; 14-day free trial | 
+
+Paid plans | Pro $29/mo ($290/yr), 200 artworks · Studio $120/mo ($1,200/yr), unlimited | Apprentice $10/mo, 100 pieces · Professional $21/mo, 500 · Master $42/mo, unlimited, 3 users (lower with annual billing) | 
+
+AI artwork descriptions | Yes (Pro, Studio) | Not found on their site | 
+
+AI price suggestions | Yes, from your medium, size and sales history | Not found | 
+
+Contracts | Commission, sales and consignment generator | Document storage; no generator found | 
+
+Online invoice payments | Stripe (card) | PayPal only, per their help center | 
+
+Collector CRM | Yes | Yes, with sales pipeline | 
+
+Viewing rooms | Yes | Private rooms | 
+
+Public portfolio | Artist page, website themes, public CV, artist directory | Public profile and Discovery directory | 
+
+Grants and residencies | Studio: fit-scored matches and application drafts from your CV | Track and apply to calls on its Call for Entry platform | 
+
+Reports | COA, QR codes, PDF catalog; Studio adds provenance, editions, appraisal reports | COAs, consignment sheets, price lists, labels, inventory reports | 
+
+Mobile | Web app that works on phones | iOS app | 
+
+Track record | Launched 2026, New Orleans | Long-established, large user base | 
+
+Artwork Archive details from artworkarchive.com/pricing and their help center, checked September 24, 2026. If anything here is out of date, email us and we'll correct it.
+
+Choose Artwork Archive if…
+
+You mainly need a proven inventory database with many report templates.
+You want a native iOS app.
+You already take payments through PayPal.
+
+Choose ArtistOS if…
+
+You want help pricing and describing work, not just recording it.
+You write commission or consignment agreements and want them generated from your records.
+You want collectors to pay invoices by card through Stripe.
+You apply to grants and residencies and want matches and drafts in one place.
+You want to start free.
+
+Switching
+
+You can start on the free Starter plan and add your most recent work first; there's no cost to try it alongside your current system.
+
+FAQ
+Q: Is ArtistOS cheaper than Artwork Archive?
+A: ArtistOS has a free plan, which Artwork Archive does not. For paid plans, Artwork Archive's entry tier ($10/month) is cheaper than ArtistOS Pro ($29/month), but Pro includes AI tools, contracts and Stripe invoicing, and covers 200 artworks versus 100.
+
+Q: Does Artwork Archive have AI pricing?
+A: We did not find AI description or AI pricing features on Artwork Archive's public site as of September 2026. ArtistOS includes both on Pro and Studio.
+
+Q: Can I accept card payments with Artwork Archive?
+A: Artwork Archive's help center says PayPal is currently its only integrated payment processor. ArtistOS uses Stripe for card payments on invoices.

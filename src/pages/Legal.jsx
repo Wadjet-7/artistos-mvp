@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
+import { useSEO } from "../lib/seo"
 import { ArrowLeft, Shield, FileText } from "lucide-react"
 
 const LAST_UPDATED = "March 12, 2026"
@@ -132,7 +133,11 @@ function PrivacyContent() {
 /*  Main Legal Page                                                  */
 /* ================================================================ */
 export default function Legal() {
-  const [tab, setTab] = useState("terms")
+  const location = useLocation()
+  const [tab, setTab] = useState(location.pathname === "/privacy" ? "privacy" : "terms")
+  useSEO(tab === "privacy"
+    ? { title: "Privacy Policy — ArtistOS", description: "How ArtistOS collects, uses and protects your information.", path: "/privacy" }
+    : { title: "Terms of Service — ArtistOS", description: "The terms that govern your use of ArtistOS.", path: "/terms" })
 
   return (
     <div className="min-h-screen" style={{ background: "#FAF8F5" }}>

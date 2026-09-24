@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 import { Search, MapPin, Palette, Loader2, ArrowRight, Users } from "lucide-react"
 import paintAbstract from "../utils/paintAbstract"
+import { useSEO } from "../lib/seo"
 
 /* ------------------------------------------------------------------ */
 /*  Seed generator — deterministic number from UUID string             */
@@ -109,6 +110,7 @@ const MEDIUM_FILTERS = ["All", "Oil Painting", "Acrylic", "Mixed Media", "Photog
 /*  Main page                                                          */
 /* ------------------------------------------------------------------ */
 export default function DiscoverArtists() {
+  useSEO({ title: "Discover Artists — Independent Artists on ArtistOS", description: "Browse independent painters, printmakers, photographers, ceramicists and more. See their portfolios, available work and CVs, and request commissions.", path: "/artists" })
   const [artists, setArtists] = useState([])
   const [artworkStats, setArtworkStats] = useState({})
   const [loading, setLoading] = useState(true)

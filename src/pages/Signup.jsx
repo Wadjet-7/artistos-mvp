@@ -3,8 +3,10 @@ import { Link, useNavigate } from "react-router-dom"
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle2, Gift } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { getStoredAttribution, clearStoredAttribution } from "../lib/promo"
+import { useSEO } from "../lib/seo"
 
 export default function Signup() {
+  useSEO({ title: "Create your free account — ArtistOS", description: "Sign up for ArtistOS free: art inventory, AI pricing and descriptions, contracts, invoices and collectors in one place. No credit card required.", path: "/signup" })
   const stored = getStoredAttribution()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")

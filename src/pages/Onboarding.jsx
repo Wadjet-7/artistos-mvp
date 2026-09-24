@@ -7,6 +7,7 @@ import {
   Image, FileText, Eye, UserCircle, Sparkles
 } from "lucide-react"
 import toast from "react-hot-toast"
+import { useSEO } from "../lib/seo"
 
 /* ================================================================ */
 /*  Onboarding Wizard — Shown after first signup                    */
@@ -22,6 +23,7 @@ const mediums = ["Oil Painting", "Acrylic", "Watercolor", "Digital", "Mixed Medi
 const styles = ["Abstract", "Contemporary", "Realistic", "Illustrative", "Whimsical", "Minimalist", "Expressionist", "Conceptual", "Other"]
 
 export default function Onboarding() {
+  useSEO({ title: "Welcome — ArtistOS", path: null, noindex: true })
   const navigate = useNavigate()
   const { user, updateUser } = useAuth()
   const [step, setStep] = useState(0)
