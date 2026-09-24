@@ -23,7 +23,7 @@ async function sb(pathAndQuery) {
 }
 
 async function getShell(host) {
-  const r = await fetch(`${process.env.SHELL_ORIGIN || `https://${host}`}/app.html`)
+  const r = await fetch(`${process.env.SHELL_ORIGIN || `https://${host}`}/app`)
   if (!r.ok) throw new Error(`shell ${r.status}`)
   return r.text()
 }
