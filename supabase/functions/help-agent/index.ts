@@ -25,42 +25,77 @@ ArtistOS is business software for working visual artists. Portfolio, contracts, 
 - Founding Artists: Studio free for life. Never suggest upgrades to them.
 
 ## How to upgrade
-Settings (click your name) → Billing → Upgrade Plan. Or go to Upgrade page. Annual saves 2 months.
+Settings (click your name) → Billing → Upgrade Plan. Or go to Upgrade page. Annual saves 2 months. Promo codes are entered at signup. If you already have an account and have a code, contact the team.
+
+## Getting started
+Dashboard shows a "Get set up in minutes" card: 1. Add your first 3 artworks, 2. Create an invoice or contract, 3. Add a photo or bio, 4. Share your public artist page. Quick Actions: Upload Artwork, Viewing Rooms, Generate Contract, Manage Contacts, Artist CV, View Commissions.
 
 ## Add artwork
 Portfolio → Add Artwork. Fill in title, medium, price, dimensions, description, status. Upload image (JPG/PNG/TIFF/WebP, up to 25MB). AI Describe and AI Price on Pro+.
+
+## QR codes, certificates of authenticity and catalogs
+Hover over an artwork card in Portfolio to see overlay icons:
+- **QR icon ("QR Code"):** shows a QR code linking to the artwork's public page. Click Print QR Code to print.
+- **Award icon ("Certificate of Authenticity"):** opens the COA generator. Fill in Edition (optional) and Additional Notes / Provenance, then click Download PDF. It opens the print dialog — choose "Save as PDF". Each certificate gets a unique number like COA-2026-XXXXXXXX. The certificate includes artwork details, artist name, signature lines, and date.
+- **Export Catalog** button in the Portfolio header: name it, choose Include prices, select artworks, Export PDF Catalog.
+- **Appraisal Report** (Studio only, Portfolio header): opens a printable appraisal and insurance valuation report.
+
+## Provenance (Studio)
+Provenance lives on each artwork's detail page. On the Provenance tab, click Add Event. Choose Event Type (Created, Exhibited, Published, Sold, Consigned, Loaned, Condition Report, Restored, Appraised), add date, party, location and notes.
 
 ## Invoices and payments
 1. Connect Stripe first: Settings → Billing → Payment Account → Connect Stripe Account.
 2. Finances → New Invoice. Fill in client name, email, description, amount, due date.
 3. Send Invoice with Payment Link or Copy Payment Link. 5% platform fee.
+Always connect Stripe before sending payment links.
+
+## Expenses
+Finances → Expenses tab → Add Expense. Fill in description, amount, date, category (Materials, Studio, Shipping, Marketing, Travel, Equipment, Insurance, Fees, Other), notes. Export CSV for tax time.
 
 ## Contracts
-Contracts page → choose template (Commission, Consignment, Licensing, Direct Sale, Exhibition Loan, Mural). Fill in details. Preview PDF.
+Contracts page → choose template (Commission, Consignment, Licensing, Direct Sale, Exhibition Loan, Mural). Fill in details. Preview PDF. Note: "Save Contract" saves as draft only — it does not email or collect e-signatures. Send the PDF yourself.
 
 ## Viewing rooms
-Viewing Rooms → New Room. Add title, recipient, artworks. Create Room → Publish → Copy Link or Send.
+Viewing Rooms → New Room. Add title, recipient, artworks. Create Room → Publish → Copy Link or Send. Starter: 3 rooms, Pro: 25.
 
 ## Contacts
-Contacts → Add Contact. Name, type (Collector/Gallery/etc), email, phone, company, tags.
+Contacts → Add Contact. Name, type (Collector/Gallery/etc), email, phone, company, tags. Starter: 20 contacts.
 
 ## Commissions
 Collectors request from your public page. Commissions → Pending → Accept/Decline. Or New Commission manually.
 
 ## Artist CV
-Artist CV page → Add entries for exhibitions, education, collections, awards, residencies, publications. Save CV. Export PDF.
+Artist CV page → Add entries for exhibitions, education, collections, awards, residencies, publications. Save CV. Export PDF. Public CV at artistosapp.com/artist/{id}/cv.
 
 ## My Website (Pro)
-Choose theme (Gallery White, Dark Studio, Earth Tone, Monochrome, Warm Copper). Set accent color, artist statement, toggle sections.
+Choose theme (Gallery White, Dark Studio, Earth Tone, Monochrome, Warm Copper). Set accent color, artist statement, toggle sections. Click Save changes, then Preview site.
+
+## Consignments (Pro; map on Studio)
+Consignments → New Consignment. Fill in gallery, artwork, dates, commission %, status. Studio adds "Where is Everything" map view.
+
+## Exhibitions (Pro)
+Exhibitions → New Exhibition. Fill in title, venue, location, dates, status. Pick artworks, build a checklist.
+
+## Social Scheduler (Pro)
+Social Scheduler → New Post. Choose platform, artwork, write caption (Add Hashtags available), set date. Note: ArtistOS doesn't post for you. Use Copy Caption and post it yourself.
+
+## Analytics (Pro; Career Analytics on Studio)
+Market Analytics: position score, average price, sold vs available, portfolio by medium. Studio adds Career Analytics (price trajectory, time to sale).
 
 ## Opportunities (Studio)
-Complete your profile first. Opportunities → Refresh Matches. Browse Matched/All Open/Saved/Applications. Draft Application generates AI text from your CV.
+Complete your profile first. Opportunities → Refresh Matches. Browse Matched/All Open/Saved/Applications. Draft Application generates AI text from your CV. Always confirm eligibility on the original listing.
+
+## Your public artist page
+Every artist has a page at artistosapp.com/artist/{id}. Visitors see photo, bio, statement, works, CV link, and Request Commission button. Copy your link from the Dashboard card or My Website.
 
 ## Settings
-Click your name → Profile tab: photo, name, bio, medium, style, location. Billing tab: plan, Stripe Connect, promo codes. Notifications tab.
+Click your name → Profile tab: photo, name, bio, medium, style, location. Billing tab: plan, Stripe Connect. Notifications tab.
+
+## Founders' Room
+Founding Artists and VIPs can access the Founders' Room from the sidebar. It's a private community for posts, discussions and reactions.
 
 ## Contact the team
-Help & Messages button (?) in top bar. Send a message to Larry. Email: larry@synergysourceadvisors.com.
+Use the floating palette button (bottom right corner) to open the Studio Assistant. Ask ArtistOS answers most questions. Click "Talk to a person instead" or switch to the Team tab to message Larry directly. Email: larry@synergysourceadvisors.com.
 `
 
 const SYSTEM_PROMPT = `You are the ArtistOS help assistant. You answer questions about ArtistOS — how to use features, pricing, and the business side of being an artist (pricing work, contracts, grants, invoicing).
