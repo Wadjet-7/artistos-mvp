@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
   // Helper: get profile via Supabase REST
   async function getProfile(filter: string) {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/profiles?${filter}&select=id`,
+      `${SUPABASE_URL}/rest/v1/profiles?${filter}&select=id,lifetime_plan`,
       {
         headers: {
           "apikey": SUPABASE_SERVICE_ROLE_KEY,
@@ -159,8 +159,11 @@ Deno.serve(async (req) => {
         const priceId = subscription.items?.data?.[0]?.price?.id || ""
         const planName = PRICE_TO_PLAN[priceId] || "pro"
 
+        const subPlan = subscription.status === "active" ? planName
+          : profile.lifetime_plan ? "studio"
+          : "starter"
         await updateProfile(`id=eq.${profile.id}`, {
-          plan: subscription.status === "active" ? planName : "starter",
+          plan: subPlan,
           subscription_status: subscription.status,
           plan_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
         })
@@ -180,12 +183,12 @@ Deno.serve(async (req) => {
         }
 
         await updateProfile(`id=eq.${profile.id}`, {
-          plan: "starter",
+          plan: profile.lifetime_plan ? "studio" : "starter",
           subscription_status: "canceled",
           subscription_id: null,
         })
 
-        console.log(`Subscription canceled for ${profile.id}`)
+        console.log(`Subscription canceled for ${profile.id}${profile.lifetime_plan ? " (lifetime, kept Studio)" : ""}`)
         break
       }
 

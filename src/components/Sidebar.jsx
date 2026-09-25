@@ -141,8 +141,9 @@ export default function Sidebar({ isOpen, onClose }) {
             <p className="text-[13px] font-normal truncate" style={{ color: "rgba(255,255,255,0.75)" }}>
               {user?.name || "Artist"}
             </p>
-            <p className="text-[10px] tracking-wide" style={{ color: "#D4854A" }}>
+            <p className="text-[10px] tracking-wide flex items-center gap-1" style={{ color: "#D4854A" }}>
               {planLabel}
+              {user?.lifetime_plan && <span className="text-[8px] px-1.5 py-0.5 rounded-full font-semibold" style={{ background: "rgba(181,101,29,0.2)", color: "#D4854A" }}>Founding Artist</span>}
             </p>
           </div>
         </NavLink>

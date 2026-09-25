@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { PLANS, normalizePlan, getPrice, getAnnualSavings, isLegacyPricing, isEduEmail } from "../lib/plans"
 import { redirectToCheckout, isStripeConfigured, getPaymentLink } from "../lib/stripe"
-import { Check, Sparkles, Crown, Zap, ArrowLeft, Loader2, GraduationCap } from "lucide-react"
+import { Check, Sparkles, Crown, Zap, ArrowLeft, Loader2, GraduationCap, Gift } from "lucide-react"
 import toast from "react-hot-toast"
+import { redeemPromoCode } from "../lib/promo"
 
 const planIcons = { starter: Zap, pro: Sparkles, studio: Crown }
 
@@ -12,6 +13,49 @@ const planColors = {
   starter: { bg: "#F2EDE6", border: "#E8E2DA", accent: "#A89F94", badge: "#F2EDE6" },
   pro:     { bg: "#FFF8F0", border: "#F0D9B5", accent: "#B5651D", badge: "#F5E6D8" },
   studio:  { bg: "#F0F5F1", border: "#B8D4BE", accent: "#2D4A35", badge: "#E8F2EA" },
+}
+
+function UpgradeRedeemBox() {
+  const { refreshProfile } = useAuth()
+  const [code, setCode] = useState("")
+  const [redeeming, setRedeeming] = useState(false)
+  const [result, setResult] = useState(null)
+
+  const handleRedeem = async () => {
+    if (!code.trim()) return
+    setRedeeming(true)
+    setResult(null)
+    try {
+      const res = await redeemPromoCode(code.trim())
+      if (res.success) {
+        await refreshProfile()
+        setResult({ ok: true, message: res.lifetime ? "Studio unlocked for life. Welcome, Founding Artist." : `${res.plan} unlocked for ${res.months} months.` })
+        setCode("")
+      } else {
+        const msg = res.error === "invalid_or_expired" ? "That code isn't valid or has been used."
+          : res.error === "already_redeemed" ? "You've already used this code."
+          : "Something went wrong."
+        setResult({ ok: false, message: msg })
+      }
+    } catch { setResult({ ok: false, message: "Something went wrong." }) }
+    finally { setRedeeming(false) }
+  }
+
+  return (
+    <div className="card p-6 mb-6">
+      <h3 className="text-base font-semibold mb-2 flex items-center gap-2" style={{ color: "#0E0C0A" }}>
+        <Gift size={16} style={{ color: "#B5651D" }} /> Have a code?
+      </h3>
+      <div className="flex items-center gap-2">
+        <input value={code} onChange={e => setCode(e.target.value.toUpperCase())} placeholder="e.g. FOUNDER-XXXXX"
+          className="form-input flex-1 text-sm" onKeyDown={e => e.key === "Enter" && handleRedeem()} />
+        <button onClick={handleRedeem} disabled={redeeming || !code.trim()} className="btn-copper text-sm px-4 py-2 flex items-center gap-1.5">
+          {redeeming ? <Loader2 size={14} className="animate-spin" /> : <Gift size={14} />} Apply
+        </button>
+      </div>
+      {result && <p className="text-xs mt-2" style={{ color: result.ok ? "#2D4A35" : "#C4705A" }}>{result.message}</p>}
+    </div>
+  )
 }
 
 export default function Upgrade() {
@@ -249,6 +293,11 @@ export default function Upgrade() {
           )
         })}
       </div>
+
+      {/* Redeem code */}
+      {!user?.lifetime_plan && (
+        <UpgradeRedeemBox />
+      )}
 
       {/* FAQ */}
       <div className="card p-6">

@@ -81,7 +81,7 @@ function calcDelta(items, dateKey, days = 30) {
 /* ------------------------------------------------------------------ */
 /*  Tabs                                                               */
 /* ------------------------------------------------------------------ */
-const tabs = ["Overview", "Analytics", "Users", "Content", "Opportunities", "Platform"]
+const tabs = ["Overview", "Analytics", "Users", "Founders", "Content", "Opportunities", "Platform"]
 
 const MEDIUMS = ["painting", "photography", "sculpture", "mixed_media", "digital", "ceramics", "printmaking", "textile", "installation", "performance"]
 const OPP_TYPES = ["grant", "residency", "fellowship", "open_call", "award"]
@@ -131,7 +131,7 @@ export default function AdminPanel() {
         contractsRes, viewingRoomsRes, consignmentsRes, exhibitionsRes,
         contactsRes, postsRes, expensesRes, activityRes, oppsRes
       ] = await Promise.all([
-        supabase.from("profiles").select("id, name, email, plan, avatar_url, initials, is_admin, is_demo, created_at, subscription_status"),
+        supabase.from("profiles").select("id, name, email, plan, avatar_url, initials, is_admin, is_demo, created_at, subscription_status, lifetime_plan, promo_code, founder_referral_code"),
         supabase.from("artworks").select("id, user_id, status, created_at", { count: "exact", head: false }),
         supabase.from("invoices").select("id, amount, status, created_at"),
         supabase.from("commissions").select("id, status, created_at", { count: "exact", head: false }),
@@ -653,6 +653,66 @@ export default function AdminPanel() {
                   </tbody>
                 </table>
                 {filteredUsers.length === 0 && <p className="text-sm text-center py-8" style={{ color: "#A89F94" }}>No users match your search</p>}
+              </div>
+            </div>
+          )}
+
+          {/* ── FOUNDERS ── */}
+          {tab === "Founders" && (
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="card p-5">
+                  <p className="text-2xl font-bold font-serif" style={{ color: "#B5651D" }}>
+                    {users.filter(u => u.lifetime_plan).length}
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: "#A89F94" }}>Lifetime accounts</p>
+                </div>
+                <div className="card p-5">
+                  <p className="text-2xl font-bold font-serif" style={{ color: "#0E0C0A" }}>
+                    {25 - users.filter(u => u.promo_code?.startsWith("FOUNDER-")).length} / 25
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: "#A89F94" }}>Founder codes remaining</p>
+                </div>
+              </div>
+              <div className="card overflow-x-auto">
+                <table className="w-full text-sm" style={{ minWidth: 700 }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid #F2EDE6" }}>
+                      {["Name", "Email", "Code Used", "Referral Code", "Joined"].map(h => (
+                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold" style={{ color: "#A89F94" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.filter(u => u.lifetime_plan).map(u => (
+                      <tr key={u.id} style={{ borderBottom: "1px solid #F2EDE6" }} className="hover:bg-[#FAF8F5]">
+                        <td className="px-4 py-3 font-medium" style={{ color: "#0E0C0A" }}>{u.name || "Unnamed"}</td>
+                        <td className="px-4 py-3 text-xs" style={{ color: "#A89F94" }}>{u.email}</td>
+                        <td className="px-4 py-3 text-xs font-mono" style={{ color: "#B5651D" }}>{u.promo_code || "—"}</td>
+                        <td className="px-4 py-3">
+                          <input
+                            className="text-xs border rounded px-2 py-1 w-28"
+                            style={{ borderColor: "#E8E2DA" }}
+                            defaultValue={u.founder_referral_code || ""}
+                            placeholder="Set code..."
+                            onBlur={async (e) => {
+                              const val = e.target.value.trim()
+                              if (val !== (u.founder_referral_code || "")) {
+                                await supabase.from("profiles").update({ founder_referral_code: val }).eq("id", u.id)
+                                setUsers(prev => prev.map(x => x.id === u.id ? { ...x, founder_referral_code: val } : x))
+                                toast.success("Referral code updated")
+                              }
+                            }}
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-xs" style={{ color: "#A89F94" }}>{formatDate(u.created_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {users.filter(u => u.lifetime_plan).length === 0 && (
+                  <p className="text-sm text-center py-8" style={{ color: "#A89F94" }}>No founding artists yet</p>
+                )}
               </div>
             </div>
           )}

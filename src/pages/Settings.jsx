@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
-import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera, Sparkles, ArrowRight, Check, ExternalLink, AlertTriangle } from "lucide-react"
+import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera, Sparkles, ArrowRight, Check, ExternalLink, AlertTriangle, Award, Gift } from "lucide-react"
 import { PLANS, normalizePlan, formatLimit, canAccess } from "../lib/plans"
 import { isStripeConfigured, redirectToCustomerPortal, createStripeConnectAccount, checkStripeConnectStatus } from "../lib/stripe"
 import { generateBio } from "../lib/ai"
+import { redeemPromoCode } from "../lib/promo"
 
 const tabs = ["Profile", "Notifications", "Billing"]
 
@@ -260,6 +261,66 @@ export default function Settings() {
 }
 
 /* ================================================================ */
+/*  Redeem Code Box                                                  */
+/* ================================================================ */
+function RedeemCodeBox() {
+  const { refreshProfile } = useAuth()
+  const [code, setCode] = useState("")
+  const [redeeming, setRedeeming] = useState(false)
+  const [result, setResult] = useState(null)
+
+  const handleRedeem = async () => {
+    if (!code.trim()) return
+    setRedeeming(true)
+    setResult(null)
+    try {
+      const res = await redeemPromoCode(code.trim())
+      if (res.success) {
+        await refreshProfile()
+        setResult({ ok: true, message: res.lifetime ? "Studio unlocked for life. Welcome, Founding Artist." : `${res.plan} unlocked for ${res.months} months.` })
+        setCode("")
+      } else {
+        const msg = res.error === "invalid_or_expired" ? "That code isn't valid or has been used."
+          : res.error === "already_redeemed" ? "You've already used this code."
+          : "Something went wrong. Try again or contact the team."
+        setResult({ ok: false, message: msg })
+      }
+    } catch {
+      setResult({ ok: false, message: "Something went wrong." })
+    } finally {
+      setRedeeming(false)
+    }
+  }
+
+  return (
+    <div className="card p-6">
+      <h3 className="text-base font-semibold mb-2 flex items-center gap-2" style={{ color: "#0E0C0A" }}>
+        <Gift size={16} style={{ color: "#B5651D" }} /> Have a code?
+      </h3>
+      <p className="text-xs mb-3" style={{ color: "#A89F94" }}>Enter a promo or founding artist code to unlock your plan.</p>
+      <div className="flex items-center gap-2">
+        <input
+          value={code}
+          onChange={e => setCode(e.target.value.toUpperCase())}
+          placeholder="e.g. FOUNDER-XXXXX"
+          className="form-input flex-1 text-sm"
+          onKeyDown={e => e.key === "Enter" && handleRedeem()}
+        />
+        <button onClick={handleRedeem} disabled={redeeming || !code.trim()} className="btn-copper text-sm px-4 py-2 flex items-center gap-1.5">
+          {redeeming ? <Loader2 size={14} className="animate-spin" /> : <Gift size={14} />}
+          Apply
+        </button>
+      </div>
+      {result && (
+        <p className="text-xs mt-2" style={{ color: result.ok ? "#2D4A35" : "#C4705A" }}>
+          {result.message}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/* ================================================================ */
 /*  Billing Tab — Real plan data + subscription management          */
 /* ================================================================ */
 function BillingTab({ user }) {
@@ -428,6 +489,39 @@ function BillingTab({ user }) {
           )}
         </div>
       </div>
+
+      {/* Founding Artist badge */}
+      {user?.lifetime_plan && (
+        <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: "#FFF8F0", border: "1px solid #F0D9B5" }}>
+          <Award size={20} style={{ color: "#B5651D" }} />
+          <div>
+            <p className="text-sm font-semibold" style={{ color: "#B5651D" }}>Founding Artist</p>
+            <p className="text-xs" style={{ color: "#A89F94" }}>Studio free for life. Thank you for being one of the first.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Referral code */}
+      {user?.founder_referral_code && (
+        <div className="card p-6">
+          <h3 className="text-base font-semibold mb-2" style={{ color: "#0E0C0A" }}>Your Referral Code</h3>
+          <p className="text-xs mb-3" style={{ color: "#A89F94" }}>Artists you invite get 50% off Pro for their first 6 months. They enter the code at checkout.</p>
+          <div className="flex items-center gap-2 mb-3">
+            <code className="text-sm font-mono px-3 py-2 rounded-lg flex-1" style={{ background: "#F2EDE6", color: "#0E0C0A" }}>{user.founder_referral_code}</code>
+            <button onClick={() => { navigator.clipboard.writeText(user.founder_referral_code); toast.success("Code copied!") }}
+              className="btn-secondary text-xs px-3 py-2">Copy</button>
+          </div>
+          <button onClick={() => {
+            navigator.clipboard.writeText(`Try ArtistOS, the business side of your art practice in one place. Use my code ${user.founder_referral_code} for 50% off Pro for 6 months: https://artistosapp.com/signup`)
+            toast.success("Invite message copied!")
+          }} className="btn-secondary text-xs flex items-center gap-1.5 px-3 py-2">
+            Copy invite message
+          </button>
+        </div>
+      )}
+
+      {/* Redeem a code */}
+      {!user?.lifetime_plan && <RedeemCodeBox />}
 
       {/* Plan Limits */}
       <div className="card p-6">
