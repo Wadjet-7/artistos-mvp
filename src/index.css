@@ -301,6 +301,20 @@ html {
 .skeleton-value { height: 32px; width: 45%; margin-bottom: 8px; }
 .skeleton-chart { height: 200px; width: 100%; }
 
+/* Floating assistant animations */
+@keyframes assistantBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes assistantSparkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1); }
+}
+@keyframes assistantFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Tour (driver.js) theming */
 .driver-popover {
   font-family: 'DM Sans', sans-serif !important;

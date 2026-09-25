@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { HelpCircle, X, Send, MessageSquare, ChevronLeft, Mail, ExternalLink, Loader2, Sparkles, ThumbsUp, ThumbsDown, ArrowRight } from "lucide-react"
+import { X, Send, MessageSquare, ChevronLeft, Mail, Loader2, Sparkles, ArrowRight } from "lucide-react"
 import { useLocation } from "react-router-dom"
 import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
@@ -137,9 +137,11 @@ export default function HelpPanel({ open, onClose }) {
                 <ChevronLeft size={18} style={{ color: "#A89F94" }} />
               </button>
             )}
-            <HelpCircle size={18} style={{ color: "#B5651D" }} />
-            <h2 className="text-base font-semibold" style={{ color: "#0E0C0A" }}>
-              {activeThread ? activeThread.subject : "Help & Messages"}
+            <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(145deg, #B5651D, #D4854A)" }}>
+              <svg width="14" height="14" viewBox="0 0 32 32" fill="none"><path d="M16 3C9 3 3 9 3 16c0 7 6 13 13 13 1.5 0 2.5-1 2.5-2.3 0-.6-.2-1.1-.6-1.5-.3-.4-.5-.9-.5-1.5 0-1.3 1-2.3 2.3-2.3H23c4.4 0 6-2.8 6-6C29 8.5 23.2 3 16 3z" fill="white" fillOpacity="0.9"/><circle cx="10" cy="13" r="2.5" fill="#C4705A"/><circle cx="15" cy="9" r="2.5" fill="#C9A84C"/><circle cx="21" cy="11" r="2.5" fill="#2D4A35"/></svg>
+            </div>
+            <h2 style={{ color: "#0E0C0A", fontFamily: "'Cormorant Garamond', serif", fontSize: 17, fontWeight: 600 }}>
+              {activeThread ? activeThread.subject : "Studio Assistant"}
             </h2>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100"><X size={18} style={{ color: "#A89F94" }} /></button>
@@ -168,9 +170,15 @@ export default function HelpPanel({ open, onClose }) {
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {aiMessages.length === 0 && (
                   <div className="text-center py-8">
-                    <Sparkles size={24} className="mx-auto mb-3" style={{ color: "#B5651D" }} />
-                    <p className="text-sm font-medium mb-1" style={{ color: "#0E0C0A" }}>Ask ArtistOS</p>
-                    <p className="text-xs mb-4" style={{ color: "#A89F94" }}>I can help with how-to questions, pricing, contracts, and more.</p>
+                    <div className="mx-auto mb-3 w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(145deg, #B5651D, #D4854A, #C9A84C)" }}>
+                      <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 3C9 3 3 9 3 16c0 7 6 13 13 13 1.5 0 2.5-1 2.5-2.3 0-.6-.2-1.1-.6-1.5-.3-.4-.5-.9-.5-1.5 0-1.3 1-2.3 2.3-2.3H23c4.4 0 6-2.8 6-6C29 8.5 23.2 3 16 3z" fill="white" fillOpacity="0.95" />
+                        <circle cx="10" cy="13" r="2.5" fill="#C4705A" /><circle cx="15" cy="9" r="2.5" fill="#C9A84C" />
+                        <circle cx="21" cy="11" r="2.5" fill="#2D4A35" /><circle cx="11" cy="20" r="2" fill="#B5651D" />
+                      </svg>
+                    </div>
+                    <p className="font-medium mb-1" style={{ color: "#0E0C0A", fontFamily: "'Cormorant Garamond', serif", fontSize: 18 }}>Your Studio Assistant</p>
+                    <p className="text-xs mb-4" style={{ color: "#A89F94" }}>Ask me about pricing, grants, invoices, contracts — I know ArtistOS inside and out.</p>
                     <div className="space-y-2">
                       {["How do I send an invoice?", "How should I price my work?", "How do I find grants?"].map(q => (
                         <button key={q} onClick={() => { setAiInput(q); setTimeout(handleAskAI, 100) }}
@@ -340,28 +348,3 @@ export default function HelpPanel({ open, onClose }) {
   )
 }
 
-export function HelpButton() {
-  const { user } = useAuth()
-  const [open, setOpen] = useState(false)
-  const [unread, setUnread] = useState(0)
-
-  useEffect(() => {
-    if (!user?.id) return
-    fetchMyThreads(user.id).then(threads => {
-      setUnread(threads.reduce((s, t) => s + (t.unread_for_user || 0), 0))
-    }).catch(() => {})
-  }, [user?.id])
-
-  return (
-    <>
-      <button onClick={() => setOpen(true)} className="relative p-2 rounded-lg transition-colors hover:bg-gray-100" title="Help & Messages">
-        <HelpCircle size={18} style={{ color: "#A89F94" }} />
-        {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
-            style={{ background: "#B5651D", color: "white" }}>{unread}</span>
-        )}
-      </button>
-      <HelpPanel open={open} onClose={() => { setOpen(false) }} />
-    </>
-  )
-}
