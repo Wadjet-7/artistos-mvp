@@ -92,7 +92,13 @@ export default function ViewingRooms() {
     setEditRoom(null)
   }
 
-  const openCreate = () => { resetForm(); setModalOpen(true) }
+  const openCreate = () => {
+    if (isAtLimit(normalizePlan(user?.plan), "viewingRooms", rooms.length)) {
+      toast.error("You've reached your viewing room limit. Upgrade to create more.")
+      return
+    }
+    resetForm(); setModalOpen(true)
+  }
   const openEdit = (room) => {
     setEditRoom(room)
     setForm({

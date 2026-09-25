@@ -62,9 +62,8 @@ export default async function handler(req, res) {
 
   try {
     const [profiles, works] = await Promise.all([
-      sb(`profiles?id=eq.${id}&select=id,name,bio,medium,style,location,avatar_url,artist_statement,website,is_demo`)
-        // is_demo is added by phase26-seo-fixes.sql; retry without it if that hasn't run yet
-        .catch(() => sb(`profiles?id=eq.${id}&select=id,name,bio,medium,style,location,avatar_url,artist_statement,website`)),
+      sb(`public_profiles?id=eq.${id}&select=id,name,bio,medium,style,location,avatar_url,artist_statement,website,is_demo`)
+        .catch(() => sb(`public_profiles?id=eq.${id}&select=id,name,bio,medium,style,location,avatar_url,artist_statement,website`)),
       sb(`artworks?user_id=eq.${id}&select=id,title,medium,dimensions,image_url,status,price&order=created_at.desc&limit=24`),
     ])
     const p = profiles && profiles[0]

@@ -32,7 +32,7 @@ export default function PublicCV() {
       setLoading(true)
       try {
         const [profileRes, cvRes] = await Promise.all([
-          supabase.from("profiles").select("id, name, location, website, bio, avatar_url, initials").eq("id", userId).single(),
+          supabase.from("public_profiles").select("id, name, location, website, bio, avatar_url, initials").eq("id", userId).single(),
           supabase.from("artist_cv").select("*").eq("user_id", userId).single(),
         ])
 

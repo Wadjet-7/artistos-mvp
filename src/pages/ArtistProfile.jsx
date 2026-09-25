@@ -44,7 +44,7 @@ function ArtworkCard({ artwork, accent }) {
         {artwork.description && (
           <p className="text-xs leading-relaxed mb-2 line-clamp-2" style={{ color: "var(--t-text-secondary)" }}>{artwork.description}</p>
         )}
-        {artwork.price && artwork.status === "Available" && (
+        {artwork.price > 0 && artwork.status === "Available" && (
           <p className="font-serif text-lg font-semibold" style={{ color: accent }}>
             ${artwork.price.toLocaleString()}
           </p>
@@ -70,7 +70,7 @@ export default function ArtistProfile() {
       setLoading(true)
       try {
         const { data: profile, error: profileError } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("id, name, bio, website, medium, style, location, avatar_url, initials, website_settings, artist_statement, is_demo")
           .eq("id", userId)
           .single()

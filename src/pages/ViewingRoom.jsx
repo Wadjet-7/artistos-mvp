@@ -77,7 +77,7 @@ export default function ViewingRoom() {
 
         // Fetch artist profile
         const { data: profile } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("id, name, bio, location, medium, style, website, initials, avatar_url")
           .eq("id", roomData.user_id)
           .single()

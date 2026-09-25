@@ -27,9 +27,12 @@ function daysUntil(deadline) {
   return diff
 }
 
-function DeadlineBadge({ deadline }) {
+function DeadlineBadge({ deadline, eligibilityNotes }) {
   const days = daysUntil(deadline)
-  if (days === null) return null
+  if (days === null) {
+    const isRolling = (eligibilityNotes || "").toLowerCase().includes("rolling")
+    return <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "#F2EDE6", color: "#A89F94" }}>{isRolling ? "Rolling" : "Date TBA"}</span>
+  }
   if (days < 0) return <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "#F2EDE6", color: "#A89F94" }}>Closed</span>
   const urgent = days < 14
   return (
@@ -64,7 +67,7 @@ function OpportunityCard({ match, opportunity, onDraft, onSave, onDismiss }) {
               {opp.opportunity_type?.replace("_", " ")}
             </span>
             {match && <ScorePill score={match.match_score} />}
-            <DeadlineBadge deadline={opp.deadline} />
+            <DeadlineBadge deadline={opp.deadline} eligibilityNotes={opp.eligibility_notes} />
           </div>
           <h3 className="text-sm font-semibold" style={{ color: "#0E0C0A" }}>{opp.title}</h3>
           <p className="text-xs" style={{ color: "#A89F94" }}>{opp.organization}</p>
@@ -97,7 +100,7 @@ function OpportunityCard({ match, opportunity, onDraft, onSave, onDismiss }) {
       )}
 
       <div className="flex items-center gap-2 flex-wrap">
-        {onDraft && daysUntil(opp.deadline) > 0 && (
+        {onDraft && (daysUntil(opp.deadline) === null || daysUntil(opp.deadline) > 0) && (
           <button onClick={() => onDraft(opp, match)} className="btn-copper text-xs flex items-center gap-1.5 px-3 py-1.5">
             <FileText size={12} /> Draft Application
           </button>
@@ -137,7 +140,13 @@ function DraftModal({ open, onClose, opportunity, user }) {
   const [copied, setCopied] = useState(null)
 
   useEffect(() => {
-    if (!open || !user?.id) return
+    if (!open) return
+    setSelectedIds([])
+    setDraft(null)
+    setSaving(false)
+    setCopied(null)
+    setGenerating(false)
+    if (!user?.id) return
     supabase.from("artworks").select("id, title, medium, dimensions, tag, image_url")
       .eq("user_id", user.id).order("created_at", { ascending: false }).limit(50)
       .then(({ data }) => setArtworks(data || []))

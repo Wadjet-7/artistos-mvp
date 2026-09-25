@@ -145,7 +145,13 @@ export default function Finances() {
   /* ============================================================ */
   /*  INVOICE CRUD                                                 */
   /* ============================================================ */
-  const openCreateInvoice = () => { setEditingId(null); setInvoiceForm(emptyInvoiceForm); setTab("invoices"); setModalOpen(true) }
+  const openCreateInvoice = () => {
+    if (isAtLimit(normalizePlan(user?.plan), "invoices", invoices.length)) {
+      toast.error("You've reached your invoice limit. Upgrade to create more.")
+      return
+    }
+    setEditingId(null); setInvoiceForm(emptyInvoiceForm); setTab("invoices"); setModalOpen(true)
+  }
   const openEditInvoice = (inv) => {
     setEditingId(inv.id)
     setInvoiceForm({
@@ -544,7 +550,7 @@ export default function Finances() {
                               onMouseEnter={e => e.currentTarget.style.color = "#B5651D"} onMouseLeave={e => e.currentTarget.style.color = "#A89F94"}>
                               <FileText size={15} />
                             </button>
-                            {inv.status !== "paid" && inv.client_email && (
+                            {inv.status !== "paid" && inv.client_email && user?.stripe_charges_enabled && (
                               <button onClick={() => handleSendInvoice(inv)} title="Send Invoice with Payment Link"
                                 disabled={sendingInvoice === inv.id}
                                 style={{ background: "none", border: "none", cursor: sendingInvoice === inv.id ? "wait" : "pointer", padding: 4, borderRadius: 6, color: "#A89F94", transition: "color 0.15s" }}
@@ -552,7 +558,7 @@ export default function Finances() {
                                 {sendingInvoice === inv.id ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
                               </button>
                             )}
-                            {inv.status !== "paid" && (
+                            {inv.status !== "paid" && user?.stripe_charges_enabled && (
                               <button onClick={() => handleCopyPaymentLink(inv)} title="Copy Payment Link"
                                 disabled={sendingInvoice === inv.id}
                                 style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 6, color: "#A89F94", transition: "color 0.15s" }}

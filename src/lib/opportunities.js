@@ -6,8 +6,8 @@ export async function fetchActiveOpportunities() {
     .from("opportunities")
     .select("*")
     .eq("is_active", true)
-    .gte("deadline", today)
-    .order("deadline", { ascending: true })
+    .or(`deadline.gte.${today},deadline.is.null`)
+    .order("deadline", { ascending: true, nullsFirst: false })
   if (error) throw error
   return data || []
 }

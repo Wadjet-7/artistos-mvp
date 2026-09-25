@@ -101,7 +101,7 @@ export default function EmergingArtists() {
         setFetchError(false)
         // Fetch all profiles except the current user, ordered by most recently active
         const { data, error } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("id, name, medium, style, location, avatar_url, created_at")
           .neq("id", user?.id || "")
           .not("name", "is", null)

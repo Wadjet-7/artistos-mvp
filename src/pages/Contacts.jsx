@@ -185,7 +185,13 @@ export default function Contacts() {
     setTagInput("")
   }
 
-  const openCreate = () => { resetForm(); setModalOpen(true) }
+  const openCreate = () => {
+    if (isAtLimit(normalizePlan(user?.plan), "contacts", contacts.length)) {
+      toast.error("You've reached your contact limit. Upgrade to add more.")
+      return
+    }
+    resetForm(); setModalOpen(true)
+  }
 
   const openEdit = (contact) => {
     setEditContact(contact)

@@ -23,8 +23,8 @@ export default async function handler(req, res) {
     const ids = [...latest.keys()]
     if (ids.length) {
       const list = ids.slice(0, 1000).join(",")
-      const profiles = await sb(`profiles?id=in.(${list})&select=id,name,is_demo`)
-        .catch(() => sb(`profiles?id=in.(${list})&select=id,name`))
+      const profiles = await sb(`public_profiles?id=in.(${list})&select=id,name,is_demo`)
+        .catch(() => sb(`public_profiles?id=in.(${list})&select=id,name`))
       entries = profiles
         .filter((p) => p.name && p.name.trim() && !p.is_demo)
         .map((p) => ({ loc: `${SITE}/artist/${p.id}`, lastmod: String(latest.get(p.id) || "").slice(0, 10) }))

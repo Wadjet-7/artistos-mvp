@@ -42,7 +42,7 @@ export default function ArtworkDetail() {
 
         // Fetch artist profile
         const { data: profile } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("id, name, location, website, avatar_url, initials, bio")
           .eq("id", art.user_id)
           .single()

@@ -65,10 +65,11 @@ export default function Marketplace() {
       setLoading(true)
 
       const { data, error } = await supabase
-        .from("profiles")
-        .select("id, name, bio, medium, style, location, avatar_url, initials, created_at")
+        .from("public_profiles")
+        .select("id, name, bio, medium, style, location, avatar_url, initials, created_at, is_demo")
         .neq("id", user?.id || "")
         .not("name", "is", null)
+        .eq("is_demo", false)
         .order("created_at", { ascending: false })
         .limit(30)
 

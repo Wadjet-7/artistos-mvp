@@ -239,7 +239,10 @@ export default function Portfolio() {
           dimensions: form.dimensions.trim(),
           description: form.description.trim() || null,
           image_url: imageUrl,
-          seed: Math.floor(Math.random() * 1000), // fallback seed if no image
+          seed: Math.floor(Math.random() * 1000),
+          ...(form.appraised_value ? { appraised_value: parseInt(form.appraised_value) || null } : {}),
+          ...(form.appraisal_date ? { appraisal_date: form.appraisal_date } : {}),
+          ...(form.appraisal_notes ? { appraisal_notes: form.appraisal_notes.trim() } : {}),
         })
 
       if (insertError) throw insertError
