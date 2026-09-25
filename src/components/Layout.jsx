@@ -5,6 +5,7 @@ import { Bell, Search, X, Menu } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
 import CommandPalette from "./CommandPalette"
+import { HelpButton } from "./HelpPanel"
 import { applySEO } from "../lib/seo"
 
 function timeAgo(date) {
@@ -176,6 +177,7 @@ export default function Layout() {
               />
             </div>
             <div className="relative" ref={notifRef}>
+              <HelpButton />
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="relative p-2 rounded-lg transition-colors"

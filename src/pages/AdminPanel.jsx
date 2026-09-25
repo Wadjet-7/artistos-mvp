@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import {
   Shield, Users, Image, FileText, DollarSign, Eye, Package, CalendarDays,
   Loader2, Search, Download, ExternalLink, RefreshCw, TrendingUp, TrendingDown,
-  BarChart3, UserCircle, Award, Plus, Trash2, Edit2, Globe, MapPin
+  BarChart3, UserCircle, Award, Plus, Trash2, Edit2, Globe, MapPin, MessageSquare
 } from "lucide-react"
 import {
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -81,7 +81,7 @@ function calcDelta(items, dateKey, days = 30) {
 /* ------------------------------------------------------------------ */
 /*  Tabs                                                               */
 /* ------------------------------------------------------------------ */
-const tabs = ["Overview", "Analytics", "Users", "Founders", "Content", "Opportunities", "Platform"]
+const tabs = ["Overview", "Analytics", "Users", "Founders", "Inbox", "Content", "Opportunities", "Platform"]
 
 const MEDIUMS = ["painting", "photography", "sculpture", "mixed_media", "digital", "ceramics", "printmaking", "textile", "installation", "performance"]
 const OPP_TYPES = ["grant", "residency", "fellowship", "open_call", "award"]
@@ -113,6 +113,11 @@ export default function AdminPanel() {
   const [contentStats, setContentStats] = useState({})
   const [activityLog, setActivityLog] = useState([])
   const [opportunities, setOpportunities] = useState([])
+  const [supportThreads, setSupportThreads] = useState([])
+  const [activeInboxThread, setActiveInboxThread] = useState(null)
+  const [inboxMessages, setInboxMessages] = useState([])
+  const [inboxReply, setInboxReply] = useState("")
+  const [sendingReply, setSendingReply] = useState(false)
   const [oppModal, setOppModal] = useState({ open: false, editing: null })
   const [oppForm, setOppForm] = useState(defaultOpp)
   const [savingOpp, setSavingOpp] = useState(false)
@@ -129,7 +134,7 @@ export default function AdminPanel() {
       const [
         profilesRes, artworksRes, invoicesRes, commissionsRes,
         contractsRes, viewingRoomsRes, consignmentsRes, exhibitionsRes,
-        contactsRes, postsRes, expensesRes, activityRes, oppsRes
+        contactsRes, postsRes, expensesRes, activityRes, oppsRes, threadsRes
       ] = await Promise.all([
         supabase.from("profiles").select("id, name, email, plan, avatar_url, initials, is_admin, is_demo, created_at, subscription_status, lifetime_plan, promo_code, founder_referral_code"),
         supabase.from("artworks").select("id, user_id, status, created_at", { count: "exact", head: false }),
@@ -144,6 +149,7 @@ export default function AdminPanel() {
         supabase.from("expenses").select("id, amount"),
         supabase.from("activity_log").select("id, user_id, action, details, created_at").order("created_at", { ascending: false }).limit(20),
         supabase.from("opportunities").select("*").order("deadline", { ascending: true }),
+        supabase.from("support_threads").select("*").order("last_message_at", { ascending: false }),
       ])
 
       const profiles = profilesRes.data || []
@@ -207,6 +213,11 @@ export default function AdminPanel() {
         userInitials: profileMap[a.user_id]?.initials || "?",
       })))
       setOpportunities(oppsRes.data || [])
+      const threads = (threadsRes.data || []).map(t => {
+        const p = profileMap[t.user_id]
+        return { ...t, userName: p?.name || "Unknown", userEmail: p?.email || "", userPlan: p?.plan || "starter", isFounder: p?.lifetime_plan || false }
+      })
+      setSupportThreads(threads)
     } catch (err) {
       console.error("[Admin] fetch error:", err)
       setFetchError(true)
@@ -714,6 +725,131 @@ export default function AdminPanel() {
                   <p className="text-sm text-center py-8" style={{ color: "#A89F94" }}>No founding artists yet</p>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* ── INBOX ── */}
+          {tab === "Inbox" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm" style={{ color: "#A89F94" }}>
+                  {supportThreads.filter(t => t.unread_for_admin > 0).length} unread threads
+                </p>
+              </div>
+
+              {activeInboxThread ? (
+                <div className="space-y-4">
+                  <button onClick={() => setActiveInboxThread(null)} className="text-xs flex items-center gap-1" style={{ color: "#A89F94" }}>
+                    &larr; Back to threads
+                  </button>
+                  <div className="card p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <span className="text-sm font-semibold" style={{ color: "#0E0C0A" }}>{activeInboxThread.userName}</span>
+                        <span className="text-xs ml-2" style={{ color: "#A89F94" }}>{activeInboxThread.userEmail}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "#F2EDE6", color: "#A89F94" }}>{activeInboxThread.userPlan}</span>
+                        {activeInboxThread.isFounder && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "#F5E6D8", color: "#B5651D" }}>Founder</span>}
+                      </div>
+                    </div>
+                    <h3 className="text-sm font-medium" style={{ color: "#0E0C0A" }}>{activeInboxThread.subject}</h3>
+                  </div>
+                  <div className="card p-4 max-h-96 overflow-y-auto space-y-3">
+                    {inboxMessages.map(msg => (
+                      <div key={msg.id} className={`flex ${msg.sender_role === "admin" ? "justify-end" : "justify-start"}`}>
+                        <div className="max-w-[80%] rounded-xl px-4 py-2.5" style={{
+                          background: msg.sender_role === "admin" ? "#0E0C0A" : "#F2EDE6",
+                          color: msg.sender_role === "admin" ? "#FAF8F5" : "#0E0C0A",
+                        }}>
+                          <p className="text-sm whitespace-pre-wrap">{msg.body}</p>
+                          <p className="text-[10px] mt-1" style={{ opacity: 0.5 }}>{timeAgo(msg.created_at)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input value={inboxReply} onChange={e => setInboxReply(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && !e.shiftKey && (async () => {
+                        if (!inboxReply.trim()) return
+                        setSendingReply(true)
+                        try {
+                          await supabase.from("support_messages").insert({ thread_id: activeInboxThread.id, sender_role: "admin", sender_id: user.id, body: inboxReply.trim() })
+                          await supabase.from("support_threads").update({ unread_for_admin: 0, status: "waiting_on_user" }).eq("id", activeInboxThread.id)
+                          setInboxReply("")
+                          const { data } = await supabase.from("support_messages").select("*").eq("thread_id", activeInboxThread.id).order("created_at")
+                          setInboxMessages(data || [])
+                          toast.success("Reply sent")
+                        } catch { toast.error("Failed to send") }
+                        finally { setSendingReply(false) }
+                      })()}
+                      placeholder="Type a reply..." className="form-input flex-1 text-sm" />
+                    <button onClick={async () => {
+                      if (!inboxReply.trim()) return
+                      setSendingReply(true)
+                      try {
+                        await supabase.from("support_messages").insert({ thread_id: activeInboxThread.id, sender_role: "admin", sender_id: user.id, body: inboxReply.trim() })
+                        await supabase.from("support_threads").update({ unread_for_admin: 0, status: "waiting_on_user" }).eq("id", activeInboxThread.id)
+                        setInboxReply("")
+                        const { data } = await supabase.from("support_messages").select("*").eq("thread_id", activeInboxThread.id).order("created_at")
+                        setInboxMessages(data || [])
+                        toast.success("Reply sent")
+                      } catch { toast.error("Failed to send") }
+                      finally { setSendingReply(false) }
+                    }} disabled={sendingReply} className="btn-copper p-2.5 rounded-lg">
+                      {sendingReply ? <Loader2 size={16} className="animate-spin" /> : <MessageSquare size={16} />}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="card overflow-x-auto">
+                  <table className="w-full text-sm" style={{ minWidth: 600 }}>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #F2EDE6" }}>
+                        {["Artist", "Subject", "Status", "Last Message", "Unread"].map(h => (
+                          <th key={h} className="text-left px-4 py-3 text-xs font-semibold" style={{ color: "#A89F94" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {supportThreads.map(t => (
+                        <tr key={t.id} style={{ borderBottom: "1px solid #F2EDE6" }} className="hover:bg-[#FAF8F5] cursor-pointer"
+                          onClick={async () => {
+                            setActiveInboxThread(t)
+                            const { data } = await supabase.from("support_messages").select("*").eq("thread_id", t.id).order("created_at")
+                            setInboxMessages(data || [])
+                            await supabase.from("support_threads").update({ unread_for_admin: 0 }).eq("id", t.id)
+                            setSupportThreads(prev => prev.map(x => x.id === t.id ? { ...x, unread_for_admin: 0 } : x))
+                          }}>
+                          <td className="px-4 py-3">
+                            <div>
+                              <span className="text-xs font-medium" style={{ color: "#0E0C0A" }}>{t.userName}</span>
+                              {t.isFounder && <span className="text-[8px] font-bold ml-1 px-1.5 py-0.5 rounded-full" style={{ background: "#F5E6D8", color: "#B5651D" }}>Founder</span>}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-xs" style={{ color: "#0E0C0A" }}>{t.subject || "—"}</td>
+                          <td className="px-4 py-3">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                              style={{ background: t.status === "open" ? "#E8F2EA" : t.status === "waiting_on_user" ? "#FBF2DC" : "#F2EDE6",
+                                       color: t.status === "open" ? "#2D4A35" : t.status === "waiting_on_user" ? "#8A6A1A" : "#A89F94" }}>
+                              {t.status.replace(/_/g, " ")}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs" style={{ color: "#A89F94" }}>{timeAgo(t.last_message_at)}</td>
+                          <td className="px-4 py-3">
+                            {t.unread_for_admin > 0 && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "#B5651D", color: "white" }}>{t.unread_for_admin}</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {supportThreads.length === 0 && (
+                    <p className="text-sm text-center py-8" style={{ color: "#A89F94" }}>No support threads yet</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
