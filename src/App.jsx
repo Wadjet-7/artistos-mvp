@@ -5,6 +5,11 @@ import { AuthProvider, useAuth } from "./context/AuthContext"
 import { captureAttribution } from "./lib/promo"
 import Layout from "./components/Layout"
 import ErrorBoundary from "./components/ErrorBoundary"
+import { TourProvider } from "./tour/TourProvider"
+
+function TourWrapper({ children }) {
+  return <TourProvider>{children}</TourProvider>
+}
 
 const Landing = lazy(() => import("./pages/Landing"))
 const Login = lazy(() => import("./pages/Login"))
@@ -153,7 +158,9 @@ export default function App() {
             },
           }}
         />
-        <AppRoutes />
+        <TourWrapper>
+          <AppRoutes />
+        </TourWrapper>
       </AuthProvider>
     </BrowserRouter>
     </ErrorBoundary>

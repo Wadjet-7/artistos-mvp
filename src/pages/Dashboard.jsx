@@ -13,6 +13,7 @@ import {
 } from "recharts"
 import PageError from "../components/PageError"
 import FirstStepsChecklist from "../components/FirstStepsChecklist"
+import GettingStarted from "../components/GettingStarted"
 
 /* ================================================================ */
 /*  HELPERS                                                          */
@@ -374,6 +375,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-5">
       {/* Phase 21: first-session activation checklist (hides when complete) */}
+      <GettingStarted />
       <FirstStepsChecklist />
 
       {/* Upgrade banner for Starter users */}

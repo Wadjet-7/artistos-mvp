@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.42.0",
+    "driver.js": "^1.8.0",
     "lucide-react": "^0.330.0",
     "pdfkit": "^0.17.2",
     "pptxgenjs": "^4.0.1",

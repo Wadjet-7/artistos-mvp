@@ -35,6 +35,10 @@ export function AuthProvider({ children }) {
     billing_interval: profile.billing_interval || "monthly",
     legacy_pricing: profile.legacy_pricing || false,
     legacy_plan_price: profile.legacy_plan_price || null,
+    onboarding_progress: profile.onboarding_progress || {},
+    lifetime_plan: profile.lifetime_plan || false,
+    founder_referral_code: profile.founder_referral_code || "",
+    vip: profile.vip || false,
   })
 
   const loadProfile = async (authUser) => {
@@ -87,6 +91,10 @@ export function AuthProvider({ children }) {
         billing_interval: "monthly",
         legacy_pricing: false,
         legacy_plan_price: null,
+        onboarding_progress: {},
+        lifetime_plan: false,
+        founder_referral_code: "",
+        vip: false,
       })
       return
     }

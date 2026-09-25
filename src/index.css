@@ -300,3 +300,35 @@ html {
 .skeleton-text.short { width: 60%; }
 .skeleton-value { height: 32px; width: 45%; margin-bottom: 8px; }
 .skeleton-chart { height: 200px; width: 100%; }
+
+/* Tour (driver.js) theming */
+.driver-popover {
+  font-family: 'DM Sans', sans-serif !important;
+  border-radius: 12px !important;
+  border: 1px solid #E8E2DA !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+}
+.driver-popover .driver-popover-title {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 18px !important;
+  color: #0E0C0A !important;
+}
+.driver-popover .driver-popover-description {
+  font-size: 13px !important;
+  color: #A89F94 !important;
+}
+.driver-popover .driver-popover-next-btn {
+  background: #B5651D !important;
+  color: white !important;
+  border-radius: 8px !important;
+  border: none !important;
+  font-size: 12px !important;
+  padding: 6px 16px !important;
+}
+.driver-popover .driver-popover-close-btn {
+  color: #A89F94 !important;
+}
+.driver-popover .driver-popover-progress-text {
+  color: #A89F94 !important;
+  font-size: 11px !important;
+}
