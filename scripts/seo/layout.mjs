@@ -51,6 +51,8 @@ export const GUIDES = [
   ["/artist-grants-louisiana", "Grants and residencies for Louisiana artists", "Programs individual artists in New Orleans and Louisiana can actually apply to."],
   ["/art-inventory-software", "Art inventory software for artists", "What to look for, and how the main options compare."],
   ["/artwork-archive-alternative", "Artwork Archive alternative", "An honest side-by-side of ArtistOS and Artwork Archive."],
+  ["/how-to-write-an-artist-statement", "How to write an artist statement", "A simple 3-part structure, a template and examples by medium."],
+  ["/artist-cv-template", "Artist CV template", "Standard sections, formatting and a free template."],
 ]
 
 const CSS = `

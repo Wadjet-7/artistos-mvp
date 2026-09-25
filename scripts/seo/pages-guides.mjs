@@ -478,4 +478,137 @@ export const archiveAlt = {
   ],
 }
 
-export const guidePages = [pricingGuide, commissionGuide, invoiceGuide, coaGuide, consignmentGuide, louisianaGuide, inventoryGuide, archiveAlt]
+
+/* ------------------------------------------------------------------ */
+export const statementGuide = {
+  path: "/how-to-write-an-artist-statement",
+  title: "How to Write an Artist Statement (With Examples by Medium)",
+  description:
+    "How to write an artist statement in 150–300 words: what to include, a simple 3-part structure, examples for painters, photographers and sculptors, and mistakes to avoid.",
+  eyebrow: "Artist statements",
+  h1: "How to write an artist statement",
+  lede: "A clear, first-person statement in three short paragraphs, with examples by medium and a fill-in template.",
+  crumbs: guideCrumbs("/how-to-write-an-artist-statement", "Artist statement"),
+  type: "article",
+  schema: [article("/how-to-write-an-artist-statement", "How to write an artist statement", "What to include in an artist statement, with a template and examples.")],
+  body: `
+<div class="answer"><strong>An artist statement</strong> is a short, first-person text (usually 150–300 words) that explains <em>what</em> you make, <em>how</em> you make it and <em>why</em>. Write it in plain language, lead with the work rather than your biography, and name specific materials, processes and subjects. Keep a one-paragraph version for applications and a longer one for your website.</div>
+<h2>A simple 3-part structure</h2>
+<ol>
+<li><strong>What you make.</strong> One or two sentences a stranger could picture: medium, scale, subject. <em>“I make large oil paintings of the flooded streets and shotgun houses of my New Orleans neighborhood.”</em></li>
+<li><strong>How you make it.</strong> Your process, materials and choices, and what's distinctive about them.</li>
+<li><strong>Why.</strong> The questions, experiences or ideas that drive the work, and what you hope a viewer takes away. Stay concrete.</li>
+</ol>
+<h2>Fill-in template</h2>
+<div class="template">I make [MEDIUM / FORM] that [WHAT THE WORK SHOWS OR DOES].
+My process begins with [SOURCE: photos, found objects, memory, research...]. I [KEY PROCESS STEP], which [EFFECT IT HAS ON THE WORK].
+I'm interested in [CENTRAL QUESTION OR THEME] because [PERSONAL OR CULTURAL REASON].
+In my current series, [SERIES TITLE], I [WHAT'S NEW OR SPECIFIC ABOUT IT].
+I want viewers to [FEEL / NOTICE / QUESTION] ...</div>
+<h2>Short examples by medium</h2>
+<ul>
+<li><strong>Painter:</strong> “I paint small interiors from memory, using thinned oil on raw linen so the canvas shows through, the way memory leaves gaps.”</li>
+<li><strong>Photographer:</strong> “I photograph second-line parades from inside the crowd, on a 35mm film camera, to keep the viewer at street level rather than above it.”</li>
+<li><strong>Sculptor / ceramicist:</strong> “I build vessels from clay dug along the Mississippi and fire them in a wood kiln, so each piece records the place and the fire.”</li>
+</ul>
+<h2>Mistakes to avoid</h2>
+<ul>
+<li>Jargon and abstractions (“interrogates liminal spaces”) instead of what the viewer actually sees.</li>
+<li>Starting with “Ever since I was a child...”. Your statement is about the work; save biography for your bio.</li>
+<li>Writing in the third person. Statements are first person; bios are third person.</li>
+<li>One version for everything. Grant and residency forms often set strict word limits, so trim to fit each one.</li>
+</ul>
+<h2>Artist statement vs. artist bio</h2>
+<p>A <strong>statement</strong> is first person and explains the work. A <strong>bio</strong> is third person and lists facts about you: where you're based, education, exhibitions, awards. Most applications ask for both.</p>
+<p>In ArtistOS your statement lives with your CV. It appears on your public artist page and CV, and it's already filled in when you apply for grants and residencies.</p>
+${sources([
+    ["RISD Career Center: Artist statement", "https://careercenter.risd.edu/artist-statement"],
+    ["University of Illinois Writers Workshop: Writing an artist statement", "https://writersworkshop.illinois.edu/resources-2/writer-resources/academic-writing/writing-an-artist-statement/"],
+    ["The Creative Independent: How to write an artist statement", "https://thecreativeindependent.com/guides/how-to-write-an-artist-statement/"],
+    ["Emily Carr University: Professional practice, artist statements", "https://guides.ecuad.ca/professionalpractice/writing"],
+  ])}
+`,
+  faq: [
+    ["How long should an artist statement be?", "Usually 150–300 words for a website or general statement, and one paragraph (often 100–150 words) for applications. Always follow the word limit an application gives you."],
+    ["Should an artist statement be in first or third person?", "First person. Your bio is the part written in the third person."],
+    ["Can I use AI to write my artist statement?", "It can help you get a first draft and find words, but rewrite it in your own voice and cut anything generic. Juries read hundreds of statements and notice boilerplate."],
+    ["How often should I update my artist statement?", "Whenever your work changes direction, and at least once a year. Many artists write a short statement for each series."],
+  ],
+}
+
+/* ------------------------------------------------------------------ */
+export const cvGuide = {
+  path: "/artist-cv-template",
+  title: "Artist CV Template and Format (Free Example for Visual Artists)",
+  description:
+    "How to format an artist CV: the standard sections in order, reverse-chronological formatting, what emerging artists can include, and a free copy-and-paste template.",
+  eyebrow: "Artist CV",
+  h1: "Artist CV format and template",
+  lede: "The standard sections, the order to put them in, and a free template for emerging and established artists.",
+  crumbs: guideCrumbs("/artist-cv-template", "Artist CV"),
+  type: "article",
+  schema: [article("/artist-cv-template", "Artist CV format and template", "How to format an artist CV, with a free template.")],
+  body: `
+<div class="answer"><strong>An artist CV</strong> is a factual list of your professional record: contact details, education, exhibitions (solo, then group), awards and grants, residencies, collections, and bibliography. List entries in <strong>reverse chronological order</strong> (newest first), one line each, using a consistent format such as <em>Year, Title, Venue, City, State</em>. Unlike a job résumé, it has no objective or summary, and it grows as your career does.</div>
+<h2>Standard sections, in order</h2>
+<ol>
+<li>Name, city, website and email</li>
+<li>Education (degree, school, year). Workshops and mentorships count if you're self-taught.</li>
+<li>Solo exhibitions</li>
+<li>Group exhibitions</li>
+<li>Awards, grants and fellowships</li>
+<li>Residencies</li>
+<li>Public collections</li>
+<li>Bibliography / press (author, title, publication, date)</li>
+<li>Commissions, public art, teaching, lectures and panels (as relevant)</li>
+</ol>
+<h2>Free template</h2>
+<div class="template">[YOUR NAME]
+[City, State]  ·  [website]  ·  [email]
+
+EDUCATION
+[Year]  [Degree], [School], [City, State]
+
+SOLO EXHIBITIONS
+[Year]  [Exhibition title], [Venue], [City, State]
+
+GROUP EXHIBITIONS
+[Year]  [Exhibition title], [Venue], [City, State] (curated by [Name])
+
+AWARDS, GRANTS AND FELLOWSHIPS
+[Year]  [Award name], [Organization]
+
+RESIDENCIES
+[Year]  [Residency], [City, State]
+
+COLLECTIONS
+[Institution], [City, State]
+
+BIBLIOGRAPHY
+[Author], "[Article title]," [Publication], [Month Day, Year]</div>
+<h2>Tips for emerging artists</h2>
+<ul>
+<li>A short, honest CV beats a padded one. Include juried shows, open studios, art markets, pop-ups and community projects, labelled accurately.</li>
+<li>Leave out sections you don't have yet rather than writing “none.”</li>
+<li>Use “Selected exhibitions” once the list gets long, and keep the full CV on your website.</li>
+<li>Don't list personal details (birth date, address) beyond city and contact.</li>
+<li>Save a PDF named <em>Firstname-Lastname-CV.pdf</em>.</li>
+</ul>
+<h2>CV vs. résumé vs. bio</h2>
+<p>An artist <strong>CV</strong> is your full exhibition record. An artist <strong>résumé</strong> is a shorter version (one or two pages) for a specific application. A <strong>bio</strong> is a paragraph in the third person.</p>
+<p>ArtistOS builds your CV from the exhibitions, awards and residencies you log. It stays up to date and publishes as a shareable page at <em>artistosapp.com/artist/you/cv</em>, which you can also export to PDF.</p>
+${sources([
+    ["College Art Association: Guidelines for the visual artist CV", "https://www.collegeart.org/standards-and-guidelines/guidelines/visual-art-cv"],
+    ["Columbia Career Education: The artist resume and CV", "https://www.careereducation.columbia.edu/resources/artist-resume-and-cv"],
+    ["GYST: Resumes and CVs for artists", "https://www.gyst-ink.com/resumes-cvs"],
+  ])}
+`,
+  faq: [
+    ["What's the difference between an artist CV and a résumé?", "A CV is your complete professional record as an artist and can run several pages. A résumé is a shortened, tailored version, usually one or two pages."],
+    ["What if I don't have a degree or many exhibitions?", "List workshops, mentorships and self-directed study under Education, and include juried shows, markets, open studios and community projects. Label everything accurately."],
+    ["Should my artist CV be reverse chronological?", "Yes. Within each section, list the newest entries first."],
+    ["How long should an artist CV be?", "As long as your record, but many artists send a “selected” CV of one or two pages when an application sets a limit."],
+  ],
+}
+
+export const guidePages = [pricingGuide, commissionGuide, invoiceGuide, coaGuide, consignmentGuide, louisianaGuide, inventoryGuide, archiveAlt, statementGuide, cvGuide]
