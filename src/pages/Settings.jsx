@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
-import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera, Sparkles, ArrowRight, Check, ExternalLink, AlertTriangle, Award, Gift } from "lucide-react"
+import { User, Mail, Bell, Shield, CreditCard, Save, CheckCircle, Loader2, Camera, Sparkles, ArrowRight, Check, ExternalLink, AlertTriangle, Award, Gift, Link2 } from "lucide-react"
 import { PLANS, normalizePlan, formatLimit, canAccess } from "../lib/plans"
 import { isStripeConfigured, redirectToCustomerPortal, createStripeConnectAccount, checkStripeConnectStatus } from "../lib/stripe"
 import { generateBio } from "../lib/ai"
@@ -41,7 +41,6 @@ export default function Settings() {
     try {
       await updateUser({
         name: form.name,
-        email: form.email,
         bio: form.bio,
         website: form.website,
         medium: form.medium,
@@ -152,8 +151,9 @@ export default function Settings() {
                 <label className="form-label">Email</label>
                 <div className="relative">
                   <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#A89F94" }} />
-                  <input value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="form-input pl-10" />
+                  <input value={form.email} readOnly className="form-input pl-10" style={{ background: "#F2EDE6", cursor: "not-allowed" }} />
                 </div>
+                <p className="text-xs mt-1" style={{ color: "#A89F94" }}>Contact support to change your login email</p>
               </div>
               <div className="md:col-span-2">
                 <div className="flex items-center justify-between mb-1">
@@ -226,6 +226,16 @@ export default function Settings() {
                 ) : (
                   <><Save size={15} /> Save changes</>
                 )}
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/artist/${user?.id}`)
+                  toast.success("Public page link copied!")
+                }}
+                className="btn-secondary flex items-center gap-1.5"
+                style={{ fontSize: 13, padding: "8px 14px" }}
+              >
+                <Link2 size={14} /> Copy public page link
               </button>
             </div>
           </div>

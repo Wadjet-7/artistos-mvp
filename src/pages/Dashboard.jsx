@@ -660,7 +660,7 @@ export default function Dashboard() {
             </div>
             <button onClick={() => navigate("/analytics")} className="whitespace-nowrap px-5 py-2.5 rounded-lg text-sm font-medium text-white flex-shrink-0"
               style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
-              View Full Report \u2192
+              View Full Report {"\u2192"}
             </button>
           </div>
         )

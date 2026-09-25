@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { HelpCircle, X, Send, MessageSquare, ChevronLeft, Mail, ExternalLink, Loader2 } from "lucide-react"
+import { HelpCircle, X, Send, MessageSquare, ChevronLeft, Mail, ExternalLink, Loader2, Sparkles, ThumbsUp, ThumbsDown, ArrowRight } from "lucide-react"
+import { useLocation } from "react-router-dom"
 import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
@@ -19,6 +20,8 @@ function timeAgo(d) {
 
 export default function HelpPanel({ open, onClose }) {
   const { user } = useAuth()
+  const location = useLocation()
+  const [helpTab, setHelpTab] = useState("ask")
   const [threads, setThreads] = useState([])
   const [activeThread, setActiveThread] = useState(null)
   const [messages, setMessages] = useState([])
@@ -30,6 +33,10 @@ export default function HelpPanel({ open, onClose }) {
   const [showNew, setShowNew] = useState(false)
   const [settings, setSettings] = useState({})
   const messagesEndRef = useRef(null)
+  const [aiMessages, setAiMessages] = useState([])
+  const [aiInput, setAiInput] = useState("")
+  const [aiLoading, setAiLoading] = useState(false)
+  const aiEndRef = useRef(null)
 
   const loadThreads = useCallback(async () => {
     if (!user?.id) return
@@ -92,6 +99,25 @@ export default function HelpPanel({ open, onClose }) {
     finally { setSending(false) }
   }
 
+  const handleAskAI = async () => {
+    if (!aiInput.trim()) return
+    const question = aiInput.trim()
+    setAiMessages(prev => [...prev, { role: "user", content: question }])
+    setAiInput("")
+    setAiLoading(true)
+    try {
+      const { data, error } = await supabase.functions.invoke("help-agent", {
+        body: { messages: [...aiMessages, { role: "user", content: question }], current_path: location.pathname },
+      })
+      if (error) throw error
+      setAiMessages(prev => [...prev, { role: "assistant", content: data.answer, actions: data.actions || [] }])
+    } catch {
+      setAiMessages(prev => [...prev, { role: "assistant", content: "Something went wrong. Try again, or message the team.", actions: [{ type: "talk_to_team" }] }])
+    } finally { setAiLoading(false) }
+  }
+
+  useEffect(() => { aiEndRef.current?.scrollIntoView({ behavior: "smooth" }) }, [aiMessages])
+
   if (!open) return null
 
   const unreadTotal = threads.reduce((s, t) => s + (t.unread_for_user || 0), 0)
@@ -107,7 +133,7 @@ export default function HelpPanel({ open, onClose }) {
         <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid #E8E2DA" }}>
           <div className="flex items-center gap-2">
             {activeThread && (
-              <button onClick={() => setActiveThread(null)} className="p-1 rounded hover:bg-gray-100 mr-1">
+              <button onClick={() => { setActiveThread(null); setHelpTab("team") }} className="p-1 rounded hover:bg-gray-100 mr-1">
                 <ChevronLeft size={18} style={{ color: "#A89F94" }} />
               </button>
             )}
@@ -119,9 +145,98 @@ export default function HelpPanel({ open, onClose }) {
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100"><X size={18} style={{ color: "#A89F94" }} /></button>
         </div>
 
+        {/* Tabs */}
+        {!activeThread && (
+          <div className="flex px-4 pt-3 gap-1">
+            <button onClick={() => setHelpTab("ask")} className="flex-1 text-center py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
+              style={{ background: helpTab === "ask" ? "#0E0C0A" : "transparent", color: helpTab === "ask" ? "#FAF8F5" : "#A89F94" }}>
+              <Sparkles size={13} /> Ask ArtistOS
+            </button>
+            <button onClick={() => setHelpTab("team")} className="flex-1 text-center py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
+              style={{ background: helpTab === "team" ? "#0E0C0A" : "transparent", color: helpTab === "team" ? "#FAF8F5" : "#A89F94" }}>
+              <MessageSquare size={13} /> Team
+              {unreadTotal > 0 && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "#B5651D", color: "white" }}>{unreadTotal}</span>}
+            </button>
+          </div>
+        )}
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          {activeThread ? (
+          {/* AI Tab */}
+          {helpTab === "ask" && !activeThread && (
+            <div className="flex flex-col h-full">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {aiMessages.length === 0 && (
+                  <div className="text-center py-8">
+                    <Sparkles size={24} className="mx-auto mb-3" style={{ color: "#B5651D" }} />
+                    <p className="text-sm font-medium mb-1" style={{ color: "#0E0C0A" }}>Ask ArtistOS</p>
+                    <p className="text-xs mb-4" style={{ color: "#A89F94" }}>I can help with how-to questions, pricing, contracts, and more.</p>
+                    <div className="space-y-2">
+                      {["How do I send an invoice?", "How should I price my work?", "How do I find grants?"].map(q => (
+                        <button key={q} onClick={() => { setAiInput(q); setTimeout(handleAskAI, 100) }}
+                          className="w-full text-left text-xs px-3 py-2 rounded-lg transition-colors hover:bg-gray-50"
+                          style={{ border: "1px solid #E8E2DA", color: "#0E0C0A" }}>
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {aiMessages.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className="max-w-[85%]">
+                      <div className="rounded-xl px-4 py-2.5" style={{
+                        background: msg.role === "user" ? "#0E0C0A" : "#F2EDE6",
+                        color: msg.role === "user" ? "#FAF8F5" : "#0E0C0A",
+                      }}>
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                      {msg.actions?.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-1.5">
+                          {msg.actions.map((a, j) => (
+                            <button key={j} onClick={() => {
+                              if (a.type === "navigate") { onClose(); window.location.href = a.path }
+                              else if (a.type === "open_upgrade") { onClose(); window.location.href = "/upgrade" }
+                              else if (a.type === "talk_to_team") { setHelpTab("team"); setShowNew(true) }
+                            }} className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-medium"
+                              style={{ background: "#F5E6D8", color: "#B5651D" }}>
+                              <ArrowRight size={10} /> {a.type === "talk_to_team" ? "Talk to the team" : a.type === "open_upgrade" ? "View plans" : `Go to ${a.path}`}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {aiLoading && (
+                  <div className="flex justify-start">
+                    <div className="rounded-xl px-4 py-2.5" style={{ background: "#F2EDE6" }}>
+                      <Loader2 size={14} className="animate-spin" style={{ color: "#B5651D" }} />
+                    </div>
+                  </div>
+                )}
+                <div ref={aiEndRef} />
+              </div>
+              <div className="p-3" style={{ borderTop: "1px solid #E8E2DA" }}>
+                <div className="flex items-center gap-2">
+                  <input value={aiInput} onChange={e => setAiInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleAskAI()}
+                    placeholder="Ask anything about ArtistOS..."
+                    className="form-input flex-1 text-sm" />
+                  <button onClick={handleAskAI} disabled={aiLoading || !aiInput.trim()} className="btn-copper p-2.5 rounded-lg">
+                    {aiLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  </button>
+                </div>
+                <button onClick={() => { setHelpTab("team"); setShowNew(true) }}
+                  className="text-xs mt-2 w-full text-center py-1" style={{ color: "#A89F94" }}>
+                  Talk to a person instead
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Team Tab */}
+          {(helpTab === "team" || activeThread) && activeThread ? (
             /* Thread view */
             <div className="flex flex-col h-full">
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -153,7 +268,7 @@ export default function HelpPanel({ open, onClose }) {
                 </button>
               </div>
             </div>
-          ) : showNew ? (
+          ) : helpTab === "team" && showNew ? (
             /* New thread form */
             <div className="p-5 space-y-4">
               <div>
@@ -172,7 +287,7 @@ export default function HelpPanel({ open, onClose }) {
               </div>
               <p className="text-xs" style={{ color: "#A89F94" }}>{replyTime}</p>
             </div>
-          ) : (
+          ) : helpTab === "team" ? (
             /* Thread list */
             <div className="p-4 space-y-4">
               {/* Contact card */}
@@ -218,7 +333,7 @@ export default function HelpPanel({ open, onClose }) {
                 <p className="text-xs text-center py-4" style={{ color: "#A89F94" }}>No messages yet. Send one to get started.</p>
               )}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

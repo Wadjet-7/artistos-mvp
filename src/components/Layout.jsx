@@ -28,7 +28,7 @@ const notifDotColor = (type) => {
 }
 
 const pageTitles = {
-  "/dashboard": { title: "Good morning,", accent: "Maya", suffix: " ✦" },
+  "/dashboard": { title: "", accent: "Dashboard", suffix: "" },
   "/portfolio": { title: "My", accent: "Portfolio" },
   "/contracts": { title: "Contract", accent: "Generator" },
   "/social": { title: "Social", accent: "Scheduler" },
@@ -57,8 +57,10 @@ export default function Layout() {
   const firstName = user?.name?.split(" ")[0] || "Maya"
 
   // Override dashboard title with actual user name
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? "Good morning," : hour < 17 ? "Good afternoon," : "Good evening,"
   const displayTitle = location.pathname === "/dashboard"
-    ? { title: "Good morning,", accent: firstName, suffix: " ✦" }
+    ? { title: greeting, accent: firstName, suffix: " ✦" }
     : pageInfo
 
   const unreadCount = notifications.filter(n => !n.read).length

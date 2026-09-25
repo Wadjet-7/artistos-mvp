@@ -359,21 +359,6 @@ function CareerAnalytics({ artworks, user }) {
     }).catch(() => {})
   }, [hasAccess, user?.id])
 
-  if (!hasAccess) {
-    return (
-      <div className="card p-6 text-center" style={{ background: "#F0F5F1", border: "1px solid #B8D4BE" }}>
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: "#E8F2EA" }}>
-          <Crown size={20} style={{ color: "#2D4A35" }} />
-        </div>
-        <h3 className="text-base font-serif font-semibold mb-1" style={{ color: "#0E0C0A" }}>Career Analytics</h3>
-        <p className="text-xs mb-3" style={{ color: "#A89F94" }}>Price trajectory, sell-through rates, and time-to-sale — available on the Studio plan.</p>
-        <a href="/upgrade" className="btn-copper text-xs inline-flex items-center gap-1.5 px-4 py-2">
-          <Crown size={12} /> Upgrade to Studio
-        </a>
-      </div>
-    )
-  }
-
   const priceByQuarter = useMemo(() => {
     const quarters = {}
     invoices.forEach(inv => {
@@ -406,6 +391,21 @@ function CareerAnalytics({ artworks, user }) {
       count: days.length,
     }))
   }, [provenance, artworks])
+
+  if (!hasAccess) {
+    return (
+      <div className="card p-6 text-center" style={{ background: "#F0F5F1", border: "1px solid #B8D4BE" }}>
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: "#E8F2EA" }}>
+          <Crown size={20} style={{ color: "#2D4A35" }} />
+        </div>
+        <h3 className="text-base font-serif font-semibold mb-1" style={{ color: "#0E0C0A" }}>Career Analytics</h3>
+        <p className="text-xs mb-3" style={{ color: "#A89F94" }}>Price trajectory, sell-through rates, and time-to-sale — available on the Studio plan.</p>
+        <a href="/upgrade" className="btn-copper text-xs inline-flex items-center gap-1.5 px-4 py-2">
+          <Crown size={12} /> Upgrade to Studio
+        </a>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-5">

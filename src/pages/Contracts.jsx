@@ -877,7 +877,7 @@ export default function Contracts() {
                   disabled={submitting}
                 >
                   {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-                  {submitting ? "Saving..." : "Send for Signing"}
+                  {submitting ? "Saving..." : "Save Contract"}
                 </button>
               </div>
             </div>
