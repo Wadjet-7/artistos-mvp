@@ -81,7 +81,7 @@ export default function Sidebar({ isOpen, onClose }) {
               style={{ color: "rgba(255,255,255,0.25)" }}>
               {section.label}
             </div>
-            {section.items.map(({ to, icon: Icon, label, badgeKey }) => {
+            {section.items.filter(item => !item.founderOnly || user?.lifetime_plan || user?.vip).map(({ to, icon: Icon, label, badgeKey }) => {
               const count = badgeKey ? badges[badgeKey] || 0 : 0
               return (
                 <NavLink

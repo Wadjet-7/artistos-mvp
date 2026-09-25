@@ -37,6 +37,7 @@ const Legal = lazy(() => import("./pages/Legal"))
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"))
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"))
 const Opportunities = lazy(() => import("./pages/Opportunities"))
+const FoundersRoom = lazy(() => import("./pages/FoundersRoom"))
 const AdminPanel = lazy(() => import("./pages/AdminPanel"))
 const InvoicePaymentSuccess = lazy(() => import("./pages/InvoicePaymentSuccess"))
 const InvoicePaymentCancelled = lazy(() => import("./pages/InvoicePaymentCancelled"))
@@ -111,6 +112,7 @@ function AppRoutes() {
           <Route path="/exhibitions" element={<Exhibitions />} />
           <Route path="/website" element={<WebsiteBuilder />} />
           <Route path="/opportunities" element={<Opportunities />} />
+          <Route path="/room/founders" element={<FoundersRoom />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/upgrade" element={<Upgrade />} />
           <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />

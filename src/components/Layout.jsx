@@ -40,6 +40,7 @@ const pageTitles = {
   "/messages": { title: "", accent: "Messages" },
   "/website": { title: "My", accent: "Website" },
   "/opportunities": { title: "", accent: "Opportunities" },
+  "/room/founders": { title: "Founders'", accent: "Room" },
   "/settings": { title: "", accent: "Settings" },
 }
 

@@ -30,6 +30,7 @@ export const navSections = [
       { to: "/contacts", icon: UserCircle, label: "Contacts" },
       { to: "/commissions", icon: Users, label: "Commissions", badgeKey: "commissions" },
       { to: "/messages", icon: MessageSquare, label: "Messages", badgeKey: "messages" },
+      { to: "/room/founders", icon: Users, label: "Founders' Room", founderOnly: true },
     ],
   },
   {
