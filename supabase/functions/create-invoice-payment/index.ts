@@ -77,6 +77,14 @@ Deno.serve(async (req) => {
     const artistStripeAccount = profiles?.[0]?.stripe_account_id || null
     const artistChargesEnabled = profiles?.[0]?.stripe_charges_enabled || false
 
+    // Refuse if artist has no connected Stripe account
+    if (!artistStripeAccount || !artistChargesEnabled) {
+      return new Response(
+        JSON.stringify({ error: "connect_stripe_first" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
     // Build origin for success/cancel URLs
     const origin = req.headers.get("origin") || "https://artistos-mvp.vercel.app"
 

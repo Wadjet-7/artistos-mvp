@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect } from "react"
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { driver } from "driver.js"
 import "driver.js/dist/driver.css"
@@ -12,13 +12,28 @@ export function useTour() {
   return useContext(TourContext)
 }
 
+function waitForElement(selector, timeoutMs = 3000) {
+  return new Promise((resolve) => {
+    const el = document.querySelector(selector)
+    if (el) { resolve(el); return }
+
+    const observer = new MutationObserver(() => {
+      const found = document.querySelector(selector)
+      if (found) { observer.disconnect(); resolve(found) }
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+
+    setTimeout(() => { observer.disconnect(); resolve(null) }, timeoutMs)
+  })
+}
+
 export function TourProvider({ children }) {
   const { user, updateUser } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [currentMission, setCurrentMission] = useState(null)
   const [currentStep, setCurrentStep] = useState(0)
-  const [driverInstance, setDriverInstance] = useState(null)
+  const driverRef = useRef(null)
 
   const progress = user?.onboarding_progress || {}
   const missions = progress.missions || {}
@@ -41,6 +56,8 @@ export function TourProvider({ children }) {
     setCurrentMission(missionId)
     setCurrentStep(0)
 
+    const totalSteps = mission.steps.length
+
     const steps = mission.steps.map((step, i) => ({
       element: step.target,
       popover: {
@@ -49,18 +66,30 @@ export function TourProvider({ children }) {
         side: "bottom",
         align: "start",
         showButtons: ["next", "close"],
-        nextBtnText: i === mission.steps.length - 1 ? "Done" : "Next",
+        nextBtnText: i === totalSteps - 1 ? "Done" : "Next",
         doneBtnText: "Done",
-        closeBtnText: "Exit tour",
-        onNextClick: () => {
+        closeBtnText: "Skip",
+        onNextClick: async () => {
+          const d = driverRef.current
+          if (!d) return
+
           if (step.advanceOn?.startsWith("route:")) {
             const path = step.advanceOn.replace("route:", "")
             navigate(path)
+            await waitForElement(mission.steps[i + 1]?.target || "body")
           }
-          d.moveNext()
+
+          if (i === totalSteps - 1) {
+            d.destroy()
+            saveMissionState(missionId, "done")
+            setCurrentMission(null)
+          } else {
+            d.moveNext()
+          }
         },
         onCloseClick: () => {
-          d.destroy()
+          const d = driverRef.current
+          if (d) d.destroy()
           setCurrentMission(null)
         },
       },
@@ -75,28 +104,58 @@ export function TourProvider({ children }) {
       stageRadius: 12,
       popoverClass: "artistos-tour-popover",
       onDestroyed: () => {
-        saveMissionState(missionId, "done")
         setCurrentMission(null)
       },
     })
 
-    setDriverInstance(d)
+    driverRef.current = d
 
-    setTimeout(() => {
+    setTimeout(async () => {
+      const firstTarget = mission.steps[0]?.target
+      if (firstTarget) {
+        const el = await waitForElement(firstTarget)
+        if (!el) return
+      }
       try { d.drive() } catch { /* element not found, skip */ }
     }, 500)
   }, [navigate, saveMissionState])
 
+  // Listen for tour events and auto-advance when an event matches
+  useEffect(() => {
+    const unsub = tourOn("*", (eventName) => {
+      const d = driverRef.current
+      if (!d || !currentMission) return
+
+      const mission = MISSIONS[currentMission]
+      if (!mission) return
+
+      const activeIdx = d.getActiveIndex?.() ?? currentStep
+      const step = mission.steps[activeIdx]
+      if (!step) return
+
+      if (step.advanceOn === `event:${eventName}`) {
+        if (activeIdx === mission.steps.length - 1) {
+          d.destroy()
+          saveMissionState(currentMission, "done")
+          setCurrentMission(null)
+        } else {
+          d.moveNext()
+        }
+      }
+    })
+    return unsub
+  }, [currentMission, currentStep, saveMissionState])
+
   const skipMission = useCallback((missionId) => {
     saveMissionState(missionId, "skipped")
-    if (driverInstance) driverInstance.destroy()
+    if (driverRef.current) driverRef.current.destroy()
     setCurrentMission(null)
-  }, [driverInstance, saveMissionState])
+  }, [saveMissionState])
 
   const exitTour = useCallback(() => {
-    if (driverInstance) driverInstance.destroy()
+    if (driverRef.current) driverRef.current.destroy()
     setCurrentMission(null)
-  }, [driverInstance])
+  }, [])
 
   const isMissionDone = useCallback((missionId) => {
     return missions[missionId] === "done" || missions[missionId] === "skipped"

@@ -9,6 +9,7 @@ import { generateInvoicePDF } from "../components/InvoicePDF"
 import PageError from "../components/PageError"
 import { LimitBanner } from "../components/UpgradePrompt"
 import { isAtLimit, normalizePlan } from "../lib/plans"
+import { tourEmit } from "../tour/tourEvents"
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -189,6 +190,7 @@ export default function Finances() {
       closeModal()
       await fetchData()
       toast.success(editingId ? "Invoice updated!" : "Invoice created!")
+      tourEmit("invoice_saved")
     } catch (err) {
       toast.error("Failed to save invoice: " + (err.message || "Unknown error"))
     } finally { setSubmitting(false) }
@@ -503,7 +505,7 @@ export default function Finances() {
               <button className="btn-secondary" style={{ fontSize: 12, padding: "6px 14px" }} onClick={handleExportCSV}>
                 <Download size={14} style={{ marginRight: 4, verticalAlign: "middle" }} /> Export CSV
               </button>
-              <button className="btn-copper" style={{ fontSize: 12, padding: "6px 14px" }} onClick={openCreateInvoice}>
+              <button className="btn-copper" data-tour="new-invoice" style={{ fontSize: 12, padding: "6px 14px" }} onClick={openCreateInvoice}>
                 <Plus size={14} style={{ marginRight: 4, verticalAlign: "middle" }} /> New Invoice
               </button>
             </div>
@@ -766,7 +768,7 @@ export default function Finances() {
               </select>
             </div>
             <div className="flex gap-3 pt-2">
-              <button className="btn-primary flex-1 flex items-center justify-center gap-2" onClick={handleSaveInvoice}
+              <button className="btn-primary flex-1 flex items-center justify-center gap-2" data-tour="create-invoice" onClick={handleSaveInvoice}
                 disabled={submitting || !invoiceForm.client_name.trim() || !invoiceForm.amount}>
                 {submitting ? <><Loader2 size={15} className="animate-spin" /> Saving...</> : editingId ? "Update Invoice" : "Create Invoice"}
               </button>

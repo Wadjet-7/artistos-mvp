@@ -121,6 +121,7 @@ export default function AdminPanel() {
   const [oppModal, setOppModal] = useState({ open: false, editing: null })
   const [oppForm, setOppForm] = useState(defaultOpp)
   const [savingOpp, setSavingOpp] = useState(false)
+  const [founderCodeInfo, setFounderCodeInfo] = useState({ total: 0, redeemed: 0 })
 
   const [userSearch, setUserSearch] = useState("")
   const [userFilter, setUserFilter] = useState("all")
@@ -134,7 +135,8 @@ export default function AdminPanel() {
       const [
         profilesRes, artworksRes, invoicesRes, commissionsRes,
         contractsRes, viewingRoomsRes, consignmentsRes, exhibitionsRes,
-        contactsRes, postsRes, expensesRes, activityRes, oppsRes, threadsRes
+        contactsRes, postsRes, expensesRes, activityRes, oppsRes, threadsRes,
+        founderCodesRes,
       ] = await Promise.all([
         supabase.from("profiles").select("id, name, email, plan, avatar_url, initials, is_admin, is_demo, created_at, subscription_status, lifetime_plan, promo_code, founder_referral_code"),
         supabase.from("artworks").select("id, user_id, status, created_at", { count: "exact", head: false }),
@@ -150,6 +152,7 @@ export default function AdminPanel() {
         supabase.from("activity_log").select("id, user_id, action, details, created_at").order("created_at", { ascending: false }).limit(20),
         supabase.from("opportunities").select("*").order("deadline", { ascending: true }),
         supabase.from("support_threads").select("*").order("last_message_at", { ascending: false }),
+        supabase.from("promo_codes").select("code, max_redemptions, current_redemptions, is_active").ilike("code", "FOUNDING%"),
       ])
 
       const profiles = profilesRes.data || []
@@ -218,6 +221,12 @@ export default function AdminPanel() {
         return { ...t, userName: p?.name || "Unknown", userEmail: p?.email || "", userPlan: p?.plan || "starter", isFounder: p?.lifetime_plan || false }
       })
       setSupportThreads(threads)
+
+      // Founder code info from promo_codes table
+      const fCodes = founderCodesRes.data || []
+      const totalSlots = fCodes.reduce((s, c) => s + (c.max_redemptions || 0), 0)
+      const totalRedeemed = fCodes.reduce((s, c) => s + (c.current_redemptions || 0), 0)
+      setFounderCodeInfo({ total: totalSlots || 25, redeemed: totalRedeemed })
     } catch (err) {
       console.error("[Admin] fetch error:", err)
       setFetchError(true)
@@ -680,7 +689,7 @@ export default function AdminPanel() {
                 </div>
                 <div className="card p-5">
                   <p className="text-2xl font-bold font-serif" style={{ color: "#0E0C0A" }}>
-                    {25 - users.filter(u => u.promo_code?.startsWith("FOUNDER-")).length} / 25
+                    {founderCodeInfo.total - founderCodeInfo.redeemed} / {founderCodeInfo.total}
                   </p>
                   <p className="text-xs mt-1" style={{ color: "#A89F94" }}>Founder codes remaining</p>
                 </div>
@@ -774,13 +783,15 @@ export default function AdminPanel() {
                         if (!inboxReply.trim()) return
                         setSendingReply(true)
                         try {
-                          await supabase.from("support_messages").insert({ thread_id: activeInboxThread.id, sender_role: "admin", sender_id: user.id, body: inboxReply.trim() })
-                          await supabase.from("support_threads").update({ unread_for_admin: 0, status: "waiting_on_user" }).eq("id", activeInboxThread.id)
+                          const { error: msgErr } = await supabase.from("support_messages").insert({ thread_id: activeInboxThread.id, sender_role: "admin", sender_id: user.id, body: inboxReply.trim() })
+                          if (msgErr) throw msgErr
+                          const { error: threadErr } = await supabase.from("support_threads").update({ unread_for_admin: 0, status: "waiting_on_user" }).eq("id", activeInboxThread.id)
+                          if (threadErr) throw threadErr
                           setInboxReply("")
                           const { data } = await supabase.from("support_messages").select("*").eq("thread_id", activeInboxThread.id).order("created_at")
                           setInboxMessages(data || [])
                           toast.success("Reply sent")
-                        } catch { toast.error("Failed to send") }
+                        } catch (err) { toast.error("Failed to send: " + (err.message || "Unknown error")) }
                         finally { setSendingReply(false) }
                       })()}
                       placeholder="Type a reply..." className="form-input flex-1 text-sm" />
@@ -788,13 +799,15 @@ export default function AdminPanel() {
                       if (!inboxReply.trim()) return
                       setSendingReply(true)
                       try {
-                        await supabase.from("support_messages").insert({ thread_id: activeInboxThread.id, sender_role: "admin", sender_id: user.id, body: inboxReply.trim() })
-                        await supabase.from("support_threads").update({ unread_for_admin: 0, status: "waiting_on_user" }).eq("id", activeInboxThread.id)
+                        const { error: msgErr } = await supabase.from("support_messages").insert({ thread_id: activeInboxThread.id, sender_role: "admin", sender_id: user.id, body: inboxReply.trim() })
+                        if (msgErr) throw msgErr
+                        const { error: threadErr } = await supabase.from("support_threads").update({ unread_for_admin: 0, status: "waiting_on_user" }).eq("id", activeInboxThread.id)
+                        if (threadErr) throw threadErr
                         setInboxReply("")
                         const { data } = await supabase.from("support_messages").select("*").eq("thread_id", activeInboxThread.id).order("created_at")
                         setInboxMessages(data || [])
                         toast.success("Reply sent")
-                      } catch { toast.error("Failed to send") }
+                      } catch (err) { toast.error("Failed to send: " + (err.message || "Unknown error")) }
                       finally { setSendingReply(false) }
                     }} disabled={sendingReply} className="btn-copper p-2.5 rounded-lg">
                       {sendingReply ? <Loader2 size={16} className="animate-spin" /> : <MessageSquare size={16} />}

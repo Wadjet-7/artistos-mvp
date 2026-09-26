@@ -9,6 +9,7 @@ import paintAbstract from "../utils/paintAbstract"
 import { LimitBanner } from "../components/UpgradePrompt"
 import { isAtLimit, normalizePlan } from "../lib/plans"
 import { sendViewingRoomEmail } from "../lib/email"
+import { tourEmit } from "../tour/tourEvents"
 
 /* ------------------------------------------------------------------ */
 /*  Artwork thumbnail with canvas fallback                             */
@@ -144,6 +145,7 @@ export default function ViewingRooms() {
       const { error } = await supabase.from("viewing_rooms").insert(payload)
       if (error) return toast.error("Failed to create")
       toast.success("Viewing room created")
+      tourEmit("room_created")
       await logActivity(user.id, "viewing_room", `Created viewing room "${form.title}"`)
     }
     setModalOpen(false)
@@ -212,7 +214,7 @@ export default function ViewingRooms() {
           <h2 className="text-lg font-semibold" style={{ color: "#0E0C0A" }}>Viewing Rooms</h2>
           <p className="text-xs mt-1" style={{ color: "#A89F94" }}>Create curated selections for collectors and galleries</p>
         </div>
-        <button onClick={openCreate} className="btn-copper flex items-center gap-2" style={{ fontSize: 13, padding: "8px 16px" }}>
+        <button onClick={openCreate} data-tour="new-room" className="btn-copper flex items-center gap-2" style={{ fontSize: 13, padding: "8px 16px" }}>
           <Plus size={15} /> New Room
         </button>
       </div>
@@ -348,7 +350,7 @@ export default function ViewingRooms() {
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button onClick={() => { setModalOpen(false); resetForm() }} className="btn-secondary" style={{ fontSize: 13, padding: "8px 16px" }}>Cancel</button>
-            <button onClick={handleSave} className="btn-copper" style={{ fontSize: 13, padding: "8px 20px" }}>
+            <button onClick={handleSave} data-tour="create-room" className="btn-copper" style={{ fontSize: 13, padding: "8px 20px" }}>
               {editRoom ? "Save Changes" : "Create Room"}
             </button>
           </div>

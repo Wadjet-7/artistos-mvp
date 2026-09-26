@@ -8,6 +8,7 @@ import { PLANS, normalizePlan, formatLimit, canAccess } from "../lib/plans"
 import { isStripeConfigured, redirectToCustomerPortal, createStripeConnectAccount, checkStripeConnectStatus } from "../lib/stripe"
 import { generateBio } from "../lib/ai"
 import { redeemPromoCode } from "../lib/promo"
+import { tourEmit } from "../tour/tourEvents"
 
 const tabs = ["Profile", "Notifications", "Billing"]
 
@@ -50,6 +51,7 @@ export default function Settings() {
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
       toast.success("Settings saved!")
+      tourEmit("bio_saved")
     } catch (err) {
       setError(err.message || "Failed to save changes.")
       toast.error("Failed to save changes")
@@ -126,6 +128,7 @@ export default function Settings() {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingAvatar}
+                  data-tour="change-photo"
                   className="text-xs font-medium mt-1 hover:underline flex items-center gap-1"
                   style={{ color: "#B5651D" }}
                 >
@@ -194,7 +197,7 @@ export default function Settings() {
                   )}
                 </div>
                 <textarea value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} rows={3}
-                  className="form-input resize-none" placeholder="Tell collectors about yourself and your work..." />
+                  data-tour="bio-field" className="form-input resize-none" placeholder="Tell collectors about yourself and your work..." />
               </div>
               <div>
                 <label className="form-label">Primary medium</label>

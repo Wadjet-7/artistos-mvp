@@ -3,16 +3,6 @@ import { CheckCircle, Loader2 } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import Modal from "./Modal"
 
-const GRADIENTS = [
-  "linear-gradient(135deg, #B5651D, #C9A84C)",
-  "linear-gradient(135deg, #4A7A57, #2D4A35)",
-  "linear-gradient(135deg, #C4705A, #B5651D)",
-  "linear-gradient(135deg, #2D4A35, #4A7A57)",
-  "linear-gradient(135deg, #C9A84C, #D4854A)",
-  "linear-gradient(135deg, #8A6A1A, #C9A84C)",
-  "linear-gradient(135deg, #0E0C0A, #3A3530)",
-]
-
 const BUDGET_OPTIONS = [
   { label: "Under $1,000", value: 750 },
   { label: "$1,000 - $2,500", value: 1750 },
@@ -73,76 +63,27 @@ export default function CommissionRequestForm({ open, onClose, artistId, artistN
       const deadline = new Date()
       deadline.setDate(deadline.getDate() + timelineDays)
 
-      // 1. Insert commission
-      const { error: commError } = await supabase
-        .from("commissions")
-        .insert({
-          user_id: artistId,
-          client_name: form.name.trim(),
-          client_email: form.email.trim(),
-          title: form.title.trim(),
-          description: form.description.trim(),
-          medium: form.medium || null,
-          dimensions: form.dimensions.trim() || null,
-          budget: budgetNum,
-          deadline: deadline.toISOString().split("T")[0],
-          status: "pending",
-          progress: 0,
-          milestone: "",
-        })
-
-      if (commError) throw commError
-
-      // 2. Create conversation
-      const initial = form.name.trim().charAt(0).toUpperCase()
-      const gradient = GRADIENTS[Math.floor(Math.random() * GRADIENTS.length)]
-
-      const { data: conversation, error: convError } = await supabase
-        .from("conversations")
-        .insert({
-          user_id: artistId,
-          participant_name: form.name.trim(),
-          participant_initial: initial,
-          participant_gradient: gradient,
-          last_message: `New commission request: ${form.title.trim()}`,
-          last_message_at: new Date().toISOString(),
-          participant_online: false,
-          unread_count: 1,
-        })
-        .select()
-        .single()
-
-      // 3. Create initial message
-      if (conversation && !convError) {
-        const msgLines = [
-          `Hi! I'd like to commission a piece: "${form.title.trim()}"`,
-          "",
+      const { data: result, error: rpcError } = await supabase.rpc("submit_commission_request", {
+        p_artist_id: artistId,
+        p_client_name: form.name.trim(),
+        p_client_email: form.email.trim(),
+        p_title: form.title.trim(),
+        p_description: [
           form.description.trim(),
           "",
           `Budget: ${form.budgetRange}`,
           `Timeline: ${form.timeline || "Flexible"}`,
           `Medium: ${form.medium || "No preference"}`,
           form.dimensions ? `Dimensions: ${form.dimensions.trim()}` : "",
-        ].filter(Boolean).join("\n")
-
-        await supabase.from("messages").insert({
-          conversation_id: conversation.id,
-          sender: "them",
-          content: msgLines,
-        })
-      }
-
-      // 4. Log activity
-      await supabase.from("activity_log").insert({
-        user_id: artistId,
-        activity_type: "commission",
-        description: `New commission request from ${form.name.trim()}: "${form.title.trim()}"`,
-        metadata: {
-          client_name: form.name.trim(),
-          client_email: form.email.trim(),
-          budget: form.budgetRange,
-        },
+        ].filter(Boolean).join("\n"),
+        p_medium: form.medium || null,
+        p_dimensions: form.dimensions.trim() || null,
+        p_budget: budgetNum,
+        p_deadline: deadline.toISOString().split("T")[0],
       })
+
+      if (rpcError) throw rpcError
+      if (result && !result.success) throw new Error(result.error || "Request failed")
 
       setSubmitted(true)
     } catch (err) {

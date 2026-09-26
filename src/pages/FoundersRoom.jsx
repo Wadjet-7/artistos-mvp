@@ -345,15 +345,21 @@ export default function FoundersRoom() {
       }
       setRoom(roomData)
 
-      // Check membership
+      // Check membership (select user_id, not id — composite key)
       const { data: membership } = await supabase
         .from("room_members")
-        .select("id")
+        .select("user_id")
         .eq("room_id", roomData.id)
         .eq("user_id", user.id)
         .maybeSingle()
 
-      setIsMember(!!membership)
+      if (membership) {
+        setIsMember(true)
+      } else if (user.lifetime_plan || user.vip) {
+        // Auto-join eligible founders
+        const { data: joinResult } = await supabase.rpc("join_room", { p_slug: "founders" })
+        setIsMember(joinResult?.success || false)
+      }
       setLoading(false)
     })()
   }, [user?.id])
@@ -427,7 +433,10 @@ export default function FoundersRoom() {
     )
 
     if (existing) {
-      await supabase.from("room_reactions").delete().eq("id", existing.id)
+      await supabase.from("room_reactions").delete()
+        .eq("post_id", postId)
+        .eq("user_id", user.id)
+        .eq("emoji", emoji)
     } else {
       await supabase.from("room_reactions").insert({
         post_id: postId,

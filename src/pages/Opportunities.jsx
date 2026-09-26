@@ -7,6 +7,7 @@ import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
 import { supabase } from "../lib/supabase"
 import { logActivity } from "../lib/supabase"
+import { tourEmit } from "../tour/tourEvents"
 import { FeatureGate } from "../components/UpgradePrompt"
 import {
   fetchMyMatches, fetchActiveOpportunities, refreshMatches,
@@ -106,7 +107,7 @@ function OpportunityCard({ match, opportunity, onDraft, onSave, onDismiss }) {
           </button>
         )}
         {onSave && status !== "saved" && status !== "applied" && (
-          <button onClick={() => onSave(match.id)} className="btn-secondary text-xs flex items-center gap-1.5 px-3 py-1.5">
+          <button onClick={() => onSave(match.id)} data-tour="save-match" className="btn-secondary text-xs flex items-center gap-1.5 px-3 py-1.5">
             <Bookmark size={12} /> Save
           </button>
         )}
@@ -384,6 +385,7 @@ function OpportunitiesContent() {
       await setMatchStatus(matchId, "saved")
       setMatches(prev => prev.map(m => m.id === matchId ? { ...m, status: "saved" } : m))
       toast.success("Opportunity saved!")
+      tourEmit("match_saved")
     } catch { toast.error("Failed to save") }
   }
 
@@ -412,7 +414,7 @@ function OpportunitiesContent() {
             <p className="text-xs" style={{ color: "#A89F94" }}>Grants, residencies & fellowships matched to your profile</p>
           </div>
         </div>
-        <button onClick={handleRefresh} disabled={refreshing} className="btn-copper flex items-center gap-2 text-xs px-4 py-2">
+        <button onClick={handleRefresh} disabled={refreshing} data-tour="refresh-matches" className="btn-copper flex items-center gap-2 text-xs px-4 py-2">
           <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
           {refreshing ? "Matching..." : "Refresh Matches"}
         </button>

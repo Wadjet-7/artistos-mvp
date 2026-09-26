@@ -93,11 +93,21 @@ export async function fetchReadAnnouncements(userId) {
 }
 
 export async function fetchAppSettings() {
-  const { data, error } = await supabase
-    .from("app_settings")
-    .select("key, value")
-  if (error) throw error
-  const settings = {}
-  ;(data || []).forEach(r => { settings[r.key] = r.value })
-  return settings
+  const { data, error } = await supabase.rpc("get_public_settings")
+  if (error) {
+    // Fallback: RPC may not exist yet (pre-migration)
+    const { data: rows } = await supabase
+      .from("app_settings")
+      .select("key, value")
+    const settings = {}
+    ;(rows || []).forEach(r => { settings[r.key] = r.value })
+    return settings
+  }
+  return data || {}
+}
+
+export async function fetchContactCard() {
+  const { data, error } = await supabase.rpc("get_contact_card")
+  if (error) return { is_first_client: false, email: "", reply_time: "Larry usually replies within a day." }
+  return data || {}
 }

@@ -126,8 +126,29 @@ Deno.serve(async (req) => {
   if (!OPENAI_API_KEY) return json({ error: "Not configured" }, 500)
 
   try {
-    const auth = req.headers.get("authorization")
-    if (!auth) return json({ error: "Not authenticated" }, 401)
+    const authHeader = req.headers.get("authorization")
+    if (!authHeader) return json({ error: "Not authenticated" }, 401)
+
+    // Verify JWT and get user info
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    const token = authHeader.replace("Bearer ", "")
+
+    const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: { "Authorization": `Bearer ${token}`, "apikey": SUPABASE_SERVICE_ROLE_KEY },
+    })
+    if (!userRes.ok) return json({ error: "Invalid session" }, 401)
+    const authUser = await userRes.json()
+
+    // Fetch plan info for plan-aware responses
+    const profileRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${authUser.id}&select=plan,lifetime_plan,vip`,
+      { headers: { "apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` } }
+    )
+    const profiles = await profileRes.json()
+    const profile = profiles?.[0] || {}
+    const userPlan = profile.lifetime_plan ? "founding_artist" : (profile.plan || "starter")
+    const isFounder = profile.lifetime_plan || profile.vip
 
     const body = await req.json()
     const { messages = [], current_path = "" } = body
@@ -139,13 +160,17 @@ Deno.serve(async (req) => {
       content: String(m.content).slice(0, 1000),
     }))
 
+    const planContext = isFounder
+      ? "\n\nThis user is a Founding Artist (Studio for life). NEVER suggest upgrades or mention pricing to them."
+      : `\n\nThis user is on the ${userPlan} plan.`
+
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT + "\n\nKNOWLEDGE BASE:\n" + KNOWLEDGE + "\n\nUser is currently on page: " + current_path },
+          { role: "system", content: SYSTEM_PROMPT + "\n\nKNOWLEDGE BASE:\n" + KNOWLEDGE + planContext + "\n\nUser is currently on page: " + current_path },
           ...userMessages,
         ],
         temperature: 0.3,
@@ -161,7 +186,20 @@ Deno.serve(async (req) => {
     try {
       const parsed = JSON.parse(content)
       const validActions = ["navigate", "talk_to_team", "open_upgrade"]
-      const actions = (parsed.actions || []).filter((a: any) => validActions.includes(a.type))
+      const safePaths = [
+        "/dashboard", "/portfolio", "/contracts", "/viewing-rooms", "/social",
+        "/finances", "/analytics", "/emerging", "/marketplace", "/contacts",
+        "/commissions", "/messages", "/cv", "/consignments", "/exhibitions",
+        "/website", "/opportunities", "/room/founders", "/settings", "/upgrade",
+      ]
+      const actions = (parsed.actions || [])
+        .filter((a: any) => validActions.includes(a.type))
+        .filter((a: any) => {
+          if (a.type === "navigate") {
+            return typeof a.path === "string" && a.path.startsWith("/") && safePaths.some((p: string) => a.path === p || a.path.startsWith(p + "/"))
+          }
+          return true
+        })
       return json({ answer: String(parsed.answer || ""), actions })
     } catch {
       return json({ answer: content, actions: [] })

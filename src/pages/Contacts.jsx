@@ -11,6 +11,7 @@ import {
 import PageError from "../components/PageError"
 import { LimitBanner } from "../components/UpgradePrompt"
 import { isAtLimit, normalizePlan } from "../lib/plans"
+import { tourEmit } from "../tour/tourEvents"
 
 /* ------------------------------------------------------------------ */
 /*  Contact type badges                                                */
@@ -248,6 +249,7 @@ export default function Contacts() {
       const { error } = await supabase.from("contacts").insert(payload)
       if (error) return toast.error("Failed to add contact")
       toast.success("Contact added")
+      tourEmit("contact_saved")
       await logActivity(user.id, "contact", `Added contact "${form.name}"`)
     }
     setModalOpen(false)
@@ -286,7 +288,7 @@ export default function Contacts() {
           <h2 className="text-lg font-semibold" style={{ color: "#0E0C0A" }}>Contacts</h2>
           <p className="text-xs mt-1" style={{ color: "#A89F94" }}>Manage your collectors, galleries, and collaborators</p>
         </div>
-        <button onClick={openCreate} className="btn-copper flex items-center gap-2" style={{ fontSize: 13, padding: "8px 16px" }}>
+        <button onClick={openCreate} data-tour="add-contact" className="btn-copper flex items-center gap-2" style={{ fontSize: 13, padding: "8px 16px" }}>
           <Plus size={15} /> Add Contact
         </button>
       </div>

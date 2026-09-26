@@ -10,6 +10,7 @@ import CatalogModal from "../components/CatalogModal"
 import { generateAppraisalPDF } from "../components/AppraisalReport"
 import QRCodeModal from "../components/QRCodeModal"
 import paintAbstract from "../utils/paintAbstract"
+import { tourEmit } from "../tour/tourEvents"
 import PageError from "../components/PageError"
 import { LimitBanner } from "../components/UpgradePrompt"
 import { isAtLimit, normalizePlan, canAccess } from "../lib/plans"
@@ -256,6 +257,7 @@ export default function Portfolio() {
       // Refresh the list
       await fetchArtworks()
       toast.success("Artwork added to portfolio!")
+      tourEmit("artwork_saved")
     } catch (err) {
       console.error("Failed to add artwork:", err)
       toast.error("Failed to add artwork: " + (err.message || "Unknown error"))
@@ -320,7 +322,7 @@ export default function Portfolio() {
               <FileText size={15} /> Appraisal Report
             </button>
           )}
-          <button className="btn-primary" onClick={() => setModalOpen(true)}>
+          <button className="btn-primary" data-tour="add-artwork" onClick={() => setModalOpen(true)}>
             <Plus size={16} /> Add Artwork
           </button>
         </div>
@@ -420,6 +422,7 @@ export default function Portfolio() {
             <label className="form-label">Artwork Title</label>
             <input
               className="form-input"
+              data-tour="artwork-title"
               placeholder="e.g. Solstice No. 4"
               value={form.title}
               onChange={e => setForm({ ...form, title: e.target.value })}
@@ -430,6 +433,7 @@ export default function Portfolio() {
             <label className="form-label">Medium</label>
             <select
               className="form-select"
+              data-tour="artwork-medium"
               value={form.medium}
               onChange={e => setForm({ ...form, medium: e.target.value })}
             >
@@ -631,6 +635,7 @@ export default function Portfolio() {
           <div className="flex gap-3 pt-2">
             <button
               className="btn-primary flex-1 flex items-center justify-center gap-2"
+              data-tour="artwork-save"
               onClick={handleAddArtwork}
               disabled={submitting || !form.title.trim()}
             >

@@ -150,8 +150,24 @@ export default function Upgrade() {
         </div>
       )}
 
+      {/* Founding Artist panel */}
+      {user?.lifetime_plan && (
+        <div className="rounded-xl p-8 mb-8 text-center" style={{ background: "linear-gradient(145deg, #0E0C0A, #2A2622)", border: "1px solid rgba(181, 101, 29, 0.3)" }}>
+          <Crown size={32} className="mx-auto mb-3" style={{ color: "#C9A84C" }} />
+          <h2 className="font-serif text-2xl font-semibold mb-2" style={{ color: "#FAF8F5" }}>
+            You're a Founding Artist
+          </h2>
+          <p className="text-sm mb-1" style={{ color: "#A89F94" }}>
+            Studio plan — <span style={{ color: "#C9A84C" }}>free for life</span>
+          </p>
+          <p className="text-xs" style={{ color: "#A89F94" }}>
+            Every feature, unlimited everything, forever. Thank you for believing in ArtistOS from the start.
+          </p>
+        </div>
+      )}
+
       {/* Billing interval toggle */}
-      <div className="flex items-center justify-center gap-2 mb-8">
+      {!user?.lifetime_plan && <div className="flex items-center justify-center gap-2 mb-8">
         <button
           onClick={() => setInterval("monthly")}
           className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
@@ -174,10 +190,10 @@ export default function Upgrade() {
             Save 2 months
           </span>
         </button>
-      </div>
+      </div>}
 
       {/* Plan Cards */}
-      <div className="grid md:grid-cols-3 gap-5 mb-10">
+      {!user?.lifetime_plan && <div className="grid md:grid-cols-3 gap-5 mb-10">
         {Object.entries(PLANS).map(([key, plan]) => {
           const isCurrent = key === currentPlan
           const isPopular = key === "pro"
@@ -292,7 +308,7 @@ export default function Upgrade() {
             </div>
           )
         })}
-      </div>
+      </div>}
 
       {/* Redeem code */}
       {!user?.lifetime_plan && (
