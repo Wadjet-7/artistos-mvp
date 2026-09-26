@@ -31,6 +31,7 @@ AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.exhibition_participants
     WHERE exhibition_id = p_exhibition_id AND user_id = auth.uid()
+      AND status IN ('invited', 'accepted')
   );
 $$;
 

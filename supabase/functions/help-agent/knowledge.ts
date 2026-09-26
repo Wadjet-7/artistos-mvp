@@ -1,4 +1,4 @@
-# ArtistOS help guide (knowledge base for "Ask ArtistOS")
+export const KNOWLEDGE = `# ArtistOS help guide (knowledge base for "Ask ArtistOS")
 
 <!--
 This is the ground truth the AI help agent answers from. Button names are copied from the app, so keep them exact.
@@ -12,8 +12,8 @@ ArtistOS is business software for working visual artists. It keeps your artwork 
 
 ## Plans and prices
 - **Starter: Free.** Up to 25 artworks, 3 viewing rooms, 20 contacts and 10 invoices. Includes the contract generator, invoices, commissions, messages, Artist CV, contacts and your public artist page.
-- **Pro: $29/month or $290/year.** 14-day free trial on monthly. Up to 200 artworks, 25 viewing rooms, 500 contacts and 100 invoices. Adds the AI tools (AI Describe, AI Suggest Price, AI Generate Bio), Analytics, Social Scheduler, Exhibitions, Consignments, catalog export and My Website.
-- **Studio: $120/month or $1,200/year.** Unlimited everything. Adds the grant and residency finder (Opportunities), provenance records, appraisal and insurance reports, career analytics and the consignment map ("Where is Everything").
+- **Pro: \$29/month or \$290/year.** 14-day free trial on monthly. Up to 200 artworks, 25 viewing rooms, 500 contacts and 100 invoices. Adds the AI tools (AI Describe, AI Suggest Price, AI Generate Bio), Analytics, Social Scheduler, Exhibitions, Consignments, catalog export and My Website.
+- **Studio: \$120/month or \$1,200/year.** Unlimited everything. Adds the grant and residency finder (Opportunities), provenance records, appraisal and insurance reports, career analytics and the consignment map ("Where is Everything").
 - **Students:** a .edu email gets 50% off Pro. It's applied automatically at checkout.
 - **Founding Artists** have Studio free for life. Never suggest upgrades to them.
 - **What locked features look like:** the page appears blurred with "Upgrade to {Plan}" and an **Upgrade** button. When you hit a limit, a banner says "You've reached the … limit" with an **Upgrade** button.
@@ -21,7 +21,7 @@ ArtistOS is business software for working visual artists. It keeps your artwork 
 ## How to upgrade, change or cancel a plan
 - **To upgrade:** go to Settings (click your name at the bottom of the sidebar), open the **Billing** tab, then click **Upgrade Plan**. You can also go straight to the Upgrade page, choose **Monthly** or **Annual** (annual is selected by default and saves 2 months), and click **Start 14-Day Free Trial** (Pro, monthly) or **Upgrade to {Plan}**.
 - **To change or cancel a paid plan:** Settings → **Billing** → **Manage Subscription**. This opens the secure Stripe billing portal, where you can switch plans, update your card or cancel. The **Downgrade** button on the Upgrade page is disabled; use Manage Subscription instead.
-- **Promo codes** can be entered at signup in the field **"Promo code (optional)"**, from a link with `?code=`, or from the **Redeem a code** box in Settings. The Upgrade page also has a **Have a code?** section. If someone has trouble redeeming a code, send them to the team (talk_to_team).
+- **Promo codes** can be entered at signup in the field **"Promo code (optional)"**, from a link with \`?code=\`, or from the **Redeem a code** box in Settings. The Upgrade page also has a **Have a code?** section. If someone has trouble redeeming a code, send them to the team (talk_to_team).
 - Billing disputes, refunds and invoices for your subscription always go to the team.
 
 ## Getting started (first steps)
@@ -48,13 +48,13 @@ Starter can hold up to 25 artworks. When you reach the limit, saving is blocked 
 ## AI description and AI price suggestion (Pro and Studio)
 In the **Add Artwork** window:
 - **AI Describe** (next to Description) writes a gallery-ready description. Enter the title first. Edit the result so it sounds like you.
-- The small **AI** button next to Price (tooltip "AI Suggest Price") suggests a price from your medium, size and your past prices. It fills in a middle price and shows the range, like "Suggested: $1,200 – $1,800". Choose Medium first.
+- The small **AI** button next to Price (tooltip "AI Suggest Price") suggests a price from your medium, size and your past prices. It fills in a middle price and shows the range, like "Suggested: \$1,200 – \$1,800". Choose Medium first.
 - On Starter these buttons don't appear. The window says "Upgrade to Pro for AI-powered descriptions and pricing". Pro has a 14-day free trial.
 - AI suggestions are a starting point, not an appraisal. Adjust for your market, sales history and venue.
 
 ## How to price artwork
 The common formulas are:
-- **Square inch:** width × height × a rate. Emerging painters often use $1–$5 per square inch.
+- **Square inch:** width × height × a rate. Emerging painters often use \$1–\$5 per square inch.
 - **Linear inch:** (width + height) × a rate.
 
 Add framing and materials, stay consistent across venues, and raise prices after steady sales. There's a free calculator at artistosapp.com/how-to-price-artwork. On Pro and Studio, the **AI** price button in Add Artwork gives a suggested range.
@@ -108,7 +108,7 @@ Links only work while the room is published. **Unpublish** hides it again. Start
 In **Finances**, open the **Expenses** tab and click **Add Expense**. Fill in **Description**, **Amount (USD)**, **Date**, **Category** (Materials, Studio, Shipping, Marketing, Travel, Equipment, Insurance, Fees, Other) and **Notes**. The **Expense Breakdown** card and **Export CSV** help at tax time. ArtistOS doesn't give tax advice; check with a tax professional.
 
 ## Contacts (collectors, galleries, press)
-Open **Contacts** and click **Add Contact**. Fill in **Name**, **Type** (Collector / Gallery / Advisor / Collaborator / Press / Other), **Email**, **Phone**, **Company**, **Total Purchases ($)**, **Follow-up Date**, **Notes** and **Tags** (type a tag and press Enter). Filter using the pills at the top, or search. When a follow-up date passes, the contact shows "Overdue". Starter includes 20 contacts.
+Open **Contacts** and click **Add Contact**. Fill in **Name**, **Type** (Collector / Gallery / Advisor / Collaborator / Press / Other), **Email**, **Phone**, **Company**, **Total Purchases (\$)**, **Follow-up Date**, **Notes** and **Tags** (type a tag and press Enter). Filter using the pills at the top, or search. When a follow-up date passes, the contact shows "Overdue". Starter includes 20 contacts.
 
 ## Commissions
 - **Collectors can request a commission** from your public artist page with the **Request Commission** button. Requests appear in **Commissions** under the **Pending** tab.
@@ -212,3 +212,4 @@ Use the team for billing, refunds, bugs, account changes, promo codes on existin
 - Share anything about other users.
 
 When unsure, say so and offer **Talk to the team**.
+`;

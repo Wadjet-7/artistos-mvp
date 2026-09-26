@@ -12,13 +12,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   })
 
-// Load knowledge base from bundled file, fall back to inline summary
-let KNOWLEDGE: string
-try {
-  KNOWLEDGE = await Deno.readTextFile(new URL("./how-to.md", import.meta.url))
-} catch {
-  KNOWLEDGE = `ArtistOS is business software for working visual artists. Portfolio, contracts, invoices, contacts, viewing rooms, CV, public artist page, grant finder. Plans: Starter (free), Pro ($29/mo), Studio ($120/mo). Hover artwork cards in Portfolio for QR codes, Certificates of Authenticity (Award icon → Download PDF), and catalog export. Promo codes can be redeemed at signup or from Settings. Contact the team via the floating palette button (Studio Assistant).`
-}
+import { KNOWLEDGE } from "./knowledge.ts"
 
 const SYSTEM_PROMPT = `You are the ArtistOS help assistant. You answer questions about ArtistOS — how to use features, pricing, and the business side of being an artist (pricing work, contracts, grants, invoicing).
 
@@ -93,7 +87,8 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json()
-    const { messages = [], current_path = "" } = body
+    const { messages = [], current_path: rawPath = "" } = body
+    const current_path = String(rawPath).slice(0, 200)
 
     if (!messages.length) return json({ error: "No messages" }, 400)
 
@@ -163,8 +158,13 @@ Deno.serve(async (req) => {
         }),
       }
     )
-    const logData = await logRes.json()
-    const logId = logData?.[0]?.id || null
+    let logId = null
+    if (logRes.ok) {
+      const logData = await logRes.json()
+      logId = logData?.[0]?.id || null
+    } else {
+      console.warn("Help agent: failed to log conversation", await logRes.text())
+    }
 
     return json({ answer, actions, log_id: logId })
   } catch (err) {

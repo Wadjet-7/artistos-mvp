@@ -65,7 +65,7 @@ BEGIN
   SELECT COALESCE(value, 'founders_and_first_n') INTO v_audience
   FROM public.app_settings WHERE key = 'contact_phone_audience';
 
-  IF v_audience = 'founders_only' THEN
+  IF v_audience IN ('founders_only', 'founders') THEN
     RETURN false;
   END IF;
 

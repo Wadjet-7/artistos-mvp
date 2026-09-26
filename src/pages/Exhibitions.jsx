@@ -89,6 +89,7 @@ function ExhibitionsContent() {
   const [searching, setSearching] = useState(false)
   const [inviting, setInviting] = useState(null)
   const [publishing, setPublishing] = useState(null)
+  const [roomSlugs, setRoomSlugs] = useState({})
 
   const fetchData = useCallback(async () => {
     if (!user) return
@@ -110,6 +111,15 @@ function ExhibitionsContent() {
         partMap[p.exhibition_id].push(p)
       })
       setParticipants(partMap)
+
+      // Fetch room slugs for exhibitions with viewing_room_id
+      const roomIds = exData.filter(e => e.viewing_room_id).map(e => e.viewing_room_id)
+      if (roomIds.length) {
+        const { data: rooms } = await supabase.from("viewing_rooms").select("id, slug").in("id", roomIds)
+        const slugMap = {}
+        ;(rooms || []).forEach(r => { slugMap[r.id] = r.slug })
+        setRoomSlugs(slugMap)
+      }
     } catch (err) {
       console.error("[Exhibitions] fetch error:", err)
       setFetchError(true)
@@ -269,6 +279,18 @@ function ExhibitionsContent() {
     const { data, error } = await supabase.rpc("remove_from_exhibition", { p_exhibition_id: exId, p_user_id: userId })
     if (error || !data?.success) return toast.error(data?.error || "Failed")
     toast.success("Participant removed")
+    fetchData()
+  }
+
+  const handleSetMyPieces = async (exId, artworkId) => {
+    const myPart = (participants[exId] || []).find(p => p.user_id === user.id)
+    if (!myPart) return
+    const current = myPart.artwork_ids || []
+    const updated = current.includes(artworkId)
+      ? current.filter(id => id !== artworkId)
+      : [...current, artworkId]
+    const { data, error } = await supabase.rpc("set_my_exhibition_artworks", { p_exhibition_id: exId, p_artwork_ids: updated })
+    if (error || !data?.success) return toast.error(data?.error || "Failed to update pieces")
     fetchData()
   }
 
@@ -505,6 +527,33 @@ function ExhibitionsContent() {
                     </div>
                   )}
 
+                  {/* My pieces picker (for accepted participants in group shows) */}
+                  {ex.is_group && (participants[ex.id] || []).some(p => p.user_id === user.id && p.status === "accepted") && (
+                    <div className="mb-3 py-2 px-3 rounded-lg" style={{ background: "#FAF8F5", border: "1px solid #E8E2DA" }}>
+                      <p className="text-[10px] uppercase tracking-wider font-medium mb-2" style={{ color: "#A89F94" }}>
+                        My pieces {(() => { const my = (participants[ex.id] || []).find(p => p.user_id === user.id); return (my?.artwork_ids || []).length > 0 ? `(${my.artwork_ids.length} selected)` : "" })()}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 max-h-[100px] overflow-y-auto">
+                        {artworks.map(a => {
+                          const myPart = (participants[ex.id] || []).find(p => p.user_id === user.id)
+                          const selected = (myPart?.artwork_ids || []).includes(a.id)
+                          return (
+                            <button key={a.id} onClick={() => handleSetMyPieces(ex.id, a.id)}
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all"
+                              style={{
+                                background: selected ? "#F5E6D8" : "#F2EDE6",
+                                color: selected ? "#B5651D" : "#A89F94",
+                                border: selected ? "1px solid #B5651D" : "1px solid transparent",
+                              }}>
+                              {a.title}
+                            </button>
+                          )
+                        })}
+                        {artworks.length === 0 && <p className="text-[11px]" style={{ color: "#A89F94" }}>Add artworks to your Portfolio first.</p>}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2">
                     {ex.user_id === user.id && (
                       <button onClick={() => openEdit(ex)} className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors"
@@ -518,8 +567,8 @@ function ExhibitionsContent() {
                         {ex.viewing_room_id ? "Update Room" : "Publish Room"}
                       </button>
                     )}
-                    {ex.viewing_room_id && (
-                      <a href={`/view/${ex.viewing_room_id}`} target="_blank" rel="noopener noreferrer"
+                    {ex.viewing_room_id && roomSlugs[ex.viewing_room_id] && (
+                      <a href={`/view/${roomSlugs[ex.viewing_room_id]}`} target="_blank" rel="noopener noreferrer"
                         className="text-[11px] font-medium px-3 py-1.5 rounded-lg" style={{ background: "#E8F2EA", color: "#2D4A35" }}>
                         View Room
                       </a>

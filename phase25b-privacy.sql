@@ -56,7 +56,11 @@ CREATE TRIGGER protect_profile_columns
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.protect_profile_columns();
 
--- 5. Verify
+-- 5. Lock down promo_codes (founder codes were publicly listable)
+DROP POLICY IF EXISTS "Anyone can read active codes" ON public.promo_codes;
+REVOKE SELECT ON public.promo_codes FROM anon;
+
+-- 6. Verify
 SELECT column_name FROM information_schema.columns
 WHERE table_name = 'public_profiles' AND table_schema = 'public'
 ORDER BY ordinal_position;
