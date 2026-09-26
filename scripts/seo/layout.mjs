@@ -5,7 +5,7 @@
 export const SITE = "https://artistosapp.com"
 export const UPDATED = "2026-09-24"
 export const UPDATED_LABEL = "September 24, 2026"
-export const YOUTUBE_ID = "L_WahSl2t_E"
+export const YOUTUBE_ID = "TxzbA95tTGA"
 
 export const esc = (s = "") =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")

@@ -43,8 +43,8 @@ export const VIDEO = {
   description:
     "A two-minute walkthrough of ArtistOS: the dashboard, adding an artwork with AI descriptions and price suggestions, contracts and invoices, viewing rooms and collectors, analytics, consignments, and the Studio grant and opportunity engine.",
   thumbnailUrl: [`https://i.ytimg.com/vi/${YOUTUBE_ID}/hqdefault.jpg`, `${SITE}/og-image.png`],
-  uploadDate: "2026-09-22",
-  duration: "PT2M20S",
+  uploadDate: "2026-09-26",
+  duration: "PT1M56S",
   embedUrl: `https://www.youtube.com/embed/${YOUTUBE_ID}`,
   contentUrl: `${SITE}/demo.mp4`,
   publisher: { "@id": `${SITE}/#organization` },
