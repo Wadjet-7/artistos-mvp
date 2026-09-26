@@ -49,7 +49,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
 
 DROP TRIGGER IF EXISTS protect_profile_columns ON public.profiles;
 CREATE TRIGGER protect_profile_columns

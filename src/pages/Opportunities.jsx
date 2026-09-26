@@ -102,7 +102,7 @@ function OpportunityCard({ match, opportunity, onDraft, onSave, onDismiss }) {
 
       <div className="flex items-center gap-2 flex-wrap">
         {onDraft && (daysUntil(opp.deadline) === null || daysUntil(opp.deadline) > 0) && (
-          <button onClick={() => onDraft(opp, match)} className="btn-copper text-xs flex items-center gap-1.5 px-3 py-1.5">
+          <button onClick={() => onDraft(opp, match)} data-tour="draft-application" className="btn-copper text-xs flex items-center gap-1.5 px-3 py-1.5">
             <FileText size={12} /> Draft Application
           </button>
         )}

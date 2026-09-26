@@ -94,15 +94,7 @@ export async function fetchReadAnnouncements(userId) {
 
 export async function fetchAppSettings() {
   const { data, error } = await supabase.rpc("get_public_settings")
-  if (error) {
-    // Fallback: RPC may not exist yet (pre-migration)
-    const { data: rows } = await supabase
-      .from("app_settings")
-      .select("key, value")
-    const settings = {}
-    ;(rows || []).forEach(r => { settings[r.key] = r.value })
-    return settings
-  }
+  if (error) return {}
   return data || {}
 }
 

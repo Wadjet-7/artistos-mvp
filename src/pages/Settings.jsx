@@ -185,6 +185,7 @@ export default function Settings() {
                       disabled={aiGenerating}
                       className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors"
                       style={{ background: "#F5E6D8", color: "#B5651D", border: "1px solid #D4854A" }}
+                      data-tour="ai-generate-bio"
                     >
                       {aiGenerating ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
                       AI Generate Bio

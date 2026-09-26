@@ -152,7 +152,7 @@ export default function AdminPanel() {
         supabase.from("activity_log").select("id, user_id, action, details, created_at").order("created_at", { ascending: false }).limit(20),
         supabase.from("opportunities").select("*").order("deadline", { ascending: true }),
         supabase.from("support_threads").select("*").order("last_message_at", { ascending: false }),
-        supabase.from("promo_codes").select("code, max_redemptions, current_redemptions, is_active").ilike("code", "FOUNDING%"),
+        supabase.from("promo_codes").select("code, max_redemptions, current_redemptions, is_active").ilike("code", "FOUNDER-%").eq("is_active", true),
       ])
 
       const profiles = profilesRes.data || []

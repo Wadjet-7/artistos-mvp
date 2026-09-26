@@ -481,6 +481,7 @@ export default function Portfolio() {
                     className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors"
                     style={{ background: "#F5E6D8", color: "#B5651D", border: "1px solid #D4854A" }}
                     title="AI Suggest Price"
+                    data-tour="ai-price"
                   >
                     {aiLoading === "price" ? <Loader2 size={13} className="animate-spin" /> : <DollarSign size={13} />}
                     AI
@@ -528,6 +529,7 @@ export default function Portfolio() {
                   disabled={aiLoading === "describe"}
                   className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors"
                   style={{ background: "#F5E6D8", color: "#B5651D", border: "1px solid #D4854A" }}
+                  data-tour="ai-describe"
                 >
                   {aiLoading === "describe" ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
                   AI Describe
@@ -617,6 +619,7 @@ export default function Portfolio() {
             ) : (
               <div
                 className="flex flex-col items-center justify-center rounded-lg cursor-pointer transition-colors"
+                data-tour="artwork-image"
                 style={{ border: "2px dashed #E8E2DA", padding: "24px 16px" }}
                 onClick={() => fileInputRef.current?.click()}
                 onMouseEnter={e => e.currentTarget.style.borderColor = "#B5651D"}

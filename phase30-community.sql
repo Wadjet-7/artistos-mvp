@@ -17,6 +17,19 @@ AS $$
   );
 $$;
 
+CREATE OR REPLACE FUNCTION public.is_exhibition_participant(p_exhibition_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.exhibition_participants
+    WHERE exhibition_id = p_exhibition_id AND user_id = auth.uid()
+  );
+$$;
+
 -- 1. Rooms
 CREATE TABLE IF NOT EXISTS public.rooms (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -101,6 +114,10 @@ CREATE POLICY "Authors edit own posts" ON public.room_posts
       AND room_id = (SELECT rp.room_id FROM public.room_posts rp WHERE rp.id = room_posts.id)
       AND pinned = (SELECT rp.pinned FROM public.room_posts rp WHERE rp.id = room_posts.id)
       AND hidden = (SELECT rp.hidden FROM public.room_posts rp WHERE rp.id = room_posts.id)
+      AND parent_id IS NOT DISTINCT FROM (SELECT rp.parent_id FROM public.room_posts rp WHERE rp.id = room_posts.id)
+      AND tag IS NOT DISTINCT FROM (SELECT rp.tag FROM public.room_posts rp WHERE rp.id = room_posts.id)
+      AND artwork_id IS NOT DISTINCT FROM (SELECT rp.artwork_id FROM public.room_posts rp WHERE rp.id = room_posts.id)
+      AND created_at = (SELECT rp.created_at FROM public.room_posts rp WHERE rp.id = room_posts.id)
     )
   );
 DROP POLICY IF EXISTS "Authors delete own posts" ON public.room_posts;
@@ -147,7 +164,7 @@ DROP POLICY IF EXISTS "Participants read own" ON public.exhibition_participants;
 CREATE POLICY "Participants read own" ON public.exhibition_participants
   FOR SELECT USING (
     auth.uid() = user_id OR public.is_admin() OR
-    EXISTS (SELECT 1 FROM public.exhibition_participants ep2 WHERE ep2.exhibition_id = exhibition_participants.exhibition_id AND ep2.user_id = auth.uid())
+    public.is_exhibition_participant(exhibition_id)
   );
 DROP POLICY IF EXISTS "Admin manage participants" ON public.exhibition_participants;
 CREATE POLICY "Admin manage participants" ON public.exhibition_participants FOR ALL USING (public.is_admin());
@@ -207,11 +224,11 @@ BEGIN
   FROM public.profiles WHERE id = v_uid;
 
   IF v_access = 'first_clients' THEN
-    IF NOT (v_profile.lifetime_plan OR v_profile.vip) THEN
+    IF NOT (COALESCE(v_profile.lifetime_plan, false) OR COALESCE(v_profile.vip, false)) THEN
       RETURN jsonb_build_object('success', false, 'error', 'This room is for Founding Artists only');
     END IF;
   ELSIF v_access = 'plan_pro_plus' THEN
-    IF v_profile.plan NOT IN ('pro', 'studio') AND NOT v_profile.lifetime_plan THEN
+    IF COALESCE(v_profile.plan, 'starter') NOT IN ('pro', 'studio') AND NOT COALESCE(v_profile.lifetime_plan, false) THEN
       RETURN jsonb_build_object('success', false, 'error', 'Pro or Studio plan required');
     END IF;
   ELSIF v_access = 'invite' THEN
@@ -224,6 +241,9 @@ BEGIN
   RETURN jsonb_build_object('success', true);
 END;
 $$;
+
+REVOKE ALL ON FUNCTION public.join_room(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.join_room(TEXT) TO authenticated;
 
 -- 9. Auto-join founders trigger
 CREATE OR REPLACE FUNCTION public.auto_join_founders_room()

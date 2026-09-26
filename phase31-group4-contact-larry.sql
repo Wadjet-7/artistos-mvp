@@ -32,8 +32,8 @@ $$;
 GRANT EXECUTE ON FUNCTION public.get_public_settings TO authenticated;
 
 -- ============================================================
--- 2. is_first_client: checks if user is a founder, VIP, or
---    one of the first N signups
+-- 2. is_first_client: reads vip_first_n and contact_phone_audience
+--    from app_settings instead of hardcoding
 -- ============================================================
 CREATE OR REPLACE FUNCTION public.is_first_client()
 RETURNS BOOLEAN
@@ -46,23 +46,35 @@ DECLARE
   v_uid UUID := auth.uid();
   v_profile RECORD;
   v_signup_rank INT;
+  v_first_n INT;
+  v_audience TEXT;
 BEGIN
   IF v_uid IS NULL THEN RETURN false; END IF;
 
   SELECT lifetime_plan, vip INTO v_profile
   FROM public.profiles WHERE id = v_uid;
 
-  IF v_profile.lifetime_plan OR v_profile.vip THEN
+  IF COALESCE(v_profile.lifetime_plan, false) OR COALESCE(v_profile.vip, false) THEN
     RETURN true;
   END IF;
 
-  -- Check if among first 50 signups
+  SELECT COALESCE(value::INT, 50) INTO v_first_n
+  FROM public.app_settings WHERE key = 'vip_first_n';
+  v_first_n := COALESCE(v_first_n, 50);
+
+  SELECT COALESCE(value, 'founders_and_first_n') INTO v_audience
+  FROM public.app_settings WHERE key = 'contact_phone_audience';
+
+  IF v_audience = 'founders_only' THEN
+    RETURN false;
+  END IF;
+
   SELECT rank INTO v_signup_rank FROM (
     SELECT id, ROW_NUMBER() OVER (ORDER BY created_at ASC) AS rank
     FROM public.profiles
   ) ranked WHERE id = v_uid;
 
-  RETURN COALESCE(v_signup_rank <= 50, false);
+  RETURN COALESCE(v_signup_rank <= v_first_n, false);
 END;
 $$;
 
@@ -112,15 +124,15 @@ GRANT EXECUTE ON FUNCTION public.get_contact_card TO authenticated;
 -- ============================================================
 -- 4. Revoke direct SELECT on app_settings for authenticated
 -- ============================================================
+DROP POLICY IF EXISTS "Authenticated read settings" ON public.app_settings;
 DROP POLICY IF EXISTS "Authenticated read app settings" ON public.app_settings;
 DROP POLICY IF EXISTS "Anyone can read app_settings" ON public.app_settings;
 DROP POLICY IF EXISTS "Enable read access for all users" ON public.app_settings;
+DROP POLICY IF EXISTS "Admin read app_settings" ON public.app_settings;
 
--- Only admins can read directly; users go through RPCs
 CREATE POLICY "Admin read app_settings" ON public.app_settings
   FOR SELECT USING (public.is_admin());
 
--- Admin can manage app_settings
 DROP POLICY IF EXISTS "Admin manage app_settings" ON public.app_settings;
 CREATE POLICY "Admin manage app_settings" ON public.app_settings
   FOR ALL USING (public.is_admin());

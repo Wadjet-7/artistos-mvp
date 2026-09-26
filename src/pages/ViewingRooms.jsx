@@ -171,6 +171,7 @@ export default function ViewingRooms() {
     const url = `${window.location.origin}/view/${slug}`
     navigator.clipboard.writeText(url)
     toast.success("Link copied!")
+    tourEmit("link_copied")
   }
 
   const handleSendEmail = async (room) => {
@@ -277,7 +278,7 @@ export default function ViewingRooms() {
                   </button>
                   {room.is_published && (
                     <>
-                      <button onClick={() => copyLink(room.slug)} className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                      <button onClick={() => copyLink(room.slug)} data-tour="copy-link" className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
                         style={{ background: "#F2EDE6", color: "#0E0C0A" }}>
                         <Copy size={11} /> Copy Link
                       </button>

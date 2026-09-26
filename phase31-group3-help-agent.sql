@@ -22,22 +22,33 @@ DROP POLICY IF EXISTS "Users read own help" ON public.help_conversations;
 CREATE POLICY "Users read own help" ON public.help_conversations
   FOR SELECT USING (auth.uid() = user_id OR public.is_admin());
 
+-- No client INSERT — logging is done by the edge function (service role)
 DROP POLICY IF EXISTS "Users insert own help" ON public.help_conversations;
-CREATE POLICY "Users insert own help" ON public.help_conversations
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+-- No direct UPDATE — feedback goes through the RPC
 DROP POLICY IF EXISTS "Users update own help feedback" ON public.help_conversations;
-CREATE POLICY "Users update own help feedback" ON public.help_conversations
-  FOR UPDATE USING (auth.uid() = user_id);
 
--- 2. Daily usage view for rate limiting
-CREATE OR REPLACE VIEW public.help_usage_today AS
-SELECT user_id, count(*) AS question_count
-FROM public.help_conversations
-WHERE created_at >= CURRENT_DATE
-GROUP BY user_id;
+-- 2. Feedback RPC (only changes the feedback column)
+CREATE OR REPLACE FUNCTION public.rate_help_conversation(p_id UUID, p_feedback TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+  IF p_feedback NOT IN ('up', 'down') THEN
+    RAISE EXCEPTION 'Invalid feedback value';
+  END IF;
+  UPDATE public.help_conversations
+  SET feedback = p_feedback
+  WHERE id = p_id AND user_id = auth.uid() AND feedback IS NULL;
+END;
+$$;
 
-GRANT SELECT ON public.help_usage_today TO authenticated;
+GRANT EXECUTE ON FUNCTION public.rate_help_conversation(UUID, TEXT) TO authenticated;
 
 -- Verify
 SELECT 'help_conversations' AS tbl, TRUE AS ok;

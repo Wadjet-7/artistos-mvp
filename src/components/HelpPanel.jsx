@@ -121,13 +121,11 @@ export default function HelpPanel({ open, onClose }) {
         body: { messages: [...aiMessages, { role: "user", content: question }], current_path: location.pathname },
       })
       if (error) throw error
-      const answer = data.answer
-      const actions = data.actions || []
-      // Log conversation for usage tracking
-      const { data: logRow } = await supabase.from("help_conversations").insert({
-        user_id: user.id, question, answer, actions, current_path: location.pathname,
-      }).select("id").single()
-      setAiMessages(prev => [...prev, { role: "assistant", content: answer, actions, logId: logRow?.id }])
+      if (data.error === "rate_limited") {
+        setAiMessages(prev => [...prev, { role: "assistant", content: "You've reached your daily question limit. Try again tomorrow, or message the team.", actions: [{ type: "talk_to_team" }] }])
+      } else {
+        setAiMessages(prev => [...prev, { role: "assistant", content: data.answer, actions: data.actions || [], logId: data.log_id }])
+      }
     } catch {
       setAiMessages(prev => [...prev, { role: "assistant", content: "Something went wrong. Try again, or message the team.", actions: [{ type: "talk_to_team" }] }])
     } finally { setAiLoading(false) }
@@ -135,7 +133,7 @@ export default function HelpPanel({ open, onClose }) {
 
   const handleFeedback = async (logId, feedback) => {
     if (!logId) return
-    await supabase.from("help_conversations").update({ feedback }).eq("id", logId)
+    await supabase.rpc("rate_help_conversation", { p_id: logId, p_feedback: feedback })
     setAiMessages(prev => prev.map(m => m.logId === logId ? { ...m, feedback } : m))
   }
 

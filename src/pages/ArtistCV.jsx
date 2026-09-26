@@ -5,6 +5,7 @@ import toast from "react-hot-toast"
 import {
   ScrollText, Plus, Trash2, Download, Loader2, ChevronDown, ChevronUp, Save, Eye
 } from "lucide-react"
+import { tourEmit } from "../tour/tourEvents"
 
 /* ------------------------------------------------------------------ */
 /*  CV section config                                                  */
@@ -372,6 +373,7 @@ export default function ArtistCV() {
                 value={statement}
                 onChange={e => setStatement(e.target.value)}
                 placeholder="Write your artist statement..."
+                data-tour="cv-statement"
                 rows={5}
                 className="w-full px-3 py-2 rounded-lg text-sm border outline-none resize-none"
                 style={{ borderColor: "#E8E2DA", lineHeight: 1.7 }}
