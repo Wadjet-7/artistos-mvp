@@ -8,7 +8,7 @@ import paintAbstract from "../utils/paintAbstract"
 /* ------------------------------------------------------------------ */
 /*  Artwork card — immersive gallery style                             */
 /* ------------------------------------------------------------------ */
-function GalleryCard({ artwork }) {
+function GalleryCard({ artwork, artistName, artistId }) {
   const canvasRef = useRef(null)
   const hasImage = !!artwork.image_url
 
@@ -30,6 +30,20 @@ function GalleryCard({ artwork }) {
         )}
       </div>
       <h3 className="font-serif text-lg font-semibold mb-1" style={{ color: "#FAF8F5" }}>{artwork.title}</h3>
+      {artistName && (
+        <p className="text-sm mb-1" style={{ color: "#B5651D" }}>
+          by{" "}
+          <span
+            role="link"
+            tabIndex={0}
+            className="hover:underline cursor-pointer"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `/artist/${artistId}` }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); window.location.href = `/artist/${artistId}` } }}
+          >
+            {artistName}
+          </span>
+        </p>
+      )}
       <p className="text-sm mb-1" style={{ color: "#A89F94" }}>
         {artwork.medium}{artwork.dimensions ? ` · ${artwork.dimensions}` : ""}
       </p>
@@ -54,6 +68,7 @@ export default function ViewingRoom() {
   const [room, setRoom] = useState(null)
   const [artist, setArtist] = useState(null)
   const [artworks, setArtworks] = useState([])
+  const [allArtists, setAllArtists] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -97,6 +112,20 @@ export default function ViewingRoom() {
             .filter(Boolean)
 
           setArtworks(ordered)
+
+          // Group show support: fetch all unique artist profiles
+          const uniqueUserIds = [...new Set(ordered.map(a => a.user_id).filter(Boolean))]
+          if (uniqueUserIds.length > 1) {
+            const { data: profiles } = await supabase
+              .from("public_profiles")
+              .select("id, name, bio, location, medium, style, website, initials, avatar_url")
+              .in("id", uniqueUserIds)
+            if (profiles) {
+              const map = {}
+              profiles.forEach(p => { map[p.id] = p })
+              setAllArtists(map)
+            }
+          }
         }
       } catch {
         setError("Failed to load viewing room")
@@ -136,6 +165,9 @@ export default function ViewingRoom() {
     )
   }
 
+  const isGroupShow = Object.keys(allArtists).length > 1
+  const artistList = isGroupShow ? Object.values(allArtists) : []
+
   return (
     <div className="min-h-screen" style={{ background: "#0E0C0A" }}>
 
@@ -155,7 +187,26 @@ export default function ViewingRoom() {
         <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ background: "radial-gradient(ellipse at 30% 50%, #B5651D33 0%, transparent 60%)" }} />
         <div className="relative max-w-4xl mx-auto px-6 md:px-10 py-16 md:py-24 text-center">
           {/* Artist info */}
-          {artist && (
+          {isGroupShow ? (
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="flex -space-x-2">
+                {artistList.map(a => (
+                  <Link key={a.id} to={`/artist/${a.id}`} title={a.name}>
+                    {a.avatar_url ? (
+                      <img src={a.avatar_url} alt={a.name} className="w-10 h-10 rounded-full object-cover" style={{ border: "2px solid #0E0C0A" }} />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold" style={{ background: "linear-gradient(135deg, #B5651D, #C9A84C)", color: "white", border: "2px solid #0E0C0A" }}>
+                        {a.initials || a.name?.charAt(0)}
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+              <span className="text-sm font-medium" style={{ color: "#A89F94" }}>
+                {artistList.length} artists
+              </span>
+            </div>
+          ) : artist && (
             <Link to={`/artist/${artist.id}`} className="inline-flex items-center gap-3 mb-6 group">
               {artist.avatar_url ? (
                 <img src={artist.avatar_url} alt={artist.name} className="w-10 h-10 rounded-full object-cover" style={{ border: "2px solid #B5651D" }} />
@@ -180,11 +231,15 @@ export default function ViewingRoom() {
             </p>
           )}
 
-          {room.recipient_name && (
+          {isGroupShow && room.exhibition_id && artist ? (
+            <p className="text-xs mt-6 font-medium" style={{ color: "rgba(181,101,29,0.7)" }}>
+              Presented by {artist.name} with {artistList.length} artists
+            </p>
+          ) : room.recipient_name ? (
             <p className="text-xs mt-6 font-medium" style={{ color: "rgba(181,101,29,0.7)" }}>
               Curated for {room.recipient_name}
             </p>
-          )}
+          ) : null}
         </div>
       </section>
 
@@ -205,7 +260,12 @@ export default function ViewingRoom() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {artworks.map(artwork => (
-              <GalleryCard key={artwork.id} artwork={artwork} />
+              <GalleryCard
+                key={artwork.id}
+                artwork={artwork}
+                artistName={isGroupShow ? (allArtists[artwork.user_id]?.name || null) : null}
+                artistId={isGroupShow ? artwork.user_id : null}
+              />
             ))}
           </div>
         )}

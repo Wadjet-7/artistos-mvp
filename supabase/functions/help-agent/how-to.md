@@ -158,6 +158,16 @@ Open **Consignments** and click **New Consignment**. Fill in **Gallery / Dealer*
 ## Exhibitions (Pro)
 Open **Exhibitions** and click **New Exhibition**. Fill in **Exhibition Title**, **Venue**, **Location**, dates and **Status**, pick artworks, and build a **Checklist** (type an item and press Enter). Click **Create Exhibition**. Click an exhibition's progress bar to tick off checklist items.
 
+## Group Shows (Pro)
+A group show is an exhibition with multiple ArtistOS artists. When creating an exhibition, check **Group show** to enable it. As the organizer, you can:
+- **Invite artists** by searching their name in the Participants section
+- Each participant picks their own artworks to show
+- The shared **Checklist** is visible to all accepted participants
+- Click **Publish Room** to create a public viewing room with everyone's work combined
+- The public page shows each artwork with "by Artist Name" linking to their profile
+
+Invited artists see the show in their Exhibitions list with **Accept** / **Decline** buttons. Starter artists can join a group show without Pro — they just can't create their own exhibitions. The organizer can remove participants and re-publish the viewing room to update it.
+
 ## Social Scheduler (Pro)
 Open **Social Scheduler** and click **+ New Post**. Choose **Platform** and **Artwork**, pick a **Quick Template** or write a **Caption** (**Add Hashtags** is available), set **Scheduled Date**, then click **Schedule Post**.
 - **Heads-up:** ArtistOS doesn't post for you. On the day, use **Copy Caption** and post it yourself, or use **Post Now** (which prefills text for X and LinkedIn only).

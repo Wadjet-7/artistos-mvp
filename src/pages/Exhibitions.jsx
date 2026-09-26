@@ -4,7 +4,7 @@ import { supabase, logActivity } from "../lib/supabase"
 import Modal from "../components/Modal"
 import ConfirmModal from "../components/ConfirmModal"
 import toast from "react-hot-toast"
-import { CalendarDays, Plus, Trash2, Loader2, MapPin, CheckSquare, Square, ChevronDown, ChevronUp } from "lucide-react"
+import { CalendarDays, Plus, Trash2, Loader2, MapPin, CheckSquare, Square, ChevronDown, ChevronUp, Users, UserPlus, Link2, Search, X } from "lucide-react"
 import PageError from "../components/PageError"
 import { FeatureGate } from "../components/UpgradePrompt"
 
@@ -35,6 +35,7 @@ const emptyForm = {
   status: "planning",
   checklist: [],
   notes: "",
+  is_group: false,
 }
 
 /* ------------------------------------------------------------------ */
@@ -82,19 +83,33 @@ function ExhibitionsContent() {
   const [newCheckItem, setNewCheckItem] = useState("")
   const [expanded, setExpanded] = useState({})
   const [fetchError, setFetchError] = useState(false)
+  const [participants, setParticipants] = useState({})
+  const [artistSearch, setArtistSearch] = useState("")
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [inviting, setInviting] = useState(null)
+  const [publishing, setPublishing] = useState(null)
 
   const fetchData = useCallback(async () => {
     if (!user) return
     setLoading(true)
     setFetchError(false)
     try {
-      const [exRes, artRes] = await Promise.all([
-        supabase.from("exhibitions").select("*").eq("user_id", user.id).order("start_date", { ascending: true }),
+      const [exRes, artRes, partRes] = await Promise.all([
+        supabase.from("exhibitions").select("*").order("start_date", { ascending: true }),
         supabase.from("artworks").select("id, title, image_url").eq("user_id", user.id).order("title"),
+        supabase.from("exhibition_participants").select("*, profile:public_profiles!exhibition_participants_user_id_fkey(id, name, avatar_url, initials)"),
       ])
       if (exRes.error) throw exRes.error
-      setExhibitions(exRes.data || [])
+      const exData = (exRes.data || []).filter(e => e.user_id === user.id || (partRes.data || []).some(p => p.exhibition_id === e.id && p.user_id === user.id && ["accepted", "invited"].includes(p.status)))
+      setExhibitions(exData)
       setArtworks(artRes.data || [])
+      const partMap = {}
+      ;(partRes.data || []).forEach(p => {
+        if (!partMap[p.exhibition_id]) partMap[p.exhibition_id] = []
+        partMap[p.exhibition_id].push(p)
+      })
+      setParticipants(partMap)
     } catch (err) {
       console.error("[Exhibitions] fetch error:", err)
       setFetchError(true)
@@ -128,6 +143,7 @@ function ExhibitionsContent() {
       status: ex.status || "planning",
       checklist: ex.checklist || [],
       notes: ex.notes || "",
+      is_group: ex.is_group || false,
     })
     setNewCheckItem("")
     setModalOpen(true)
@@ -177,6 +193,7 @@ function ExhibitionsContent() {
       status: form.status,
       checklist: form.checklist,
       notes: form.notes.trim(),
+      is_group: form.is_group,
     }
 
     try {
@@ -220,6 +237,48 @@ function ExhibitionsContent() {
     } catch (err) {
       toast.error("Failed to delete")
     }
+  }
+
+  const searchArtists = async (q) => {
+    if (!q.trim() || q.length < 2) { setSearchResults([]); return }
+    setSearching(true)
+    const { data } = await supabase.from("public_profiles").select("id, name, avatar_url, initials").ilike("name", `%${q}%`).limit(8)
+    setSearchResults((data || []).filter(a => a.id !== user.id))
+    setSearching(false)
+  }
+
+  const handleInvite = async (exId, artistId) => {
+    setInviting(artistId)
+    const { data, error } = await supabase.rpc("invite_to_exhibition", { p_exhibition_id: exId, p_user_id: artistId })
+    if (error || !data?.success) { toast.error(data?.error || "Failed to invite"); setInviting(null); return }
+    toast.success("Invitation sent!")
+    setInviting(null)
+    setArtistSearch("")
+    setSearchResults([])
+    fetchData()
+  }
+
+  const handleRespond = async (exId, accept) => {
+    const { data, error } = await supabase.rpc("respond_to_exhibition", { p_exhibition_id: exId, p_accept: accept })
+    if (error || !data?.success) return toast.error(data?.error || "Failed")
+    toast.success(accept ? "You joined the show!" : "Invitation declined")
+    fetchData()
+  }
+
+  const handleRemoveParticipant = async (exId, userId) => {
+    const { data, error } = await supabase.rpc("remove_from_exhibition", { p_exhibition_id: exId, p_user_id: userId })
+    if (error || !data?.success) return toast.error(data?.error || "Failed")
+    toast.success("Participant removed")
+    fetchData()
+  }
+
+  const handlePublishRoom = async (exId) => {
+    setPublishing(exId)
+    const { data, error } = await supabase.rpc("publish_group_viewing_room", { p_exhibition_id: exId })
+    if (error || !data?.success) { toast.error(data?.error || "Failed to publish"); setPublishing(null); return }
+    toast.success("Viewing room published!")
+    setPublishing(null)
+    fetchData()
   }
 
   const getArtworkTitle = (id) => artworks.find(a => a.id === id)?.title || "Unknown"
@@ -319,6 +378,7 @@ function ExhibitionsContent() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-sm font-semibold" style={{ color: "#0E0C0A" }}>{ex.title}</h3>
                         <span className={`badge ${statusColors[ex.status] || "badge-grey"}`} style={{ textTransform: "capitalize" }}>{ex.status}</span>
+                        {ex.is_group && <span className="badge badge-copper flex items-center gap-1"><Users size={10} /> Group</span>}
                       </div>
                       {(ex.venue || ex.location) && (
                         <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: "#A89F94" }}>
@@ -374,13 +434,102 @@ function ExhibitionsContent() {
 
                   {ex.notes && <p className="text-xs mb-3 italic" style={{ color: "#C5BDB3" }}>{ex.notes}</p>}
 
+                  {/* Group show participants */}
+                  {ex.is_group && (participants[ex.id] || []).length > 0 && (
+                    <div className="mb-3 py-2 px-3 rounded-lg" style={{ background: "#FAF8F5", border: "1px solid #E8E2DA" }}>
+                      <p className="text-[10px] uppercase tracking-wider font-medium mb-2" style={{ color: "#A89F94" }}>Participants</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(participants[ex.id] || []).map(p => {
+                          const prof = p.profile || {}
+                          return (
+                            <div key={p.user_id} className="flex items-center gap-1.5 text-xs rounded-full px-2 py-1"
+                              style={{ background: p.status === "accepted" ? "#E8F2EA" : p.status === "invited" ? "#FBF2DC" : "#F2EDE6",
+                                       color: p.status === "accepted" ? "#2D4A35" : p.status === "invited" ? "#8A6A1A" : "#A89F94" }}>
+                              {prof.avatar_url ? (
+                                <img src={prof.avatar_url} alt="" className="w-4 h-4 rounded-full object-cover" />
+                              ) : (
+                                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold" style={{ background: "#E8E2DA" }}>{prof.initials || "?"}</span>
+                              )}
+                              <span className="font-medium">{prof.name || "Artist"}</span>
+                              <span className="text-[9px] opacity-70">{p.role === "organizer" ? "organizer" : p.status}</span>
+                              {ex.user_id === user.id && p.user_id !== user.id && p.status !== "removed" && (
+                                <button onClick={() => handleRemoveParticipant(ex.id, p.user_id)} className="ml-0.5 hover:opacity-80" title="Remove">
+                                  <X size={10} />
+                                </button>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+
+                      {/* Invite search (organizer only) */}
+                      {ex.user_id === user.id && (
+                        <div className="mt-2">
+                          <div className="flex gap-1.5">
+                            <div className="relative flex-1">
+                              <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2" style={{ color: "#A89F94" }} />
+                              <input value={artistSearch} onChange={e => { setArtistSearch(e.target.value); searchArtists(e.target.value) }}
+                                placeholder="Invite artist by name..." className="w-full pl-7 pr-2 py-1.5 rounded-lg text-[11px] border outline-none"
+                                style={{ borderColor: "#E8E2DA" }} />
+                            </div>
+                          </div>
+                          {searchResults.length > 0 && (
+                            <div className="mt-1 rounded-lg overflow-hidden" style={{ border: "1px solid #E8E2DA" }}>
+                              {searchResults.filter(a => !(participants[ex.id] || []).some(p => p.user_id === a.id)).map(a => (
+                                <button key={a.id} onClick={() => handleInvite(ex.id, a.id)}
+                                  disabled={inviting === a.id}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-gray-50 transition-colors text-left"
+                                  style={{ borderBottom: "1px solid #F2EDE6" }}>
+                                  {a.avatar_url ? (
+                                    <img src={a.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                                  ) : (
+                                    <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold" style={{ background: "#E8E2DA" }}>{a.initials || "?"}</span>
+                                  )}
+                                  <span className="font-medium" style={{ color: "#0E0C0A" }}>{a.name}</span>
+                                  <UserPlus size={11} className="ml-auto" style={{ color: "#B5651D" }} />
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Invitation response (for invitees) */}
+                  {ex.is_group && ex.user_id !== user.id && (participants[ex.id] || []).some(p => p.user_id === user.id && p.status === "invited") && (
+                    <div className="mb-3 py-2 px-3 rounded-lg flex items-center gap-2" style={{ background: "#FBF2DC", border: "1px solid #E8D5C0" }}>
+                      <span className="text-xs flex-1" style={{ color: "#8A6A1A" }}>You've been invited to this group show</span>
+                      <button onClick={() => handleRespond(ex.id, true)} className="text-[11px] font-medium px-3 py-1 rounded-lg" style={{ background: "#2D4A35", color: "white" }}>Accept</button>
+                      <button onClick={() => handleRespond(ex.id, false)} className="text-[11px] font-medium px-3 py-1 rounded-lg" style={{ background: "#F2EDE6", color: "#0E0C0A" }}>Decline</button>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2">
-                    <button onClick={() => openEdit(ex)} className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ background: "#F2EDE6", color: "#0E0C0A" }}>Edit</button>
-                    <button onClick={() => setConfirmTarget(ex)} className="text-[11px] font-medium px-2 py-1.5 rounded-lg transition-colors ml-auto"
-                      style={{ color: "#C4705A" }}>
-                      <Trash2 size={13} />
-                    </button>
+                    {ex.user_id === user.id && (
+                      <button onClick={() => openEdit(ex)} className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors"
+                        style={{ background: "#F2EDE6", color: "#0E0C0A" }}>Edit</button>
+                    )}
+                    {ex.is_group && ex.user_id === user.id && (
+                      <button onClick={() => handlePublishRoom(ex.id)} disabled={publishing === ex.id}
+                        className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                        style={{ background: "#F5E6D8", color: "#B5651D" }}>
+                        {publishing === ex.id ? <Loader2 size={11} className="animate-spin" /> : <Link2 size={11} />}
+                        {ex.viewing_room_id ? "Update Room" : "Publish Room"}
+                      </button>
+                    )}
+                    {ex.viewing_room_id && (
+                      <a href={`/view/${ex.viewing_room_id}`} target="_blank" rel="noopener noreferrer"
+                        className="text-[11px] font-medium px-3 py-1.5 rounded-lg" style={{ background: "#E8F2EA", color: "#2D4A35" }}>
+                        View Room
+                      </a>
+                    )}
+                    {ex.user_id === user.id && (
+                      <button onClick={() => setConfirmTarget(ex)} className="text-[11px] font-medium px-2 py-1.5 rounded-lg transition-colors ml-auto"
+                        style={{ color: "#C4705A" }}>
+                        <Trash2 size={13} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -437,6 +586,19 @@ function ExhibitionsContent() {
               </select>
             </div>
           </div>
+
+          {/* Group show toggle */}
+          {!editingId && (
+            <div className="flex items-center gap-3 py-2 px-3 rounded-lg" style={{ background: "#FAF8F5", border: "1px solid #E8E2DA" }}>
+              <input type="checkbox" id="is_group" checked={form.is_group} onChange={e => setForm(f => ({ ...f, is_group: e.target.checked }))}
+                className="w-4 h-4 rounded accent-[#B5651D]" />
+              <label htmlFor="is_group" className="flex-1 cursor-pointer">
+                <span className="text-sm font-medium" style={{ color: "#0E0C0A" }}>Group show</span>
+                <p className="text-[11px] mt-0.5" style={{ color: "#A89F94" }}>Invite other ArtistOS artists to participate</p>
+              </label>
+              <Users size={16} style={{ color: "#B5651D", opacity: form.is_group ? 1 : 0.3 }} />
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: "#0E0C0A" }}>Description</label>
