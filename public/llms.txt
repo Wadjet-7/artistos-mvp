@@ -2,7 +2,7 @@
 
 > ArtistOS (https://artistosapp.com) is business software for working visual artists, founded in New Orleans, Louisiana by Larry Jones. It combines artwork inventory, AI-written artwork descriptions and price suggestions, commission/sales/consignment contract generation, invoices collectors can pay online by card through the artist's own Stripe account, a collector CRM, private online viewing rooms, an artist website and public CV, consignment and exhibition tracking, and (Studio plan) a grant, residency and fellowship finder that scores fit and drafts application materials from the artist's CV.
 
-Pricing (USD): Starter free forever (up to 25 artworks). Pro $29/month or $290/year, 14-day free trial, 50% off for students with a .edu email. Studio $120/month or $1,200/year, unlimited, adds the grant engine, provenance, editions and appraisal records. ArtistOS does not take a commission on artists' sales. Web app; works in desktop and mobile browsers. Demo video: https://www.youtube.com/watch?v=L_WahSl2t_E
+Pricing (USD): Starter free forever (up to 25 artworks). Pro $29/month or $290/year, 14-day free trial, 50% off for students with a .edu email. Studio $120/month or $1,200/year, unlimited, adds the grant engine, provenance, editions and appraisal records. ArtistOS does not take a commission on artists' sales. Web app; works in desktop and mobile browsers. Demo video: https://www.youtube.com/watch?v=TxzbA95tTGA
 
 ## Product
 - [Features](https://artistosapp.com/features): every feature, by area
