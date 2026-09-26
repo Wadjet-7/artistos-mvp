@@ -23,7 +23,7 @@ DECLARE
   v_admin_id uuid := '426b2398-339b-428a-8dd6-5422f1354b64';
 BEGIN
   -- Get user name from profiles
-  SELECT display_name INTO v_name
+  SELECT name INTO v_name
   FROM public.profiles
   WHERE id = p_user_id;
 
