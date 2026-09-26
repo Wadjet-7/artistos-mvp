@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabase"
 import CommandPalette from "./CommandPalette"
 import FloatingAssistant from "./FloatingAssistant"
 import { applySEO } from "../lib/seo"
+import { fetchAnnouncements, fetchReadAnnouncements, markAnnouncementRead } from "../lib/support"
 
 function timeAgo(date) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
@@ -85,21 +86,33 @@ export default function Layout() {
           return
         }
 
-        if (data && data.length > 0) {
-          setNotifications(
-            data.map(item => ({
-              id: item.id,
-              text: item.description,
-              time: timeAgo(item.created_at),
-              type: item.activity_type,
-              read: false,
-            }))
-          )
-        } else {
-          setNotifications([])
+        const activityNotifs = (data || []).map(item => ({
+          id: item.id,
+          text: item.description,
+          time: timeAgo(item.created_at),
+          type: item.activity_type,
+          read: false,
+        }))
+
+        // Fetch announcements
+        try {
+          const [anns, readSet] = await Promise.all([
+            fetchAnnouncements(user?.plan || "starter", user?.lifetime_plan || user?.vip),
+            fetchReadAnnouncements(user.id),
+          ])
+          const annNotifs = anns.filter(a => !readSet.has(a.id)).map(a => ({
+            id: "ann-" + a.id,
+            annId: a.id,
+            text: a.title + (a.body ? ": " + a.body.slice(0, 80) : ""),
+            time: timeAgo(a.published_at),
+            type: "announcement",
+            read: false,
+          }))
+          setNotifications([...annNotifs, ...activityNotifs])
+        } catch {
+          setNotifications(activityNotifs)
         }
       } catch (err) {
-        // Silently ignore
         setNotifications([])
       }
     }
@@ -128,8 +141,15 @@ export default function Layout() {
     return () => document.removeEventListener("keydown", handleKey)
   }, [])
 
-  const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-  const dismiss = (id) => setNotifications(prev => prev.filter(n => n.id !== id))
+  const markAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+    notifications.filter(n => n.annId).forEach(n => markAnnouncementRead(n.annId, user?.id).catch(() => {}))
+  }
+  const dismiss = (id) => {
+    const n = notifications.find(x => x.id === id)
+    if (n?.annId) markAnnouncementRead(n.annId, user?.id).catch(() => {})
+    setNotifications(prev => prev.filter(x => x.id !== id))
+  }
 
   return (
     <div className="min-h-screen flex" style={{ background: "#FAF8F5" }}>

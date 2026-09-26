@@ -122,6 +122,14 @@ export default function AdminPanel() {
   const [oppForm, setOppForm] = useState(defaultOpp)
   const [savingOpp, setSavingOpp] = useState(false)
   const [founderCodeInfo, setFounderCodeInfo] = useState({ total: 0, redeemed: 0 })
+  const [contactSettings, setContactSettings] = useState({
+    contact_email: "", contact_phone: "", contact_phone_audience: "founders_and_first_n",
+    reply_time_text: "", booking_url: "", vip_first_n: "50",
+  })
+  const [savingContact, setSavingContact] = useState(false)
+  const [announcements, setAnnouncements] = useState([])
+  const [announcementForm, setAnnouncementForm] = useState({ title: "", body: "", audience: "all" })
+  const [savingAnnouncement, setSavingAnnouncement] = useState(false)
 
   const [userSearch, setUserSearch] = useState("")
   const [userFilter, setUserFilter] = useState("all")
@@ -136,9 +144,9 @@ export default function AdminPanel() {
         profilesRes, artworksRes, invoicesRes, commissionsRes,
         contractsRes, viewingRoomsRes, consignmentsRes, exhibitionsRes,
         contactsRes, postsRes, expensesRes, activityRes, oppsRes, threadsRes,
-        founderCodesRes,
+        founderCodesRes, appSettingsRes, announcementsRes,
       ] = await Promise.all([
-        supabase.from("profiles").select("id, name, email, plan, avatar_url, initials, is_admin, is_demo, created_at, subscription_status, lifetime_plan, promo_code, founder_referral_code"),
+        supabase.from("profiles").select("id, name, email, plan, avatar_url, initials, is_admin, is_demo, vip, created_at, subscription_status, lifetime_plan, promo_code, founder_referral_code"),
         supabase.from("artworks").select("id, user_id, status, created_at", { count: "exact", head: false }),
         supabase.from("invoices").select("id, amount, status, created_at"),
         supabase.from("commissions").select("id, status, created_at", { count: "exact", head: false }),
@@ -153,6 +161,8 @@ export default function AdminPanel() {
         supabase.from("opportunities").select("*").order("deadline", { ascending: true }),
         supabase.from("support_threads").select("*").order("last_message_at", { ascending: false }),
         supabase.from("promo_codes").select("code, max_redemptions, current_redemptions, is_active").ilike("code", "FOUNDER-%").eq("is_active", true),
+        supabase.from("app_settings").select("key, value"),
+        supabase.from("announcements").select("*").order("published_at", { ascending: false }).limit(20),
       ])
 
       const profiles = profilesRes.data || []
@@ -227,6 +237,20 @@ export default function AdminPanel() {
       const totalSlots = fCodes.reduce((s, c) => s + (c.max_redemptions || 0), 0)
       const totalRedeemed = fCodes.reduce((s, c) => s + (c.current_redemptions || 0), 0)
       setFounderCodeInfo({ total: totalSlots || 25, redeemed: totalRedeemed })
+
+      // Contact settings from app_settings
+      const settingsMap = {}
+      ;(appSettingsRes.data || []).forEach(r => { settingsMap[r.key] = r.value })
+      setContactSettings({
+        contact_email: settingsMap.contact_email || "",
+        contact_phone: settingsMap.contact_phone || "",
+        contact_phone_audience: settingsMap.contact_phone_audience || "founders_and_first_n",
+        reply_time_text: settingsMap.reply_time_text || "",
+        booking_url: settingsMap.booking_url || "",
+        vip_first_n: settingsMap.vip_first_n || "50",
+      })
+
+      setAnnouncements(announcementsRes.data || [])
     } catch (err) {
       console.error("[Admin] fetch error:", err)
       setFetchError(true)
@@ -665,6 +689,17 @@ export default function AdminPanel() {
                                 style={{ background: u.is_demo ? "#FBF2DC" : "#F2EDE6", color: u.is_demo ? "#8A6A1A" : "#A89F94" }}>
                                 {u.is_demo ? "Unhide" : "Hide"}
                               </button>
+                              <button
+                                onClick={async () => {
+                                  const { error } = await supabase.from("profiles").update({ vip: !u.vip }).eq("id", u.id)
+                                  if (error) return toast.error("Failed: " + error.message)
+                                  setUsers(prev => prev.map(x => x.id === u.id ? { ...x, vip: !u.vip } : x))
+                                  toast.success(u.vip ? "VIP removed" : "VIP granted")
+                                }}
+                                className="text-[10px] px-2 py-1 rounded font-medium transition-colors"
+                                style={{ background: u.vip ? "#E8F2EA" : "#F2EDE6", color: u.vip ? "#2D4A35" : "#A89F94" }}>
+                                {u.vip ? "Remove VIP" : "VIP"}
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -863,6 +898,108 @@ export default function AdminPanel() {
                   )}
                 </div>
               )}
+
+              {/* Check-in Drafts */}
+              <div className="card p-5">
+                <h3 className="text-sm font-semibold mb-3" style={{ color: "#0E0C0A" }}>Ready to Send — Check-in Drafts</h3>
+                <p className="text-xs mb-3" style={{ color: "#A89F94" }}>Users who signed up recently and may need a nudge.</p>
+                <div className="space-y-2">
+                  {users.filter(u => {
+                    if (!u.created_at || u.is_admin || u.is_demo) return false
+                    const days = Math.floor((Date.now() - new Date(u.created_at).getTime()) / 86400000)
+                    return days >= 2 && days <= 35
+                  }).map(u => {
+                    const days = Math.floor((Date.now() - new Date(u.created_at).getTime()) / 86400000)
+                    const milestone = days <= 4 ? "Day 3" : days <= 9 ? "Day 7" : "Day 30"
+                    const draft = milestone === "Day 3"
+                      ? `Hey ${(u.name || "there").split(" ")[0]}, just checking in — have you had a chance to add your first artworks? I'd love to see what you're working on.`
+                      : milestone === "Day 7"
+                        ? `Hi ${(u.name || "there").split(" ")[0]}, how's everything going with ArtistOS? Any questions I can help with? I read every message.`
+                        : `Hi ${(u.name || "there").split(" ")[0]}, it's been a month since you joined! How are things going? I'd love to hear what's working and what we can improve.`
+                    return (
+                      <div key={u.id} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: "#FAF8F5", border: "1px solid #E8E2DA" }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-semibold" style={{ color: "#0E0C0A" }}>{u.name}</span>
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                              style={{ background: milestone === "Day 3" ? "#E8F2EA" : milestone === "Day 7" ? "#FBF2DC" : "#F5E6D8",
+                                       color: milestone === "Day 3" ? "#2D4A35" : milestone === "Day 7" ? "#8A6A1A" : "#B5651D" }}>
+                              {milestone}
+                            </span>
+                            <span className="text-[10px]" style={{ color: "#A89F94" }}>{u.artworkCount} artworks</span>
+                          </div>
+                          <p className="text-[11px] line-clamp-2" style={{ color: "#A89F94" }}>{draft}</p>
+                        </div>
+                        <button onClick={async () => {
+                          try {
+                            const { data: thread } = await supabase.from("support_threads").insert({ user_id: u.id, subject: `Check-in: ${milestone}`, source: "admin" }).select().single()
+                            if (thread) await supabase.from("support_messages").insert({ thread_id: thread.id, sender_role: "admin", sender_id: user.id, body: draft })
+                            toast.success(`Check-in sent to ${u.name}`)
+                            fetchData()
+                          } catch { toast.error("Failed to send") }
+                        }} className="text-[11px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap" style={{ background: "#F5E6D8", color: "#B5651D" }}>
+                          Send
+                        </button>
+                      </div>
+                    )
+                  }).slice(0, 10)}
+                  {users.filter(u => { if (!u.created_at || u.is_admin || u.is_demo) return false; const d = Math.floor((Date.now() - new Date(u.created_at).getTime()) / 86400000); return d >= 2 && d <= 35 }).length === 0 && (
+                    <p className="text-xs text-center py-4" style={{ color: "#A89F94" }}>No check-ins due right now</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Announcements */}
+              <div className="card p-5">
+                <h3 className="text-sm font-semibold mb-3" style={{ color: "#0E0C0A" }}>Announcements</h3>
+                <div className="space-y-3 mb-4">
+                  <input value={announcementForm.title} onChange={e => setAnnouncementForm(f => ({ ...f, title: e.target.value }))}
+                    placeholder="Announcement title" className="form-input text-sm w-full" />
+                  <textarea value={announcementForm.body} onChange={e => setAnnouncementForm(f => ({ ...f, body: e.target.value }))}
+                    placeholder="What do you want to tell your artists?" rows={3} className="form-input text-sm w-full resize-none" />
+                  <div className="flex items-center gap-3">
+                    <select value={announcementForm.audience} onChange={e => setAnnouncementForm(f => ({ ...f, audience: e.target.value }))}
+                      className="form-select text-sm" style={{ width: "auto" }}>
+                      <option value="all">All users</option>
+                      <option value="founders">Founders only</option>
+                      <option value="pro">Pro users</option>
+                      <option value="studio">Studio users</option>
+                    </select>
+                    <button disabled={savingAnnouncement || !announcementForm.title.trim()} onClick={async () => {
+                      setSavingAnnouncement(true)
+                      try {
+                        const { error } = await supabase.from("announcements").insert({
+                          title: announcementForm.title.trim(),
+                          body: announcementForm.body.trim(),
+                          audience: announcementForm.audience,
+                          published_at: new Date().toISOString(),
+                        })
+                        if (error) throw error
+                        toast.success("Announcement published!")
+                        setAnnouncementForm({ title: "", body: "", audience: "all" })
+                        fetchData()
+                      } catch { toast.error("Failed to publish") }
+                      finally { setSavingAnnouncement(false) }
+                    }} className="btn-copper text-sm flex items-center gap-2">
+                      {savingAnnouncement ? <Loader2 size={14} className="animate-spin" /> : null} Publish
+                    </button>
+                  </div>
+                </div>
+                {announcements.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-[10px] uppercase tracking-wider font-medium" style={{ color: "#A89F94" }}>Recent</h4>
+                    {announcements.slice(0, 5).map(a => (
+                      <div key={a.id} className="flex items-center justify-between py-2" style={{ borderBottom: "1px solid #F2EDE6" }}>
+                        <div>
+                          <span className="text-xs font-medium" style={{ color: "#0E0C0A" }}>{a.title}</span>
+                          <span className="text-[10px] ml-2 px-1.5 py-0.5 rounded-full" style={{ background: "#F2EDE6", color: "#A89F94" }}>{a.audience}</span>
+                        </div>
+                        <span className="text-[10px]" style={{ color: "#A89F94" }}>{formatDate(a.published_at)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -1139,6 +1276,60 @@ export default function AdminPanel() {
           {/* ── PLATFORM ── */}
           {tab === "Platform" && (
             <div className="space-y-5">
+              {/* Contact Settings */}
+              <div className="card p-5">
+                <h3 className="text-sm font-semibold mb-4" style={{ color: "#0E0C0A" }}>Contact Settings</h3>
+                <div className="grid md:grid-cols-2 gap-3 mb-4">
+                  <div>
+                    <label className="form-label">Contact email</label>
+                    <input value={contactSettings.contact_email} onChange={e => setContactSettings(s => ({ ...s, contact_email: e.target.value }))}
+                      placeholder="larry@example.com" className="form-input text-sm" />
+                  </div>
+                  <div>
+                    <label className="form-label">Phone number</label>
+                    <input value={contactSettings.contact_phone} onChange={e => setContactSettings(s => ({ ...s, contact_phone: e.target.value }))}
+                      placeholder="+1 (555) 123-4567" className="form-input text-sm" />
+                  </div>
+                  <div>
+                    <label className="form-label">Phone visible to</label>
+                    <select value={contactSettings.contact_phone_audience} onChange={e => setContactSettings(s => ({ ...s, contact_phone_audience: e.target.value }))}
+                      className="form-select text-sm">
+                      <option value="founders_and_first_n">Founders + first N users</option>
+                      <option value="founders">Founders only</option>
+                      <option value="founders_only">Founders only (legacy)</option>
+                      <option value="all">All users</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">First N users (VIP threshold)</label>
+                    <input type="number" value={contactSettings.vip_first_n} onChange={e => setContactSettings(s => ({ ...s, vip_first_n: e.target.value }))}
+                      className="form-input text-sm" min="1" />
+                  </div>
+                  <div>
+                    <label className="form-label">Reply time text</label>
+                    <input value={contactSettings.reply_time_text} onChange={e => setContactSettings(s => ({ ...s, reply_time_text: e.target.value }))}
+                      placeholder="Larry usually replies within a day." className="form-input text-sm" />
+                  </div>
+                  <div>
+                    <label className="form-label">Booking URL (optional)</label>
+                    <input value={contactSettings.booking_url} onChange={e => setContactSettings(s => ({ ...s, booking_url: e.target.value }))}
+                      placeholder="https://calendly.com/..." className="form-input text-sm" />
+                  </div>
+                </div>
+                <button disabled={savingContact} onClick={async () => {
+                  setSavingContact(true)
+                  try {
+                    for (const [key, value] of Object.entries(contactSettings)) {
+                      await supabase.from("app_settings").upsert({ key, value }, { onConflict: "key" })
+                    }
+                    toast.success("Contact settings saved")
+                  } catch { toast.error("Failed to save") }
+                  finally { setSavingContact(false) }
+                }} className="btn-copper text-sm flex items-center gap-2">
+                  {savingContact ? <Loader2 size={14} className="animate-spin" /> : null} Save Contact Settings
+                </button>
+              </div>
+
               <div className="card p-5">
                 <h3 className="text-sm font-semibold mb-4" style={{ color: "#0E0C0A" }}>Quick Links</h3>
                 <div className="grid md:grid-cols-3 gap-3">

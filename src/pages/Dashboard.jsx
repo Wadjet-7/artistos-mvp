@@ -14,6 +14,7 @@ import {
 import PageError from "../components/PageError"
 import FirstStepsChecklist from "../components/FirstStepsChecklist"
 import GettingStarted from "../components/GettingStarted"
+import { fetchAnnouncements, fetchReadAnnouncements, markAnnouncementRead } from "../lib/support"
 
 /* ================================================================ */
 /*  HELPERS                                                          */
@@ -207,6 +208,8 @@ export default function Dashboard() {
   const [portfolioValue, setPortfolioValue] = useState(0)
   const [activities, setActivities] = useState([])
   const [chartRange, setChartRange] = useState("6months")
+  const [announcements, setAnnouncements] = useState([])
+  const [readAnnouncements, setReadAnnouncements] = useState(new Set())
 
   useEffect(() => {
     if (!user?.id) return
@@ -245,6 +248,9 @@ export default function Dashboard() {
         setInvoices(invData)
         setPortfolioValue(artData.reduce((sum, a) => sum + (Number(a.price) || 0), 0))
         setActivities(actData)
+
+        fetchAnnouncements(user?.plan || "starter", user?.lifetime_plan || user?.vip).then(setAnnouncements).catch(() => {})
+        fetchReadAnnouncements(user?.id).then(setReadAnnouncements).catch(() => {})
       } catch (err) {
         console.error("[Dashboard] fetch error:", err)
         setFetchError(true)
@@ -377,6 +383,34 @@ export default function Dashboard() {
       {/* Phase 21: first-session activation checklist (hides when complete) */}
       <GettingStarted />
       <FirstStepsChecklist />
+
+      {/* Announcements */}
+      {announcements.filter(a => !readAnnouncements.has(a.id)).length > 0 && (
+        <div className="card mb-5">
+          <div className="card-header">
+            <div>
+              <h3 className="card-title">Announcements</h3>
+              <p className="card-subtitle">Updates from the ArtistOS team</p>
+            </div>
+          </div>
+          <div className="card-body space-y-3">
+            {announcements.filter(a => !readAnnouncements.has(a.id)).map(a => (
+              <div key={a.id} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: "#FFF8F0", border: "1px solid #F0D9B5" }}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold mb-0.5" style={{ color: "#0E0C0A" }}>{a.title}</p>
+                  {a.body && <p className="text-xs leading-relaxed" style={{ color: "#A89F94" }}>{a.body}</p>}
+                </div>
+                <button onClick={async () => {
+                  await markAnnouncementRead(a.id, user?.id)
+                  setReadAnnouncements(prev => new Set([...prev, a.id]))
+                }} className="text-[10px] font-medium px-2 py-1 rounded" style={{ color: "#A89F94" }}>
+                  Dismiss
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Upgrade banner for Starter users */}
       {plan === "starter" && (
