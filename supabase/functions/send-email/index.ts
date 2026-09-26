@@ -154,7 +154,18 @@ Deno.serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "")
-    const isServiceRole = token === SUPABASE_SERVICE_ROLE_KEY
+
+    // Check service role: direct key match OR a JWT with role=service_role
+    let isServiceRole = token === SUPABASE_SERVICE_ROLE_KEY
+    if (!isServiceRole && token.includes(".")) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        const projectRef = SUPABASE_URL.replace("https://", "").split(".")[0]
+        if (payload.role === "service_role" && payload.ref === projectRef) {
+          isServiceRole = true
+        }
+      } catch { /* not a valid JWT, ignore */ }
+    }
 
     let callerEmail: string | null = null
     let callerId: string | null = null
