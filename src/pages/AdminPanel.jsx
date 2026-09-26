@@ -932,11 +932,13 @@ export default function AdminPanel() {
                         </div>
                         <button onClick={async () => {
                           try {
-                            const { data: thread } = await supabase.from("support_threads").insert({ user_id: u.id, subject: `Check-in: ${milestone}`, source: "admin" }).select().single()
-                            if (thread) await supabase.from("support_messages").insert({ thread_id: thread.id, sender_role: "admin", sender_id: user.id, body: draft })
+                            const { data: thread, error: tErr } = await supabase.from("support_threads").insert({ user_id: u.id, subject: `Check-in: ${milestone}`, source: "admin" }).select().single()
+                            if (tErr) throw tErr
+                            const { error: mErr } = await supabase.from("support_messages").insert({ thread_id: thread.id, sender_role: "admin", sender_id: user.id, body: draft })
+                            if (mErr) throw mErr
                             toast.success(`Check-in sent to ${u.name}`)
                             fetchData()
-                          } catch { toast.error("Failed to send") }
+                          } catch (err) { toast.error("Failed to send: " + (err.message || "Unknown error")) }
                         }} className="text-[11px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap" style={{ background: "#F5E6D8", color: "#B5651D" }}>
                           Send
                         </button>
@@ -1319,11 +1321,15 @@ export default function AdminPanel() {
                 <button disabled={savingContact} onClick={async () => {
                   setSavingContact(true)
                   try {
-                    for (const [key, value] of Object.entries(contactSettings)) {
-                      await supabase.from("app_settings").upsert({ key, value }, { onConflict: "key" })
+                    const n = parseInt(contactSettings.vip_first_n, 10)
+                    if (isNaN(n) || n < 1) return toast.error("VIP threshold must be a positive number") || setSavingContact(false)
+                    const toSave = { ...contactSettings, vip_first_n: String(n) }
+                    for (const [key, value] of Object.entries(toSave)) {
+                      const { error } = await supabase.from("app_settings").upsert({ key, value }, { onConflict: "key" })
+                      if (error) throw error
                     }
                     toast.success("Contact settings saved")
-                  } catch { toast.error("Failed to save") }
+                  } catch (err) { toast.error("Failed to save: " + (err.message || "Unknown error")) }
                   finally { setSavingContact(false) }
                 }} className="btn-copper text-sm flex items-center gap-2">
                   {savingContact ? <Loader2 size={14} className="animate-spin" /> : null} Save Contact Settings

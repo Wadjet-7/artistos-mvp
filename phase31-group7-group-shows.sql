@@ -50,7 +50,9 @@ BEGIN
   IF NOT COALESCE(v_ex.is_group, false) THEN RETURN jsonb_build_object('success', false, 'error', 'Not a group show'); END IF;
   IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = p_user_id) THEN RETURN jsonb_build_object('success', false, 'error', 'User not found'); END IF;
   INSERT INTO public.exhibition_participants (exhibition_id, user_id, role, status, invited_by)
-  VALUES (p_exhibition_id, p_user_id, 'artist', 'invited', v_uid) ON CONFLICT (exhibition_id, user_id) DO NOTHING;
+  VALUES (p_exhibition_id, p_user_id, 'artist', 'invited', v_uid)
+  ON CONFLICT (exhibition_id, user_id) DO UPDATE SET status = 'invited', invited_by = v_uid
+  WHERE public.exhibition_participants.status IN ('declined', 'removed');
   INSERT INTO public.activity_log (user_id, activity_type, description, metadata)
   VALUES (p_user_id, 'exhibition', 'You were invited to "' || v_ex.title || '"', jsonb_build_object('exhibition_id', p_exhibition_id, 'invited_by', v_uid));
   RETURN jsonb_build_object('success', true);
@@ -66,7 +68,7 @@ BEGIN
   IF v_uid IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'Not authenticated'); END IF;
   SELECT status INTO v_status FROM public.exhibition_participants WHERE exhibition_id = p_exhibition_id AND user_id = v_uid;
   IF v_status IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'Not invited'); END IF;
-  IF v_status NOT IN ('invited', 'requested') THEN RETURN jsonb_build_object('success', false, 'error', 'Already responded'); END IF;
+  IF v_status <> 'invited' THEN RETURN jsonb_build_object('success', false, 'error', 'Already responded'); END IF;
   UPDATE public.exhibition_participants SET status = CASE WHEN p_accept THEN 'accepted' ELSE 'declined' END WHERE exhibition_id = p_exhibition_id AND user_id = v_uid;
   RETURN jsonb_build_object('success', true);
 END; $$;
@@ -117,6 +119,13 @@ BEGIN
   SELECT id, user_id, title, venue, location, viewing_room_id, is_group INTO v_ex FROM public.exhibitions WHERE id = p_exhibition_id;
   IF v_ex.id IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'Exhibition not found'); END IF;
   IF v_ex.user_id <> v_uid THEN RETURN jsonb_build_object('success', false, 'error', 'Only the organizer can publish'); END IF;
+  IF NOT COALESCE(v_ex.is_group, false) THEN RETURN jsonb_build_object('success', false, 'error', 'Not a group show'); END IF;
+
+  -- If viewing_room_id points to a deleted room, clear it
+  IF v_ex.viewing_room_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.viewing_rooms WHERE id = v_ex.viewing_room_id) THEN
+    UPDATE public.exhibitions SET viewing_room_id = NULL WHERE id = p_exhibition_id;
+    v_ex.viewing_room_id := NULL;
+  END IF;
 
   SELECT array_agg(unnest) INTO v_all_artworks FROM (
     SELECT unnest(ep.artwork_ids) FROM public.exhibition_participants ep

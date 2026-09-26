@@ -85,15 +85,6 @@ export default function CommissionRequestForm({ open, onClose, artistId, artistN
       if (rpcError) throw rpcError
       if (result && !result.success) throw new Error(result.error || "Request failed")
 
-      // Notify artist via email (non-blocking)
-      supabase.functions.invoke("send-email", {
-        body: {
-          to_user_id: artistId,
-          subject: `New commission request: ${form.title.trim()}`,
-          body: `You have a new commission request from ${form.name.trim()} (${form.email.trim()}).\n\nTitle: ${form.title.trim()}\nBudget: ${form.budgetRange}\nTimeline: ${form.timeline || "Flexible"}\n\nLog in to ArtistOS to review it under Commissions → Pending.`,
-        },
-      }).catch(() => {})
-
       setSubmitted(true)
     } catch (err) {
       console.error("Commission request failed:", err)

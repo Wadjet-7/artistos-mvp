@@ -141,6 +141,38 @@ Deno.serve(async (req) => {
   const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "ArtistOS <onboarding@resend.dev>"
 
   try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+
+    // Require a valid JWT (user or service role)
+    const authHeader = req.headers.get("authorization")
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Not authenticated" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
+    const token = authHeader.replace("Bearer ", "")
+    const isServiceRole = token === SUPABASE_SERVICE_ROLE_KEY
+
+    let callerEmail: string | null = null
+    let callerId: string | null = null
+    if (!isServiceRole) {
+      const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: { "Authorization": `Bearer ${token}`, "apikey": SUPABASE_SERVICE_ROLE_KEY },
+      })
+      if (!userRes.ok) {
+        return new Response(
+          JSON.stringify({ error: "Invalid session" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        )
+      }
+      const authUser = await userRes.json()
+      callerEmail = authUser.email
+      callerId = authUser.id
+    }
+
     const body = await req.json()
     const { to, type, data: templateData, subject: customSubject, html: customHtml } = body
 
@@ -149,6 +181,36 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: "Missing 'to' email address" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
+    }
+
+    // Non-service-role callers can only send to their own email or specific template types
+    if (!isServiceRole) {
+      const recipientEmail = Array.isArray(to) ? to[0] : to
+      const allowedTypes = ["welcome", "viewing_room_shared", "invoice_reminder", "invoice_payment"]
+      if (type && allowedTypes.includes(type)) {
+        // Template emails are allowed (they go to the caller's clients/recipients)
+      } else if (recipientEmail !== callerEmail) {
+        // Check if recipient is one of the caller's invoice/room contacts
+        const checkRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/invoices?user_id=eq.${callerId}&client_email=eq.${encodeURIComponent(recipientEmail)}&select=id&limit=1`,
+          { headers: { "apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` } }
+        )
+        const matches = await checkRes.json()
+        if (!matches?.length) {
+          // Check admin status
+          const adminRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/profiles?id=eq.${callerId}&select=is_admin`,
+            { headers: { "apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` } }
+          )
+          const adminData = await adminRes.json()
+          if (!adminData?.[0]?.is_admin) {
+            return new Response(
+              JSON.stringify({ error: "Not authorized to send to this recipient" }),
+              { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            )
+          }
+        }
+      }
     }
 
     // Get template or use custom subject/html

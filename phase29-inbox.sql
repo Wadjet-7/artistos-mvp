@@ -24,6 +24,8 @@ DROP POLICY IF EXISTS "Users update own threads" ON public.support_threads;
 CREATE POLICY "Users update own threads" ON public.support_threads FOR UPDATE USING (auth.uid() = user_id OR public.is_admin());
 DROP POLICY IF EXISTS "Admin delete threads" ON public.support_threads;
 CREATE POLICY "Admin delete threads" ON public.support_threads FOR DELETE USING (public.is_admin());
+DROP POLICY IF EXISTS "Admins manage threads" ON public.support_threads;
+CREATE POLICY "Admins manage threads" ON public.support_threads FOR ALL USING (public.is_admin());
 
 -- 2. Support messages
 CREATE TABLE IF NOT EXISTS public.support_messages (
@@ -44,6 +46,9 @@ CREATE POLICY "Users send messages" ON public.support_messages FOR INSERT
 DROP POLICY IF EXISTS "Admin send messages" ON public.support_messages;
 CREATE POLICY "Admin send messages" ON public.support_messages FOR INSERT
   WITH CHECK (sender_role = 'admin' AND public.is_admin());
+DROP POLICY IF EXISTS "Admins manage messages" ON public.support_messages;
+CREATE POLICY "Admins manage messages" ON public.support_messages FOR ALL
+  USING (public.is_admin()) WITH CHECK (sender_role = 'admin');
 
 -- 3. Auto-update thread on new message
 CREATE OR REPLACE FUNCTION public.support_message_notify() RETURNS TRIGGER AS $$
