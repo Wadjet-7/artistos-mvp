@@ -272,19 +272,36 @@ export default function ViewingRoom() {
       </section>
 
       {/* ── Interested CTA ── */}
-      {artist && (
+      {(artist || isGroupShow) && (
         <section className="relative overflow-hidden" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 50%, #B5651D33 0%, transparent 60%)" }} />
           <div className="relative max-w-3xl mx-auto px-6 md:px-10 py-16 md:py-20 text-center">
             <h2 className="font-serif font-semibold mb-4" style={{ fontSize: "clamp(1.5rem, 4vw, 2.2rem)", color: "#FAF8F5" }}>
               Interested in these works?
             </h2>
-            <p className="text-sm md:text-base mb-8" style={{ color: "#A89F94", maxWidth: 480, margin: "0 auto 2rem" }}>
-              Visit {artist.name?.split(" ")[0]}'s full profile to see more work and request a commission.
-            </p>
-            <Link to={`/artist/${artist.id}`} className="btn-copper text-base px-8 py-3 inline-flex items-center gap-2">
-              View Full Profile <ArrowRight size={16} />
-            </Link>
+            {isGroupShow ? (
+              <>
+                <p className="text-sm md:text-base mb-8" style={{ color: "#A89F94", maxWidth: 480, margin: "0 auto 2rem" }}>
+                  Explore each artist's profile to see more work and connect directly.
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  {artistList.map(a => (
+                    <Link key={a.id} to={`/artist/${a.id}`} className="btn-copper text-sm px-5 py-2 inline-flex items-center gap-2">
+                      {a.name} <ArrowRight size={14} />
+                    </Link>
+                  ))}
+                </div>
+              </>
+            ) : artist && (
+              <>
+                <p className="text-sm md:text-base mb-8" style={{ color: "#A89F94", maxWidth: 480, margin: "0 auto 2rem" }}>
+                  Visit {artist.name?.split(" ")[0]}'s full profile to see more work and request a commission.
+                </p>
+                <Link to={`/artist/${artist.id}`} className="btn-copper text-base px-8 py-3 inline-flex items-center gap-2">
+                  View Full Profile <ArrowRight size={16} />
+                </Link>
+              </>
+            )}
           </div>
         </section>
       )}
